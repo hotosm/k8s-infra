@@ -1,0 +1,62 @@
+# Basic workflow to open up deploy options under current timeline. Further development required.
+# 
+# This workflow will fail until the following are addressed:
+#   1. The OIDC role referenced in https://github.com/hotosm/OpenAerialMap/issues/177#issuecomment-2741265199 (or project-specific variant) is added to this repo, with var reference modified accordingly
+#   2. Backend resources are bootstrapped + referenced in config
+
+name: Deploy Terraform
+on:
+  push:
+    branches:
+      # - main
+      # - staging
+      - develop
+  pull_request:
+    branches:
+      # - main
+      # - staging
+      - develop
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+defaults:
+  run:
+    working-directory: ./terraform
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.region }}
+          role-to-assume: ${{ secrets.OIDC_DEPLOY_ROLE }}
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -no-color
+      - name: Terraform Init
+        id: init
+        run: terraform init -backend-config=./vars/dev.tfbackend
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -input=false -var-file=./vars/dev.tfvars
+        continue-on-error: true
+      - run: echo ${{ steps.plan.outputs.stdout }} >> $GITHUB_STEP_SUMMARY
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+      - name: Terraform Apply
+        working-directory: ./terraform
+        if: github.event_name == 'push'
+        run: terraform apply -auto-approve -input=false -var-file=./vars/dev.tfvars
