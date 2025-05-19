@@ -1,9 +1,3 @@
-# Basic workflow to open up deploy options under current timeline. Further development required.
-# 
-# This workflow will fail until the following are addressed:
-#   1. The OIDC role referenced in https://github.com/hotosm/OpenAerialMap/issues/177#issuecomment-2741265199 (or project-specific variant) is added to this repo, with var reference modified accordingly
-#   2. Backend resources are bootstrapped + referenced in config
-
 name: Deploy Terraform
 on:
   push:
@@ -11,12 +5,15 @@ on:
       # - main
       # - staging
       - develop
+    paths:
+      - terraform/**
   pull_request:
     branches:
       # - main
       # - staging
       - develop
-  workflow_dispatch:
+    paths:
+      - terraform/**
 
 permissions:
   id-token: write
@@ -26,37 +23,39 @@ defaults:
   run:
     working-directory: ./terraform
 
+env:
+  AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+  DEPLOY_ENV: ${{ vars.DEPLOY_ENV || 'develop' }}
+  VAR_FILE: ${{ vars.VAR_FILE || 'vars/develop.tfvars' }}
+
 jobs:
   deploy:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: ${{ env.region }}
-          role-to-assume: ${{ secrets.OIDC_DEPLOY_ROLE }}
-      - name: Terraform Format
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+      - name: TF Format
         id: fmt
-        run: terraform fmt -no-color
-      - name: Terraform Init
+        run: tofu fmt -no-color
+      - name: TF Init
         id: init
-        run: terraform init -backend-config=./vars/dev.tfbackend
-      - name: Terraform Validate
+        run: tofu init -var-file=${{ env.VAR_FILE }}
+      - name: TF Validate
         id: validate
-        run: terraform validate -no-color
-      - name: Terraform Plan
+        run: tofu validate -no-color
+      - name: TF Plan
         id: plan
-        run: terraform plan -no-color -input=false -var-file=./vars/dev.tfvars
-        continue-on-error: true
-      - run: echo ${{ steps.plan.outputs.stdout }} >> $GITHUB_STEP_SUMMARY
-      - name: Terraform Plan Status
-        if: steps.plan.outcome == 'failure'
-        run: exit 1
-      - name: Terraform Apply
-        working-directory: ./terraform
+        if: github.event_name == 'pull_request'
+        run: tofu plan -no-color -input=false -var-file=${{ env.VAR_FILE }}
+      - name: TF Apply
         if: github.event_name == 'push'
-        run: terraform apply -auto-approve -input=false -var-file=./vars/dev.tfvars
+        run: |
+          tofu apply -target="module.vpc" -auto-approve -input=false -var-file=${{ env.VAR_FILE }}
+          tofu apply -auto-approve -input=false -var-file=${{ env.VAR_FILE }}
