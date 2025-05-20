@@ -1,9 +1,13 @@
-# TODO: swap out to no longer use module
 module "vpc" {
-  source = "git::https://github.com/hotosm/terraform-aws-vpc/"
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "~> 5.0"
 
-  deployment_environment = var.environment
+  name               = "k8s-infra-${var.environment}"
+  cidr               = local.vpc_cidr
+  enable_nat_gateway = true
+  single_nat_gateway = true
 
-  default_tags = var.default_tags
-  project_meta = var.project_meta
+  azs             = local.azs
+  private_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 4, k)]
+  public_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 48)]
 }
