@@ -1,19 +1,11 @@
-provider "kubernetes" {
-  host                   = aws_eks_cluster.cluster.endpoint
-  cluster_ca_certificate = base64decode(aws_eks_cluster.cluster.certificate_authority[0].data)
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    args = ["eks", "get-token", "--cluster-name", aws_eks_cluster.cluster.name]
-  }
-}
-
 resource "aws_eks_cluster" "cluster" {
   name     = "${local.cluster_prefix}-cluster"
   role_arn = aws_iam_role.cluster_control_plane.arn
   version  = var.kubernetes_version
 
+  access_config {
+    authentication_mode = "API_AND_CONFIG_MAP"
+  }
   vpc_config {
     subnet_ids = concat(module.vpc.private_subnets, module.vpc.public_subnets)
   }
@@ -118,23 +110,22 @@ resource "aws_iam_role_policy_attachment" "cluster_autoscaler" {
   policy_arn = aws_iam_policy.cluster_autoscaler.arn
 }
 
+resource "aws_eks_access_entry" "admin" {
+  for_each = toset(var.cluster_admin_access_role_arns)
 
-resource "kubernetes_config_map" "aws_auth" {
-  metadata {
-    name      = "aws-auth"
-    namespace = "kube-system"
-  }
+  cluster_name      = aws_eks_cluster.cluster.name
+  principal_arn     = each.value
+  kubernetes_groups = ["cluster-admin"]
+}
 
-  data = {
-    mapRoles = yamlencode([
-      {
-        rolearn  = aws_iam_role.nodegroup.arn
-        username = "system:node:{{EC2PrivateDNSName}}"
-        groups   = ["system:bootstrappers", "system:nodes"]
-      }
-    ])
-    mapAccounts = yamlencode([])
-    mapUsers    = yamlencode(var.map_users)
+resource "aws_eks_access_policy_association" "admin_policy" {
+  for_each = aws_eks_access_entry.admin
+
+  cluster_name  = aws_eks_cluster.cluster.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  principal_arn = each.value.principal_arn
+
+  access_scope {
+    type = "cluster"
   }
-  depends_on = [aws_eks_cluster.cluster]
 }

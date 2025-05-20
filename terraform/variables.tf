@@ -148,14 +148,11 @@ variable "metrics_server_version" {
   EOT
 }
 
-variable "map_users" {
-  type = list(object({
-    userarn  = string
-    username = string
-    groups   = list(string)
-  }))
-  default = []
+variable "cluster_admin_access_role_arns" {
+  type        = list(string)
+  default     = []
+  sensitive   = true
   description = <<-EOT
-  (Optional) Users to include on aws-auth ConfigMap
+  (Optional) Roles allowed admin access to cluster
   EOT
 }
