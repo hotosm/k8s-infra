@@ -43,7 +43,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
       # TODO: this should likely include a HOT role as well
       # TODO: determine if GH envs preferred, set TF_VAR_ 
-      - run: sed -i 's/DEPLOY_ROLE/${{ secrets.AWS_OIDC_ROLE }}/' ${{ env.VAR_FILE }}
+      - run: sed -i "s/DEPLOY_ROLE/${{ secrets.AWS_OIDC_ROLE }}/" ${{ env.VAR_FILE }}
       - name: TF Format
         id: fmt
         run: tofu fmt -no-color
