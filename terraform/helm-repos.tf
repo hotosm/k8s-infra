@@ -6,7 +6,7 @@ provider "helm" {
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"
-      args = ["eks", "get-token", "--cluster-name", aws_eks_cluster.cluster.name]
+      args        = ["eks", "get-token", "--cluster-name", aws_eks_cluster.cluster.name]
     }
   }
 }
@@ -21,7 +21,7 @@ resource "helm_release" "autoscaler" {
 
   set {
     name  = "autoDiscovery.clusterName"
-    value = "${local.cluster_prefix}-cluster"
+    value = aws_eks_cluster.cluster.name
   }
 
   set {
@@ -160,12 +160,12 @@ resource "helm_release" "prometheus" {
 
 
 resource "helm_release" "metrics-server" {
-  count            = var.enable_support_helm_charts ? 1 : 0
-  name             = "metrics-server"
-  repository       = "https://charts.bitnami.com/bitnami"
-  chart            = "metrics-server"
-  version          = var.metrics_server_version
-  namespace        = "kube-system"
+  count      = var.enable_support_helm_charts ? 1 : 0
+  name       = "metrics-server"
+  repository = "https://charts.bitnami.com/bitnami"
+  chart      = "metrics-server"
+  version    = var.metrics_server_version
+  namespace  = "kube-system"
 
   wait = true
 
