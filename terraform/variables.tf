@@ -13,7 +13,7 @@ variable "region" {
   EOT
 }
 
-variable "default_tags" {
+variable "tags" {
   type        = map(string)
   default     = {}
   description = <<-EOT
@@ -21,16 +21,10 @@ variable "default_tags" {
   EOT
 }
 
-variable "cluster_name" {
-  type        = string
-  description = <<-EOT
-  Name of EKS cluster to create
-  EOT
-}
-
 variable "permissions_boundary" {
   type        = string
   default     = null
+  sensitive   = true
   description = <<-EOT
   (Optional) ARN of the policy that is used to set the permissions boundary for
   the role.
@@ -164,16 +158,4 @@ variable "map_users" {
   description = <<-EOT
   (Optional) Users to include on aws-auth ConfigMap
   EOT
-}
-
-variable "project_meta" {
-  description = "Metadata required for VPC module"
-  type        = map(string)
-
-  default = {
-    name       = "k8s-infra"
-    short_name = "k8s-infra"
-    version    = "0.0.1"
-    url        = "https://github.com/hotosm/k8s-infra"
-  }
 }
