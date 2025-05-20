@@ -27,8 +27,14 @@ locals {
   s3_policy_arn = length(var.bucket_names) > 0 ? aws_iam_policy.eks_s3_access[0].arn : ""
 }
 
+resource "aws_iam_role" "bucket_access" {
+  name                 = "${local.cluster_prefix}-bucket-access"
+  assume_role_policy   = data.aws_iam_policy_document.assume_role_with_oidc.json
+  permissions_boundary = var.permissions_boundary
+}
+
 resource "aws_iam_role_policy_attachment" "s3_access" {
   count      = length(var.bucket_names) > 0 ? 1 : 0
-  role       = aws_iam_role.nodegroup.name
+  role       = aws_iam_role.bucket_access.name
   policy_arn = local.s3_policy_arn
 }
