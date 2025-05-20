@@ -43,7 +43,7 @@ data "aws_iam_policy_document" "assume_role" {
 }
 
 resource "aws_iam_role" "cluster_control_plane" {
-  name                 = "${local.cluster_prefix}-eks-cluster-control-plane"
+  name                 = "${local.cluster_prefix}-cluster-control-plane"
   assume_role_policy   = data.aws_iam_policy_document.assume_role.json
   permissions_boundary = var.permissions_boundary
 }
@@ -103,8 +103,8 @@ data "aws_iam_policy_document" "cluster_autoscaler" {
 }
 
 resource "aws_iam_role" "cluster_autoscaler" {
-  name               = "${local.cluster_prefix}_cluster_autoscaler"
-  assume_role_policy = data.aws_iam_policy_document.assume_role_with_oidc.json
+  name                 = "${local.cluster_prefix}-cluster-autoscaler"
+  assume_role_policy   = data.aws_iam_policy_document.assume_role_with_oidc.json
   permissions_boundary = var.permissions_boundary
 }
 

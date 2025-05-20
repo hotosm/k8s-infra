@@ -58,7 +58,7 @@ variable "capacity_type" {
   description = <<-EOT
   Whether to use ON_DEMAND or SPOT instances.
   EOT
-  
+
   validation {
     condition     = contains(["ON_DEMAND", "SPOT"], var.capacity_type)
     error_message = "The capacity_type value must be ON_DEMAND or SPOT."

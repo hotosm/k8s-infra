@@ -1,11 +1,11 @@
 resource "aws_s3_bucket" "data_stores" {
   for_each = toset(var.bucket_names)
-  bucket = each.key
+  bucket   = each.key
 }
 
 resource "aws_iam_policy" "eks_s3_access" {
-  count      = length(var.bucket_names) > 0 ? 1 : 0
-  name   = "EKSS3AccessPolicy"
+  count = length(var.bucket_names) > 0 ? 1 : 0
+  name  = "EKSS3AccessPolicy"
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -13,7 +13,7 @@ resource "aws_iam_policy" "eks_s3_access" {
         Action = [
           "s3:*"
         ]
-        Effect   = "Allow"
+        Effect = "Allow"
         Resource = concat(
           [for bucketname in var.bucket_names : "arn:aws:s3:::${bucketname}"],
           [for bucketname in var.bucket_names : "arn:aws:s3:::${bucketname}/*"]

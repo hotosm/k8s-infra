@@ -1,5 +1,5 @@
 resource "aws_iam_role" "nodegroup" {
-  name = "${local.cluster_prefix}-nodegroup-role"
+  name                 = "${local.cluster_prefix}-cluster-nodegroup-role"
   permissions_boundary = var.permissions_boundary
 
   assume_role_policy = jsonencode({
