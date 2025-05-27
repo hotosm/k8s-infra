@@ -14,10 +14,9 @@ on:
 permissions:
   id-token: write
   contents: read
-
-defaults:
-  run:
-    working-directory: ./terraform
+  actions: read
+  checks: write
+  pull-requests: write
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
@@ -31,29 +30,20 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_wrapper: false
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
-      # TODO: this should likely include a HOT role as well
-      # TODO: determine if GH envs preferred, set TF_VAR_ 
-      - run: echo "cluster_ci_access_role_arn = ${{ secrets.AWS_OIDC_ROLE }}" >> ${{ env.VAR_FILE }}
-      - name: TF Format
-        id: fmt
-        run: tofu fmt -no-color
-      - name: TF Init
-        id: init
-        run: tofu init -var-file=${{ env.VAR_FILE }}
-      - name: TF Validate
-        id: validate
-        run: tofu validate -no-color
-      - name: TF Plan
-        id: plan
-        if: github.event_name == 'pull_request'
-        run: tofu plan -no-color -input=false -var-file=${{ env.VAR_FILE }}
-      - name: TF Apply
-        if: github.event_name == 'push'
-        run: |
-          tofu apply -target="module.vpc" -auto-approve -input=false -var-file=${{ env.VAR_FILE }}
-          tofu apply -auto-approve -input=false -var-file=${{ env.VAR_FILE }}
+      - name: Provision TF
+        uses: op5dev/tf-via-pr@v13
+        with:
+          command: ${{ github.event_name == 'push' && 'apply' || 'plan' }}
+          tool: tofu
+          working-directory: /terraform
+          validate: true
+          format: true
+          arg-var-file: ${{ env.VAR_FILE }}
+          arg-var: cluster_ci_access_role_arn=${{ secrets.AWS_OIDC_ROLE }}
