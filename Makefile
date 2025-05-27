@@ -34,5 +34,4 @@ init-eoapi:
 ## deploy-eoapi: Upgrade or install eoAPI release
 deploy-eoapi:
 	helm repo list | grep "eoapi" >/dev/null 2>&1 || { echo "Not initialized, run 'make init-eoapi' before retrying"; exit 1; }
-	helm upgrade --install --namespace eoapi --create-namespace eoapi eoapi/eoapi --version $(EOAPI_CHART_VERSION) -f kubernetes/helm/eoapi.yaml --set previousVersion=0.7.1
-	kubectl --namespace eoapi annotate postgresclusters eoapi --overwrite eks.amazonaws.com/role-arn=$(S3_BACKUP_ROLE)
+	helm upgrade --install --namespace eoapi --create-namespace eoapi eoapi/eoapi --version $(EOAPI_CHART_VERSION) -f kubernetes/helm/eoapi.yaml --set previousVersion=$(EOAPI_CHART_VERSION) --set postgrescluster.metadata.annotations.eks.amazonaws.com/role-arn=$(S3_BACKUP_ROLE)
