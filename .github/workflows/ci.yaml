@@ -2,16 +2,12 @@ name: Deploy Terraform
 on:
   push:
     branches:
-      # - main
-      # - staging
-      - develop
+      - main
     paths:
       - terraform/**
   pull_request:
     branches:
-      # - main
-      # - staging
-      - develop
+      - main
     paths:
       - terraform/**
 
@@ -25,8 +21,7 @@ defaults:
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
-  DEPLOY_ENV: ${{ vars.DEPLOY_ENV || 'develop' }}
-  VAR_FILE: ${{ vars.VAR_FILE || 'vars/develop.tfvars' }}
+  VAR_FILE: ${{ vars.VAR_FILE || 'vars/production.tfvars' }}
 
 jobs:
   deploy:
