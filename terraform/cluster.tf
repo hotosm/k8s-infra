@@ -110,20 +110,20 @@ resource "aws_iam_role_policy_attachment" "cluster_autoscaler" {
   policy_arn = aws_iam_policy.cluster_autoscaler.arn
 }
 
-resource "aws_eks_access_entry" "admin" {
-  for_each = toset(var.cluster_admin_access_role_arns)
+resource "aws_eks_access_entry" "admin_access" {
+  count = length(local.cluster_admins)
 
   cluster_name      = aws_eks_cluster.cluster.name
-  principal_arn     = each.value
+  principal_arn     = local.cluster_admins[count.index]
   kubernetes_groups = ["cluster-admin"]
 }
 
 resource "aws_eks_access_policy_association" "admin_policy" {
-  for_each = aws_eks_access_entry.admin
+  count = length(local.cluster_admins)
 
   cluster_name  = aws_eks_cluster.cluster.name
   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-  principal_arn = each.value.principal_arn
+  principal_arn = local.cluster_admins[count.index]
 
   access_scope {
     type = "cluster"

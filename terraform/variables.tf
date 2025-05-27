@@ -156,3 +156,11 @@ variable "cluster_admin_access_role_arns" {
   (Optional) Roles allowed admin access to cluster
   EOT
 }
+
+variable "cluster_ci_access_role_arn" {
+  type        = string
+  sensitive   = true
+  description = <<-EOT
+  CI deployer role to provide cluster access entry
+  EOT
+}
