@@ -38,7 +38,7 @@ jobs:
         with:
           command: ${{ github.event_name == 'push' && 'apply' || 'plan' }}
           tool: tofu
-          working-directory: /terraform
+          working-directory: terraform
           validate: true
           format: true
           arg-var-file: ${{ env.VAR_FILE }}
