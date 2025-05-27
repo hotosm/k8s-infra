@@ -43,3 +43,4 @@ jobs:
           format: true
           arg-var-file: ${{ env.VAR_FILE }}
           arg-var: cluster_ci_access_role_arn=${{ secrets.AWS_OIDC_ROLE }}
+          label-pr: false
