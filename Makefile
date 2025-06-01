@@ -1,6 +1,6 @@
 AWS_PROFILE ?= default
-CLUSTER_NAME = $(shell tofu -chdir=terraform output cluster_name)
-S3_BACKUP_ROLE = $(shell tofu -chdir=terraform output s3_backup_role)
+CLUSTER_NAME = $(shell tofu -chdir=terraform output -var-file=vars/local.tfvars cluster_name)
+S3_BACKUP_ROLE = $(shell tofu -chdir=terraform output -var-file=vars/local.tfvars s3_backup_role)
 
 PGO_CHART_VERSION = 5.7.4
 EOAPI_CHART_VERSION = 0.7.1
