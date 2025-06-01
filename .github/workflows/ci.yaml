@@ -55,8 +55,8 @@ jobs:
           label-pr: false
       - name: Get TF Outputs
         run: |
-          echo "S3_BACKUP_ROLE=$(echo tofu -chdir=terraform output -var-file=vars/production.tfvars s3_backup_role)" >> $GITHUB_ENV
-          echo "CLUSTER_NAME=$(echo tofu -chdir=terraform output -var-file=vars/production.tfvars cluster_name)" >> $GITHUB_ENV
+          echo "S3_BACKUP_ROLE=$(tofu -chdir=terraform output -var-file=vars/production.tfvars s3_backup_role)" >> $GITHUB_ENV
+          echo "CLUSTER_NAME=$(tofu -chdir=terraform output -var-file=vars/production.tfvars cluster_name)" >> $GITHUB_ENV
       - name: Pull kubeconfig
         run: |
           aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }}
