@@ -1,0 +1,28 @@
+releases:
+  - name: eoapi
+    namespace: eoapi
+    chart: eoapi/eoapi
+    version: 0.7.1
+    needs: [default/pgo]
+    values:
+      - eoapi-values.yaml
+      - postgrescluster:
+          metadata:
+            annotations:
+              eks.amazonaws.com/role-arn: {{ env "S3_BACKUP_ROLE" }}
+    set:
+      - name: previousVersion
+        value: 0.7.1
+
+  - name: pgo
+    namespace: default
+    chart: oci://registry.developers.crunchydata.com/crunchydata/pgo
+    version: 5.7.4
+    set:
+      - name: disable_check_for_upgrades
+        value: true
+
+
+repositories:
+  - name: eoapi
+    url: https://devseed.com/eoapi-k8s/

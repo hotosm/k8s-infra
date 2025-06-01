@@ -1,4 +1,4 @@
-name: Deploy Terraform
+name: Deploy Changes
 on:
   push:
     branches:
@@ -33,8 +33,17 @@ jobs:
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          list-files: shell
+          filters: |
+            tf: 'terraform/**'
+            manifest:
+              - added|modified: 'kubernetes/manifests/**'
       - name: Provision TF
         uses: op5dev/tf-via-pr@v13
+        if: ${{ steps.changes.outputs.tf == 'true' }}
         with:
           command: ${{ github.event_name == 'push' && 'apply' || 'plan' }}
           tool: tofu
@@ -44,3 +53,19 @@ jobs:
           arg-var-file: ${{ env.VAR_FILE }}
           arg-var: cluster_ci_access_role_arn=${{ secrets.AWS_OIDC_ROLE }}
           label-pr: false
+      - name: Get TF Outputs
+        run: |
+          echo "S3_BACKUP_ROLE=$(echo tofu -chdir=terraform output -var-file=vars/production.tfvars s3_backup_role)" >> $GITHUB_ENV
+          echo "CLUSTER_NAME=$(echo tofu -chdir=terraform output -var-file=vars/production.tfvars cluster_name)" >> $GITHUB_ENV
+      - name: Pull kubeconfig
+        run: |
+          aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }}
+      - name: Apply changed manifests
+        if: ${{ steps.changes.outputs.manifest == 'true' }}
+        run: |
+          kubectl apply -f ${{ steps.filter.outputs.manifest_files }} ${{ github.event_name == 'pull_request' && '--dry-run' || '' }}
+      - name: Deploy eoAPI Chart
+        uses: helmfile/helmfile-action@v2.0.4
+        with:
+          helmfile-args: ${{ github.event_name == 'push' && 'apply' || 'diff' }}
+          helmfile-workdirectory: kubernetes/helm

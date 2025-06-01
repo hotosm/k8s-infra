@@ -4,13 +4,13 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-body-size: "100m"
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/enable-access-log: "true"
-
+  #   cert-manager.io/cluster-issuer: "letsencrypt-staging"
+  # host: "k8s.hotosm.org"
+  # tls:
+  #   enabled: true
+  #   secretName: eoapi-tls
 
 postgrescluster:
-  # # TODO: bridge alternatives for TF output to CRD annotations
-  # metadata:
-  #   annotations:
-  #     eks.amazonaws.com/role-arn: ""
   backupsEnabled: true
   s3:
     bucket: "pgstac-backup"
@@ -21,13 +21,12 @@ postgrescluster:
   - name: eoapi
     replicas: 1
     dataVolumeClaimSpec:
-      # TODO: gp3 SC
       storageClassName: "gp2"
       accessModes:
       - "ReadWriteOnce"
       resources:
         requests:
-          storage: "10Gi"
+          storage: "100Gi"
           cpu: "1024m"
           memory: "3048Mi"
 
