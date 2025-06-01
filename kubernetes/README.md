@@ -10,9 +10,7 @@ Relevant Docs:
 
 ### ClusterIssuer
 
-Issue TLS certificates with [Let's Encrypt], via [cert-manager].
-
-See [cert-manager docs] for more on Issuer and ClusterIssuer.
+Issue TLS certificates for the cluster via [cert-manager]. See also [eoAPI TLS section](#transport-layer-security-tls).
 
 Install:
 ```sh
@@ -38,7 +36,7 @@ $ helm upgrade --install --namespace eoapi --create-namespace eoapi eoapi/eoapi 
     --set postgrescluster.metadata.annotations."eks\.amazonaws\.com/role-arn"=$S3_BACKUP_ROLE
 ```
 
-### helmfile
+#### helmfile
 
 A basic [helmfile] has been added for GitHub Actions, but its recommended to use outside of CI workflows to maintain consistency.
 
@@ -52,13 +50,14 @@ Provided the values match, a similar workflow can be achieved with the Makefile 
 
 See [eoAPI chart docs]. The following sections provide a basic outline of overlays, customizations, and considerations specific to HOT's initial implementation.
 
-#### TLS
+#### Transport Layer Security (TLS)
 
-Required for [iframing]. See cert-manager docs above and [eoAPI guidance on cert-manager setup]. 
+See [cert-manager docs] and [eoAPI guidance on cert-manager setup]. 
 
-Once a domain has been secured, issuer manifests and chart settings have been made available to provision certificates using [ingress annotations] and Let's Encrypt/[ACME].
-
-Step-by-step instructions can be found in the [eoapi values file](./helm/eoapi-values.yaml). 
+- Requires a domain controlled by HOT
+- Issuer manifests and chart settings have been made available to provision certificates using [ingress annotations] and Let's Encrypt/[ACME]
+- Step-by-step instructions can be found in the [eoapi values file](./helm/eoapi-values.yaml)
+- Required for [iframing]
 
 #### Backups
 
@@ -77,7 +76,7 @@ The eoAPI support chart adds Prometheus and Grafana tooling to enable systems an
 - [eoAPI chart configuration]: set HPA behavior for services
 - [eoAPI support chart dependencies]: explore further customization, provider documentation
 
-Currently set to install once TLS is enabled in eoAPI.
+_Currently set to install once TLS is enabled in eoAPI._
 
 ## Tips + Commands
 

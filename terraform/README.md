@@ -45,34 +45,34 @@ OpenTofu needs to connect with AWS for most all operations.
 
 Make sure the AWS CLI is [installed](https://docs.aws.amazon.com/cli/v1/userguide/cli-chap-install.html) with a profile configured to access the target deployment account/region. Setup details vary based on organization policies, principal types, authentication methods, etc.
 
-Non-default AWS credentials are typically set per session:
-```sh
-$ export AWS_PROFILE=<profile>
-$ tofu plan #...
-$ tofu apply #...
-$ #...
-```
-Or per command:
-```sh
-$ AWS_PROFILE=<profile> tofu plan #...
-$ AWS_PROFILE=<profile> tofu apply #...
-$ AWS_PROFILE=<profile> #...
-```
-See [credential precedence] for other sourcing options. 
+- Non-default AWS credentials are typically set per session:
+  ```sh
+  $ export AWS_PROFILE=<profile>
+  $ tofu plan #...
+  $ tofu apply #...
+  $ #...
+  ```
+- Or per command:
+  ```sh
+  $ AWS_PROFILE=<profile> tofu plan #...
+  $ AWS_PROFILE=<profile> tofu apply #...
+  $ AWS_PROFILE=<profile> #...
+  ```
+- See [credential precedence] for other sourcing options. 
 
 #### Working Directory
 
 OpenTofu operations reference the current working directory. 
 
-Either switch to the (root) module _before_ running `tofu` commands:
-```sh
-$ cd terraform
-$ tofu plan
-```
-Or reference the correct directory _in_ `tofu` commands:
-```sh
-$ tofu -chdir=terraform plan
-```
+- Either switch to the (root) module _before_ running `tofu` commands:
+  ```sh
+  $ cd terraform
+  $ tofu plan
+  ```
+- Or reference the correct directory _in_ `tofu` commands:
+  ```sh
+  $ tofu -chdir=terraform plan
+  ```
 
 ### Basic Provision + Teardown
 
