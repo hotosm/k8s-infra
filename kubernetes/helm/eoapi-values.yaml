@@ -32,7 +32,7 @@ ingress:
 postgrescluster:
   backupsEnabled: true
   s3:
-    bucket: "pgstac-backup"
+    bucket: "hotosm-pgstac-backup"
     endpoint: "s3.us-east-1.amazonaws.com"
     region: "us-east-1"
     keyType: "web-id"
