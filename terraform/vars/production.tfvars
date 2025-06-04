@@ -3,7 +3,7 @@ region        = "us-east-1"
 state_bucket  = "hotosm-terraform"
 lock_table    = "k8s-infra"
 instance_type = "t3.xlarge"
-bucket_names  = ["pgstac-backup", ]
+bucket_names  = ["hotosm-pgstac-backup", ]
 tags = {
   project = "k8s-control"
 }
