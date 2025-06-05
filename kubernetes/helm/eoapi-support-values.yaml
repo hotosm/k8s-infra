@@ -1,0 +1,23 @@
+prometheus-adapter:
+  prometheus:
+    url: http://eoapi-support-prometheus-server.eoapi-support.svc.cluster.local
+
+prometheus:
+  server:
+    persistentVolume:
+      storageClass: gp2
+
+grafana:
+  datasources:
+    datasources.yaml:
+      datasources:
+      - name: prometheus
+        orgId: 1
+        type: prometheus
+        url: http://eoapi-support-prometheus-server.eoapi-support.svc.cluster.local
+        access: proxy
+        jsonData:
+          timeInterval: "5s"
+        isDefault: true
+        editable: true
+        version: 1 # This number should be increased when changes are made to update the datasource

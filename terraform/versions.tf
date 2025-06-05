@@ -1,9 +1,9 @@
 terraform {
   backend "s3" {
     region         = var.region
-    bucket         = "hotosm-terraform"
+    bucket         = var.state_bucket
     key            = "${var.environment}/k8s-infra/terraform.tfstate"
-    dynamodb_table = "k8s-infra"
+    dynamodb_table = var.lock_table
   }
 
   required_providers {
