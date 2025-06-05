@@ -33,17 +33,8 @@ jobs:
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
-      - uses: dorny/paths-filter@v3
-        id: changes
-        with:
-          list-files: shell
-          filters: |
-            tf: 'terraform/**'
-            manifest:
-              - added|modified: 'kubernetes/manifests/**'
       - name: Provision TF
         uses: op5dev/tf-via-pr@v13
-        if: ${{ steps.changes.outputs.tf == 'true' }}
         with:
           command: ${{ github.event_name == 'push' && 'apply' || 'plan' }}
           tool: tofu
@@ -60,10 +51,9 @@ jobs:
       - name: Pull kubeconfig
         run: |
           aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }}
-      - name: Apply changed manifests
-        if: ${{ steps.changes.outputs.manifest == 'true' }}
+      - name: Apply manifests
         run: |
-          kubectl apply -f ${{ steps.filter.outputs.manifest_files }} ${{ github.event_name == 'pull_request' && '--dry-run' || '' }}
+          kubectl apply -f kubernetes/manifests/ ${{ github.event_name == 'pull_request' && '--dry-run' || '' }}
       - name: Deploy eoAPI Chart
         uses: helmfile/helmfile-action@v2.0.4
         with:
