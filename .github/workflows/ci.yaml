@@ -39,6 +39,7 @@ jobs:
           ## Final two steps depend on fully provisioned cluster
           ## Revert to original condition once the cluster is up
           command: apply
+          plan-parity: true
           # command: ${{ github.event_name == 'push' && 'apply' || 'plan' }}
           tool: tofu
           working-directory: terraform
