@@ -36,11 +36,7 @@ jobs:
       - name: Provision TF
         uses: op5dev/tf-via-pr@v13
         with:
-          ## Final two steps depend on fully provisioned cluster
-          ## Revert to original condition once the cluster is up
-          command: apply
-          plan-parity: true
-          # command: ${{ github.event_name == 'push' && 'apply' || 'plan' }}
+          command: ${{ github.event_name == 'push' && 'apply' || 'plan' }}
           tool: tofu
           working-directory: terraform
           validate: true
@@ -55,11 +51,11 @@ jobs:
       - name: Pull kubeconfig
         run: |
           aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }}
-      ## Final two steps depend on fully provisioned cluster
-      ## Reenable once the cluster is up
-      # - name: Apply manifests
-      #   run: |
-      #     kubectl apply -f kubernetes/manifests/ ${{ github.event_name == 'pull_request' && '--dry-run' || '' }}
+      # Final two steps depend on fully provisioned cluster
+      # Reenable once the cluster is up
+      - name: Apply manifests
+        run: |
+          kubectl apply -f kubernetes/manifests/ ${{ github.event_name == 'pull_request' && '--dry-run' || '' }}
       # - name: Deploy eoAPI Chart
       #   uses: helmfile/helmfile-action@v2.0.4
       #   with:
