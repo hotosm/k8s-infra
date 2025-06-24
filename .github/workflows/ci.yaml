@@ -57,5 +57,10 @@ jobs:
       - name: Deploy eoAPI Chart
         uses: helmfile/helmfile-action@v2.0.4
         with:
-          helmfile-args: ${{ github.event_name == 'push' && 'apply' || 'diff' }}
+          ## Reenable once eoapi is up
+          helmfile-args: 'apply'
+          # helmfile-args: ${{ github.event_name == 'push' && 'apply' || 'diff' }}
           helmfile-workdirectory: kubernetes/helm
+      - run: |
+          kubectl -n ingress-nginx get svc/ingress-ingress-nginx-controller \
+            -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}'
