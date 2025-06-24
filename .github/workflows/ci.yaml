@@ -57,7 +57,5 @@ jobs:
       - name: Deploy eoAPI Chart
         uses: helmfile/helmfile-action@v2.0.4
         with:
-          ## Reenable once pgo is up
-          helmfile-args: 'apply'
-          # helmfile-args: ${{ github.event_name == 'push' && 'apply' || 'diff' }}
+          helmfile-args: ${{ github.event_name == 'push' && 'apply' || 'diff' }}
           helmfile-workdirectory: kubernetes/helm
