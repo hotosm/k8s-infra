@@ -51,13 +51,11 @@ jobs:
       - name: Pull kubeconfig
         run: |
           aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }}
-      # Final two steps depend on fully provisioned cluster
-      # Reenable once the cluster is up
       - name: Apply manifests
         run: |
           kubectl apply -f kubernetes/manifests/ ${{ github.event_name == 'pull_request' && '--dry-run' || '' }}
-      # - name: Deploy eoAPI Chart
-      #   uses: helmfile/helmfile-action@v2.0.4
-      #   with:
-      #     helmfile-args: ${{ github.event_name == 'push' && 'apply' || 'diff' }}
-      #     helmfile-workdirectory: kubernetes/helm
+      - name: Deploy eoAPI Chart
+        uses: helmfile/helmfile-action@v2.0.4
+        with:
+          helmfile-args: ${{ github.event_name == 'push' && 'apply' || 'diff' }}
+          helmfile-workdirectory: kubernetes/helm
