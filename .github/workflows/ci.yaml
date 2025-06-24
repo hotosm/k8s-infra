@@ -38,7 +38,7 @@ jobs:
         with:
           ## Final two steps depend on fully provisioned cluster
           ## Revert to original condition once the cluster is up
-          command: apply
+          command: plan
           plan-parity: true
           # command: ${{ github.event_name == 'push' && 'apply' || 'plan' }}
           tool: tofu
