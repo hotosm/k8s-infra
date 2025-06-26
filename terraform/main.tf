@@ -12,7 +12,7 @@ data "aws_availability_zones" "available" {
 
 locals {
   cluster_prefix = "hotosm-${var.environment}"
-  cluster_admins = concat(var.cluster_admin_access_role_arns, [var.cluster_ci_access_role_arn])
+  cluster_admins = concat([var.cluster_ci_access_role_arn], var.cluster_admin_access_role_arns)
   azs            = slice(sort(data.aws_availability_zones.available.names), 0, min(4, length(data.aws_availability_zones.available.names)))
   vpc_cidr       = "10.0.0.0/16"
 }
