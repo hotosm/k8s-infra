@@ -20,7 +20,7 @@ In order of most difficult → least difficult for migration in our 2024 assessm
   - fAIr (GPU reliant ML workflows, task scheduling, autoscaling).
   - Tasking Manager (autoscaling requirement, large user base).
   - Export tool / raw-data-api (task scheduling, redis queue based autoscaling)
-  - FMTM & DroneTM
+  - FieldTM & DroneTM
 
 ## Benefits
 
@@ -58,21 +58,21 @@ In order of most difficult → least difficult for migration in our 2024 assessm
 
 ### Step 2: Deployment of Easier HOTOSM Apps
 
-These apps have fewer moving parts, or are easier to package up and deploy (FMTM has a partial helm chart already).
+These apps have fewer moving parts, or are easier to package up and deploy (FieldTM has a partial helm chart already).
 
-- FMTM
+- FieldTM
 - DroneTM
 - Export Tool / Raw-Data-API
 (in order)
 
-#### FMTM
+#### FieldTM
 
-- Some of the requirements for FMTM are already captured in issues here: https://github.com/hotosm/fmtm/issues?q=is%3Aissue%20state%3Aopen%20label%3Adevops
-- FMTM requires a deployment of ODK alongside it, meaning we also need to make a helm chart for that (it would be great to contribute to the community, but first we should discuss with the ODK team).
+- Some of the requirements for FieldTM are already captured in issues here: https://github.com/hotosm/field-tm/issues?q=is%3Aissue%20state%3Aopen%20label%3Adevops
+- FieldTM requires a deployment of ODK alongside it, meaning we also need to make a helm chart for that (it would be great to contribute to the community, but first we should discuss with the ODK team).
 
 #### DroneTM
 
-- The deployment of DroneTM will be quite similar to FMTM, but instead of a requirement for ODK, we also need to deploy OpenDroneMap, with NodeODM being scalable via CPU utilisation or queue length with a tool like KEDA.
+- The deployment of DroneTM will be quite similar to FieldTM, but instead of a requirement for ODK, we also need to deploy OpenDroneMap, with NodeODM being scalable via CPU utilisation or queue length with a tool like KEDA.
 
 #### Export Tool / Raw-Data-API
 
