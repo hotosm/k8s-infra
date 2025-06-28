@@ -37,7 +37,7 @@ jobs:
         uses: op5dev/tf-via-pr@v13
         env:
           TF_VAR_cluster_ci_access_role_arn: ${{ secrets.AWS_OIDC_ROLE }}
-          TF_VAR_cluster_admin_access_role_arns: ${{ toJSON(secrets.CLUSTER_ADMIN_ACCESS_ROLE_ARNS) }}
+          TF_VAR_cluster_admin_access_role_arns: ${{ secrets.CLUSTER_ADMIN_ACCESS_ROLE_ARNS }}
         with:
           command: ${{ github.event_name == 'push' && 'apply' || 'plan' }}
           tool: tofu
