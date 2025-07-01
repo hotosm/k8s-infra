@@ -23,11 +23,11 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-body-size: "100m"
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/enable-access-log: "true"
-  #   cert-manager.io/cluster-issuer: "letsencrypt-staging"
-  # host: "k8s.hotosm.org"
-  # tls:
-  #   enabled: true
-  #   secretName: eoapi-tls
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+  host: "eoapi-prod.imagery-services.k8s-prod.hotosm.org"
+  tls:
+    enabled: true
+    secretName: eoapi-tls
 
 stac:
   image:
