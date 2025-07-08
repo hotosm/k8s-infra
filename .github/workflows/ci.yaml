@@ -41,6 +41,7 @@ jobs:
         with:
           ## Revert after access entries applied
           command: 'apply'
+          plan-parity: true
           # command: ${{ github.event_name == 'push' && 'apply' || 'plan' }}
           tool: tofu
           working-directory: terraform
