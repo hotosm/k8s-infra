@@ -39,9 +39,9 @@ jobs:
           TF_VAR_cluster_ci_access_role_arn: ${{ secrets.AWS_OIDC_ROLE }}
           TF_VAR_cluster_admin_access_role_arns: ${{ secrets.CLUSTER_ADMIN_ACCESS_ROLE_ARNS }}
         with:
-          ## Revert to original
-          # command: 'apply'
-          command: ${{ github.event_name == 'push' && 'apply' || 'plan' }}
+          ## Revert after access entries applied
+          command: 'apply'
+          # command: ${{ github.event_name == 'push' && 'apply' || 'plan' }}
           tool: tofu
           working-directory: terraform
           validate: true
@@ -56,8 +56,11 @@ jobs:
         run: |
           aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }}
       - name: Apply manifests
+        ## Revert after email applied
         run: |
-          kubectl apply -f kubernetes/manifests/ ${{ github.event_name == 'pull_request' && '--dry-run' || '' }}
+          kubectl apply -f kubernetes/manifests/
+        # run: |
+        #   kubectl apply -f kubernetes/manifests/ ${{ github.event_name == 'pull_request' && '--dry-run' || '' }}
       - name: Deploy eoAPI Chart
         uses: helmfile/helmfile-action@v2.0.4
         with:
