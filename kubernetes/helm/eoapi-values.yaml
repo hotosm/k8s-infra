@@ -29,6 +29,12 @@ ingress:
   #   enabled: true
   #   secretName: eoapi-tls
 
+stac:
+  image:
+    # From https://github.com/hotosm/OpenAerialMap/tree/main/backend/stac-api
+    name: ghcr.io/hotosm/openaerialmap/stac-api
+    tag: main
+
 postgrescluster:
   backupsEnabled: true
   s3:
