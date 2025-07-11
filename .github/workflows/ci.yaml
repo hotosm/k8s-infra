@@ -59,9 +59,6 @@ jobs:
       - name: Deploy eoAPI Chart
         uses: helmfile/helmfile-action@v2.0.4
         with:
-          helmfile-args: ${{ github.event_name == 'push' && 'apply' || 'diff' }}
+          helmfile-args: 'apply'
+          # helmfile-args: ${{ github.event_name == 'push' && 'apply' || 'diff' }}
           helmfile-workdirectory: kubernetes/helm
-      - run: |
-          kubectl get clusterissuer -o=jsonpath='{.items[*].spec.acme.email}'
-          kubectl get certificate -n eoapi
-          kubectl get secret/eoapi-tls -n eoapi
