@@ -30,11 +30,21 @@ ingress:
   #   enabled: true
   #   secretName: eoapi-tls
 
+vector:
+  # The vector service that provides OGC Features API and vector tiles isn't
+  # needed currently, so it is disabled to save on some cluster resources.
+  enabled: false
+
 stac:
   image:
     # From https://github.com/hotosm/OpenAerialMap/tree/main/backend/stac-api
     name: ghcr.io/hotosm/openaerialmap/stac-api
     tag: main
+  command:
+    - "uvicorn"
+    - "app.main:app"
+    - "--host=$(HOST)"
+    - "--port=$(PORT)"
   settings:
     envVars:
       ##############
