@@ -45,7 +45,6 @@ jobs:
           validate: true
           format: true
           arg-var-file: ${{ env.VAR_FILE }}
-          label-pr: false
       - name: Get TF Outputs
         run: |
           echo "S3_BACKUP_ROLE=$(tofu -chdir=terraform output -var-file=vars/production.tfvars s3_backup_role)" >> $GITHUB_ENV
