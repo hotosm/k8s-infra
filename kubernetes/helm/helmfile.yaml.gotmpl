@@ -27,7 +27,7 @@ releases:
     chart: eoapi/eoapi-support
     version: 0.1.7
     needs: [eoapi/eoapi]
-    installed: {{ readFile "eoapi-values.yaml" | fromYaml | get "foo" false }}
+    installed: {{ readFile "eoapi-values.yaml" | fromYaml | get "ingress.tls.enabled" false }}
     values:
       - eoapi-support-values.yaml
 
