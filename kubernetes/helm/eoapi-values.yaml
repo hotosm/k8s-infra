@@ -1,29 +1,10 @@
-# Enabling TLS
-#
-# The following implemention uses ingress annotations (https://cert-manager.io/docs/usage/ingress/)
-# and Let's Encrypt/ACME (https://cert-manager.io/docs/configuration/acme/) to provision certificates.
-#
-# 1. Set up a DNS entry, e.g. k8s.hotosm.org, and provide it under `ingress.host`
-#    https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-to-elb-load-balancer.html
-# 2. Test with the staging issuer first to avoid hitting rate limits
-#    `kubectl apply -f kubernetes/manifests/cluster-issuer-staging.yaml`
-# 3. Uncomment the cert-manager annotation, and the ingress.host + ingress.tls blocks (L26-30).
-# 4. Update the helm release and confirm certificate issued successfully
-#    `kubectl describe certificate/eoapi-tls -n eoapi`
-#    `kubectl describe secret/eoapi-tls -n eoapi`
-# 5. Verify the contact email provided under spec.acme.email and install production issuer
-#    `kubectl apply -f kubernetes/manifests/cluster-issuer.yaml`
-# 6. Change the value of the cert-manager.io/cluster-issuer annotation to: "letsencrypt-prod"
-# 7. Update the helm release and delete the existing secret to update the issuer
-#    `kubectl delete secret/eoapi-tls -n eoapi`
-
 ingress:
   annotations:
     # increase the max body size to 100MB
     nginx.ingress.kubernetes.io/proxy-body-size: "100m"
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/enable-access-log: "true"
-    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
   host: "oam-eoapi-prod.imagery-services.k8s-prod.hotosm.org"
   tls:
     enabled: true

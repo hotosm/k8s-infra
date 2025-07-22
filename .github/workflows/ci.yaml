@@ -61,10 +61,3 @@ jobs:
           helmfile-args: 'apply'
           # helmfile-args: ${{ github.event_name == 'push' && 'apply' || 'diff' }}
           helmfile-workdirectory: kubernetes/helm
-      - run: |
-          kubectl get certificate -n eoapi
-          kubectl get certificaterequests -n eoapi
-          kubectl get order -n eoapi
-
-          kubectl events --for certificate/eoapi-tls -n eoapi
-          kubectl events --for certificaterequests/eoapi-tls-1 -n eoapi

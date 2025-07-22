@@ -56,8 +56,7 @@ See [cert-manager docs] and [eoAPI guidance on cert-manager setup].
 
 - Requires a domain controlled by HOT
 - Issuer manifests and chart settings have been made available to provision certificates using [ingress annotations] and Let's Encrypt/[ACME]
-- Step-by-step instructions can be found in the [eoapi values file](./helm/eoapi-values.yaml)
-- Required for [iframing]
+- Recommend going through staging issuer first to avoid hitting rate limits
 
 #### Backups
 
