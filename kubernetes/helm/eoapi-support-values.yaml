@@ -14,7 +14,7 @@ prometheus:
         # nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
         nginx.ingress.kubernetes.io/enable-cors: "true"
         nginx.ingress.kubernetes.io/enable-access-log: "true"
-        cert-manager.io/cluster-issuer: "letsencrypt-staging"
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
       enabled: true
       ingressClassName: nginx
       hosts:
@@ -34,7 +34,7 @@ grafana:
     annotations:
       nginx.ingress.kubernetes.io/enable-cors: "true"
       nginx.ingress.kubernetes.io/enable-access-log: "true"
-      cert-manager.io/cluster-issuer: "letsencrypt-staging"
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
     enabled: true
     ingressClassName: nginx
     hosts:
