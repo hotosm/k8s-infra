@@ -9,7 +9,7 @@
 - Pull this image:
   `ghcr.io/spwoodcock/awscli-kubectl`
 - Then create an alias:
-  `alias aws-shell='docker run --rm -it -v /home/sam:/root --workdir /root ghcr.io/spwoodcock/awscli-kubectl:latest'`
+  `alias aws-shell='docker run --rm -it -v $HOME:/root --workdir /root ghcr.io/spwoodcock/awscli-kubectl:latest'`
 - Simply run `aws-shell` before continuing below.
 
 ## Configure AWS CLI
