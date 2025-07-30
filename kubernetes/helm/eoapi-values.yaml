@@ -15,34 +15,34 @@ vector:
   # needed currently, so it is disabled to save on some cluster resources.
   enabled: false
 
-# stac:
-#   image:
-#     # From https://github.com/hotosm/OpenAerialMap/tree/main/backend/stac-api
-#     name: ghcr.io/hotosm/openaerialmap/stac-api
-#     tag: main
-#   command:
-#     - "uvicorn"
-#     - "app.main:app"
-#     - "--host=$(HOST)"
-#     - "--port=$(PORT)"
-#   settings:
-#     envVars:
-#       ##############
-#       # uvicorn
-#       ##############
-#       HOST: "0.0.0.0"
-#       PORT: "8080"
-#       # https://www.uvicorn.org/settings/#production
-#       WEB_CONCURRENCY: "5"
-#       ##############
-#       # stac-fastapi-pgstac
-#       ##############
-#       ENABLE_TRANSACTIONS_EXTENSIONS: "false"
-#       ##############
-#       # stac-fastapi
-#       ##############
-#       STAC_FASTAPI_TITLE: "STAC FastAPI for OpenAerialMap"
-#       STAC_FASTAPI_DESCRIPTION: "STAC FastAPI deployment for the OpenAerialMap and open imagery catalogs."
+stac:
+  image:
+    # From https://github.com/hotosm/OpenAerialMap/tree/main/backend/stac-api
+    name: ghcr.io/hotosm/openaerialmap/stac-api
+    tag: main
+  command:
+    - "uvicorn"
+    - "app.main:app"
+    - "--host=$(HOST)"
+    - "--port=$(PORT)"
+  settings:
+    envVars:
+      ##############
+      # uvicorn
+      ##############
+      HOST: "0.0.0.0"
+      PORT: "8080"
+      # https://www.uvicorn.org/settings/#production
+      WEB_CONCURRENCY: "5"
+      ##############
+      # stac-fastapi-pgstac
+      ##############
+      ENABLE_TRANSACTIONS_EXTENSIONS: "false"
+      ##############
+      # stac-fastapi
+      ##############
+      STAC_FASTAPI_TITLE: "STAC FastAPI for OpenAerialMap"
+      STAC_FASTAPI_DESCRIPTION: "STAC FastAPI deployment for the OpenAerialMap and open imagery catalogs."
 
 postgrescluster:
   backupsEnabled: true
