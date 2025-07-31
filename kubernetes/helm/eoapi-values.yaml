@@ -1,0 +1,70 @@
+ingress:
+  annotations:
+    # increase the max body size to 100MB
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/enable-access-log: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  host: "oam-eoapi-prod.imagery-services.k8s-prod.hotosm.org"
+  tls:
+    enabled: true
+    secretName: eoapi-tls
+
+vector:
+  # The vector service that provides OGC Features API and vector tiles isn't
+  # needed currently, so it is disabled to save on some cluster resources.
+  enabled: false
+
+stac:
+  image:
+    # From https://github.com/hotosm/OpenAerialMap/tree/main/backend/stac-api
+    name: ghcr.io/hotosm/openaerialmap/stac-api
+    tag: main
+  command:
+    - "uvicorn"
+    - "app.main:app"
+    - "--host=$(HOST)"
+    - "--port=$(PORT)"
+  settings:
+    envVars:
+      ##############
+      # uvicorn
+      ##############
+      HOST: "0.0.0.0"
+      PORT: "8080"
+      # https://www.uvicorn.org/settings/#production
+      WEB_CONCURRENCY: "5"
+      ##############
+      # stac-fastapi-pgstac
+      ##############
+      ENABLE_TRANSACTIONS_EXTENSIONS: "false"
+      ##############
+      # stac-fastapi
+      ##############
+      STAC_FASTAPI_TITLE: "STAC FastAPI for OpenAerialMap"
+      STAC_FASTAPI_DESCRIPTION: "STAC FastAPI deployment for the OpenAerialMap and open imagery catalogs."
+
+postgrescluster:
+  backupsEnabled: true
+  s3:
+    bucket: "hotosm-pgstac-backup"
+    endpoint: "s3.us-east-1.amazonaws.com"
+    region: "us-east-1"
+    keyType: "web-id"
+  instances:
+  - name: eoapi
+    replicas: 1
+    dataVolumeClaimSpec:
+      storageClassName: "gp2"
+      accessModes:
+      - "ReadWriteOnce"
+      resources:
+        requests:
+          storage: "100Gi"
+          cpu: "1024m"
+          memory: "3048Mi"
+
+pgstacBootstrap:
+  image:
+    name: ghcr.io/stac-utils/pgstac-pypgstac
+    tag: v0.9.6
