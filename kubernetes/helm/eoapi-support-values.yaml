@@ -1,0 +1,58 @@
+prometheus-adapter:
+  prometheus:
+    url: http://eoapi-support-prometheus-server.eoapi-support.svc.cluster.local
+
+prometheus:
+  server:
+    service:
+      type: ClusterIP
+      annotations: { }
+    ingress:
+      annotations:
+        nginx.ingress.kubernetes.io/auth-type: basic
+        nginx.ingress.kubernetes.io/auth-secret: eoapi-support-prometheus
+        nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
+        nginx.ingress.kubernetes.io/enable-cors: "true"
+        nginx.ingress.kubernetes.io/enable-access-log: "true"
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      enabled: true
+      ingressClassName: nginx
+      hosts:
+        - metrics.k8s-prod.hotosm.org
+      tls:
+        - secretName: prometheus-server-tls
+          hosts:
+            - metrics.k8s-prod.hotosm.org
+    persistentVolume:
+      storageClass: gp2
+
+grafana:
+  service:
+    type: ClusterIP
+    annotations: { }
+  ingress:
+    annotations:
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/enable-access-log: "true"
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - dashboard.k8s-prod.hotosm.org
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - dashboard.k8s-prod.hotosm.org
+  datasources:
+    datasources.yaml:
+      datasources:
+      - name: prometheus
+        orgId: 1
+        type: prometheus
+        url: http://eoapi-support-prometheus-server.eoapi-support.svc.cluster.local
+        access: proxy
+        jsonData:
+          timeInterval: "5s"
+        isDefault: true
+        editable: true
+        version: 1 # This number should be increased when changes are made to update the datasource

@@ -1,0 +1,70 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: stac-ingest-oam
+  namespace: eoapi
+  labels:
+    app: stac-ingest-oam
+spec:
+  schedule: "0 0 31 2 *"
+  # schedule: "*/30 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: stac-ingest-oam
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: stac-ingest-oam
+              image: ghcr.io/hotosm/openaerialmap/stac-ingester:main
+              resources:
+                limits:
+                  cpu: "768m"
+                  memory: "4096Mi"
+                requests:
+                  cpu: "256m"
+                  memory: "3072Mi"
+              command:
+                - "/bin/sh"
+                - "-c"
+              args:
+                - |
+                  # Exit immediately if a command exits with a non-zero status
+                  set -e
+
+                  # Database connection configured through standard PG* environment variables
+                  # Environment variables are already set by the container
+
+                  echo "Beginning sync"
+                  hotosm sync-oam --uploaded-since 2100
+
+                  echo "Job complete"
+              env:
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      key: user
+                      name: eoapi-pguser-eoapi
+                - name: PGPORT
+                  valueFrom:
+                    secretKeyRef:
+                      key: port
+                      name: eoapi-pguser-eoapi
+                - name: PGHOST
+                  valueFrom:
+                    secretKeyRef:
+                      key: host
+                      name: eoapi-pguser-eoapi
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: password
+                      name: eoapi-pguser-eoapi
+                - name: PGDATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      key: dbname
+                      name: eoapi-pguser-eoapi
+      backoffLimit: 3

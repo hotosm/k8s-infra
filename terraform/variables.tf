@@ -13,6 +13,22 @@ variable "region" {
   EOT
 }
 
+variable "state_bucket" {
+  type        = string
+  default     = ""
+  description = <<-EOT
+  S3 bucket for remote state backend
+  EOT
+}
+
+variable "lock_table" {
+  type        = string
+  default     = ""
+  description = <<-EOT
+  Dynamo table to use for consistency checks (when using an s3 backend)
+  EOT
+}
+
 variable "tags" {
   type        = map(string)
   default     = {}
