@@ -1,0 +1,67 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: oam-global-mosaic
+  namespace: eoapi
+  labels:
+    app: oam-global-mosaic
+spec:
+  # 2am every Saturday (once per week)
+  schedule: "0 2 * * 6"
+  # Prevent running multiple jobs concurrently
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: oam-global-mosaic
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: oam-global-mosaic
+              image: ghcr.io/hotosm/openaerialmap/global-mosaic:main
+              resources:
+                limits:
+                  cpu: "768m"
+                  memory: "4096Mi"
+                requests:
+                  cpu: "256m"
+                  memory: "1024Mi"
+              env:
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      key: user
+                      name: eoapi-pguser-eoapi
+                - name: PGPORT
+                  valueFrom:
+                    secretKeyRef:
+                      key: port
+                      name: eoapi-pguser-eoapi
+                - name: PGHOST
+                  valueFrom:
+                    secretKeyRef:
+                      key: host
+                      name: eoapi-pguser-eoapi
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: password
+                      name: eoapi-pguser-eoapi
+                - name: PGDATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      key: dbname
+                      name: eoapi-pguser-eoapi
+                - name: S3_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      key: S3_ACCESS_KEY
+                      name: oam-s3-creds
+                - name: S3_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      key: S3_SECRET_KEY
+                      name: oam-s3-creds
+      backoffLimit: 2
