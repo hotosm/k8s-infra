@@ -1,3 +1,4 @@
+# Sync the current Maxar STAC catalog into pgstac db
 apiVersion: batch/v1
 kind: CronJob
 metadata:

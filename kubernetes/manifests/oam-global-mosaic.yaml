@@ -1,46 +1,35 @@
-# Sync the legacy OpenAerialMap API data into pgstac db
+# This manifest generates the global mosaic PMTiles layer for OpenAerialMap, available at
+# http://s3.amazonaws.com/oin-hotosm-temp/global-mosaic.pmtiles
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: stac-ingest-oam
+  name: oam-global-mosaic
   namespace: eoapi
   labels:
-    app: stac-ingest-oam
+    app: oam-global-mosaic
 spec:
-  schedule: "*/30 * * * *"
+  # 2am every Saturday (once per week)
+  schedule: "0 2 * * 6"
+  # Prevent running multiple jobs concurrently
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       template:
         metadata:
           labels:
-            app: stac-ingest-oam
+            app: oam-global-mosaic
         spec:
           restartPolicy: Never
           containers:
-            - name: stac-ingest-oam
-              image: ghcr.io/hotosm/openaerialmap/stac-ingester:main
+            - name: oam-global-mosaic
+              image: ghcr.io/hotosm/openaerialmap/global-mosaic:main
               resources:
                 limits:
                   cpu: "768m"
                   memory: "4096Mi"
                 requests:
                   cpu: "256m"
-                  memory: "3072Mi"
-              command:
-                - "/bin/sh"
-                - "-c"
-              args:
-                - |
-                  # Exit immediately if a command exits with a non-zero status
-                  set -e
-
-                  # Database connection configured through standard PG* environment variables
-                  # Environment variables are already set by the container
-
-                  echo "Beginning sync"
-                  hotosm sync-oam --uploaded-since 2100
-
-                  echo "Job complete"
+                  memory: "1024Mi"
               env:
                 - name: PGUSER
                   valueFrom:
@@ -67,4 +56,14 @@ spec:
                     secretKeyRef:
                       key: dbname
                       name: eoapi-pguser-eoapi
-      backoffLimit: 3
+                - name: S3_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      key: S3_ACCESS_KEY
+                      name: oam-s3-creds
+                - name: S3_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      key: S3_SECRET_KEY
+                      name: oam-s3-creds
+      backoffLimit: 2
