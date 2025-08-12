@@ -7,8 +7,7 @@ metadata:
   labels:
     app: stac-ingest-oam
 spec:
-  schedule: "0 0 31 2 *"
-  # schedule: "*/30 * * * *"
+  schedule: "*/30 * * * *"
   jobTemplate:
     spec:
       template:

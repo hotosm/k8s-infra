@@ -27,7 +27,7 @@ jobs:
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
         with:
-          tofu_version: 1.10.3
+          tofu_version: '1.10.5'
           tofu_wrapper: false
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -40,7 +40,6 @@ jobs:
           TF_VAR_cluster_ci_access_role_arn: ${{ secrets.AWS_OIDC_ROLE }}
           TF_VAR_cluster_admin_access_role_arns: ${{ secrets.CLUSTER_ADMIN_ACCESS_ROLE_ARNS }}
         with:
-          # command: 'apply'
           command: ${{ github.event_name == 'push' && 'apply' || 'plan' }}
           tool: tofu
           working-directory: terraform
@@ -60,6 +59,5 @@ jobs:
       - name: Deploy eoAPI Chart
         uses: helmfile/helmfile-action@v2.0.4
         with:
-          helmfile-args: 'apply'
-          # helmfile-args: ${{ github.event_name == 'push' && 'apply' || 'diff' }}
+          helmfile-args: ${{ github.event_name == 'push' && 'apply' || 'diff' }}
           helmfile-workdirectory: kubernetes/helm
