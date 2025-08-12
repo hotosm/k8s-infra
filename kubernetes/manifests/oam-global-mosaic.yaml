@@ -1,5 +1,7 @@
 # This manifest generates the global mosaic PMTiles layer for OpenAerialMap, available at
 # http://s3.amazonaws.com/oin-hotosm-temp/global-mosaic.pmtiles
+# OR
+# http://s3.amazonaws.com/oin-hotosm-temp/global-coverage.pmtiles
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -25,8 +27,8 @@ spec:
               image: ghcr.io/hotosm/openaerialmap/global-mosaic:main
               resources:
                 limits:
-                  cpu: "768m"
-                  memory: "4096Mi"
+                  cpu: "2048m"
+                  memory: "6114Mi"
                 requests:
                   cpu: "256m"
                   memory: "1024Mi"
@@ -66,4 +68,5 @@ spec:
                     secretKeyRef:
                       key: S3_SECRET_KEY
                       name: oam-s3-creds
-      backoffLimit: 2
+      # do not attempt retry
+      backoffLimit: 0
