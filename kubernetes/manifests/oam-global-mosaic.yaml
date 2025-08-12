@@ -25,6 +25,7 @@ spec:
           containers:
             - name: oam-global-mosaic
               image: ghcr.io/hotosm/openaerialmap/global-mosaic:main
+              imagePullPolicy: Always
               resources:
                 limits:
                   cpu: "2048m"

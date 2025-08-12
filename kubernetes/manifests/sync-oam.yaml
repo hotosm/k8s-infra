@@ -19,6 +19,7 @@ spec:
           containers:
             - name: stac-ingest-oam
               image: ghcr.io/hotosm/openaerialmap/stac-ingester:main
+              imagePullPolicy: Always
               resources:
                 limits:
                   cpu: "768m"
