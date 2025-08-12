@@ -27,8 +27,8 @@ spec:
               image: ghcr.io/hotosm/openaerialmap/global-mosaic:main
               resources:
                 limits:
-                  cpu: "768m"
-                  memory: "4096Mi"
+                  cpu: "2048m"
+                  memory: "6114Mi"
                 requests:
                   cpu: "256m"
                   memory: "1024Mi"
