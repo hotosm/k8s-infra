@@ -1,6 +1,4 @@
-# This manifest generates the global mosaic PMTiles layer for OpenAerialMap, available at
-# http://s3.amazonaws.com/oin-hotosm-temp/global-mosaic.pmtiles
-# OR
+# This manifest generates the global coverage vector PMTiles layer for OpenAerialMap, available at
 # http://s3.amazonaws.com/oin-hotosm-temp/global-coverage.pmtiles
 apiVersion: batch/v1
 kind: CronJob
