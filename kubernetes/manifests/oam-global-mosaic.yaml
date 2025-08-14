@@ -8,8 +8,8 @@ metadata:
   labels:
     app: oam-global-mosaic
 spec:
-  # 2am every Saturday (once per week)
-  schedule: "0 2 * * 6"
+  # Daily at 2:00am
+  schedule: "0 2 * * *"
   # Prevent running multiple jobs concurrently
   concurrencyPolicy: Forbid
   jobTemplate:
@@ -26,8 +26,9 @@ spec:
               imagePullPolicy: Always
               resources:
                 limits:
+                  # It's a more CPU-intensive job
                   cpu: "2048m"
-                  memory: "6114Mi"
+                  memory: "2048Mi"
                 requests:
                   cpu: "256m"
                   memory: "1024Mi"
