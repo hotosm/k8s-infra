@@ -1,0 +1,20 @@
+# App to upgrade ArgoCD itself
+# with config in argocd/kustomization.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/hotosm/k8s-infra.git'
+    path: 'apps/argocd'
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
