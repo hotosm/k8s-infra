@@ -3,14 +3,27 @@ kind: Application
 metadata:
   name: external-dns
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/kustomize-build-options: "--enable-helm"
 spec:
   project: default
-  source:
-    repoURL: 'https://github.com/hotosm/k8s-infra.git'
-    path: 'apps/external-dns'
-    targetRevision: HEAD
+  sources:
+    # Helm chart + values
+    - repoURL: https://kubernetes-sigs.github.io/external-dns
+      chart: external-dns
+      targetRevision: 1.18.0
+      helm:
+        releaseName: external-dns
+        valueFiles:
+          - $k8s-infra/apps/external-dns/helm/values.yaml
+
+    # Git repo containing values.yaml
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+
+    # Extra resources
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/external-dns
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
