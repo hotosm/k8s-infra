@@ -1,5 +1,6 @@
 fullnameOverride: external-dns
 provider: aws
+annotationFilter: true # only provision DNS for Ingress with annotations
 registry: txt
 txtOwnerId: eks-prod-external-dns
 policy: upsert-only # don’t delete records it didn’t create
