@@ -5,7 +5,9 @@ ingress:
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/enable-access-log: "true"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-  host: "oam-eoapi-prod.imagery-services.k8s-prod.hotosm.org"
+    external-dns.alpha.kubernetes.io/hostname: api.imagery.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+  host: "api.imagery.hotosm.org"
   tls:
     enabled: true
     secretName: eoapi-tls

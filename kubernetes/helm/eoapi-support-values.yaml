@@ -15,6 +15,8 @@ prometheus:
         nginx.ingress.kubernetes.io/enable-cors: "true"
         nginx.ingress.kubernetes.io/enable-access-log: "true"
         cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        external-dns.alpha.kubernetes.io/hostname: metrics.k8s-prod.hotosm.org
+        external-dns.alpha.kubernetes.io/ttl: "300"
       enabled: true
       ingressClassName: nginx
       hosts:
@@ -35,6 +37,8 @@ grafana:
       nginx.ingress.kubernetes.io/enable-cors: "true"
       nginx.ingress.kubernetes.io/enable-access-log: "true"
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      external-dns.alpha.kubernetes.io/hostname: dashboard.k8s-prod.hotosm.org
+      external-dns.alpha.kubernetes.io/ttl: "300"
     enabled: true
     ingressClassName: nginx
     hosts:
