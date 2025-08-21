@@ -1,0 +1,27 @@
+fullnameOverride: external-dns
+provider: aws
+registry: txt
+txtOwnerId: eks-prod-external-dns
+policy: upsert-only # don’t delete records it didn’t create
+interval: 1m
+sources:
+  - ingress
+  - service
+domainFilters:
+  - k8s-prod.hotosm.org
+  - imagery.hotosm.org
+aws:
+  zoneType: public
+env:
+  - name: AWS_DEFAULT_REGION
+    value: us-east-1
+  - name: AWS_SHARED_CREDENTIALS_FILE
+    value: /.aws/credentials
+extraVolumeMounts:
+  - name: aws-credentials
+    mountPath: /.aws
+    readOnly: true
+extraVolumes:
+  - name: aws-credentials
+    secret:
+      secretName: external-dns-aws-creds
