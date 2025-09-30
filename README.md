@@ -29,7 +29,7 @@ See the [inital proposal](docs/proposal.md) for more background.
 #### Deployment
 
 - Provisioning is currently done in the same workflow (TF, K8s, Helm), mostly as byproduct of initial development phase. Can be further refined.
-- GitOps tools like ArgoCD are [under consideration](https://github.com/hotosm/k8s-infra/issues/14)
+- GitOps tools like ArgoCD are [in the works](https://github.com/hotosm/k8s-infra/pull/31)
 - Flux [Tofu controller](https://github.com/flux-iac/tofu-controller) may be an analog for base infrastructure (further investigation required).
 
 #### Bridging TF and Kubernetes
