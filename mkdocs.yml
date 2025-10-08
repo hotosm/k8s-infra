@@ -62,8 +62,11 @@ nav:
       - Routing to the cluster: usage/routing-to-cluster-apps.md
   - Tutorials:
       - Intro to Kubernetes: tutorial/k8s-intro.md
-      - Running Kubernetes locally: https://docs.hotosm.org/dev-guide/containers/kubernetes-local-kind
-      # - Next: tutorial/next.md
+      - Deploying Apps: tutorial/deploying-apps.md
+      - Secrets Management: tutorial/secrets-management.md
+      - Storage: tutorial/storage.md
+      - Certs & DNS: tutorial/certs-and-dns.md
+      - GitOps With ArgoCD: tutorial/gitops-argocd.md
   - Developer Guide:
       - Practices:
           - Dev Practices: https://docs.hotosm.org/dev-practices

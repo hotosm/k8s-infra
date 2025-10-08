@@ -5,7 +5,7 @@
 
 Kubernetes @ Humanitarian OpenStreetMap Team (HOT).
 
-See the [inital proposal](docs/about/proposal.md) for more background.
+See the [inital proposal](about/proposal.md) for more background.
 
 ## Getting Started
 
