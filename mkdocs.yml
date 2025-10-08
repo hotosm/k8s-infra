@@ -1,0 +1,71 @@
+site_name: k8s Infra
+site_description: IaC & docs for deploying our Kubernetes cluster, plus config.
+# strict: true
+site_url: "https://hotosm.github.io/k8s-infra"
+
+repo_name: "hotosm/k8s-infra"
+repo_url: "https://github.com/hotosm/k8s-infra/"
+edit_uri: "edit/main/docs/"
+
+extra:
+  social:
+    - icon: "fontawesome/brands/github"
+      link: "https://github.com/hotosm/"
+    - icon: "fontawesome/brands/twitter"
+      link: "https://twitter.com/hotosm"
+    - icon: "fontawesome/solid/globe"
+      link: "https://www.hotosm.org"
+  copyright: Copyright &copy; 2010 HOTOSM
+  generator: false
+
+theme:
+  name: material
+  palette:
+    primary: custom
+  favicon: assets/images/favicon.png
+  logo: assets/images/hot_logo.png
+  # custom_dir: docs/overrides
+  features:
+    - navigation.instant
+
+exclude_docs: |
+  !.well-known
+
+extra_css:
+  - css/extra.css
+
+markdown_extensions:
+  - tables
+  - toc:
+      permalink: true
+      title: Page contents
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.extra
+  - pymdownx.emoji:
+  - pymdownx.tabbed:
+      alternate_style: true
+  - mdx_truly_sane_lists
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - About:
+      - Proposal: about/proposal.md
+      - Code of Conduct: https://docs.hotosm.org/code-of-conduct
+  - Using The Cluster:
+      - Connecting to the cluster: usage/connecting-to-cluster.md
+      - Routing to the cluster: usage/routing-to-cluster-apps.md
+  - Tutorials:
+      - Intro to Kubernetes: tutorial/k8s-intro.md
+      - Running Kubernetes locally: https://docs.hotosm.org/dev-guide/containers/kubernetes-local-kind
+      # - Next: tutorial/next.md
+  - Developer Guide:
+      - Practices:
+          - Dev Practices: https://docs.hotosm.org/dev-practices
+          - Pre-Commit: https://docs.hotosm.org/dev-guide/repo-management/pre-commit/
+  - Privacy Policy: https://www.hotosm.org/privacy.html
