@@ -109,7 +109,7 @@ variable "prometheus_hostname" {
 
 variable "kubernetes_version" {
   type        = string
-  default     = "1.32"
+  default     = "1.33"
   description = <<-EOT
   A version string that we append to certain resources to make them unique
   EOT
