@@ -55,14 +55,28 @@ From skillshare session 15/10/2025
 - There are too many to list here, but the key ones you need are:
   - **Pods**: essentially a wrapper around a container (± initContainer).
   - **Deployment**: defines how many copies of a pod should run across nodes.
-  - **RepicaSet**: like a deployment, but runs exactly one pod for each
-    node in cluster.
   - **Service**: provides a network endpoint and load balancing for pods.
   - **Ingress**: exposes HTTP/HTTPS applications externally, often using
     domain names and TLS certificates.
   - **ConfigMap / Secret**: define configuration or credentials for apps.
   - **Namespace**: a separated group of resources, for better organisation /
     isolation (for example, group all pods that make up a single app).
+
+!!! note
+
+    Typically you will be using Deployments to manage your applications.
+    Depoyments manage a ReplicaSet underneath, i.e. a specific number
+    of pods, plus the actual pods that are running. ReplicaSets are
+    rarely used on their own, unless specific fine grained control
+    is needed.
+
+    There are two other type of 'Sets' being the StatefulSet and DaemonSet.
+
+    **DaemonSets**: runs one pod per node. Useful for daemon such a log
+      collectors or monitoring agents.
+    **StatefulSet**: for stateful apps that need stable, unique pod
+      identities and persistent storage. We will cover persistent
+      storage in a [future tutorial](storage.md).
 
 ## YAML Manifests
 
