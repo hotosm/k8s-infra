@@ -6,9 +6,10 @@ From skillshare session 15/10/2025
 
 <iframe
   src="https://drive.google.com/file/d/1sIHFzOcloF5CE0LIFsi-fSRKwXQcq9Gx/preview"
-  width="640"
+  width="100%"
   height="480"
-  allow="autoplay"
+  allow="autoplay; fullscreen"
+  allowfullscreen
 ></iframe>
 
 ## What is Kubernetes?
