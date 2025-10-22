@@ -2,6 +2,15 @@
 
 From skillshare session 15/10/2025
 
+## Video Recording
+
+<iframe
+  src="https://drive.google.com/file/d/1sIHFzOcloF5CE0LIFsi-fSRKwXQcq9Gx/preview"
+  width="640"
+  height="480"
+  allow="autoplay"
+></iframe>
+
 ## What is Kubernetes?
 
 - Building on the concept of containers to deploy applications,
@@ -60,7 +69,9 @@ From skillshare session 15/10/2025
     domain names and TLS certificates.
   - **ConfigMap / Secret**: define configuration or credentials for apps.
   - **Namespace**: a separated group of resources, for better organisation /
-    isolation (for example, group all pods that make up a single app).
+    isolation (for example, group all pods that make up a single app). Also
+    helps with namespace-level access control when dealing with many
+    contractors / devs.
 
 !!! note
 
@@ -148,8 +159,8 @@ ns
 
 ### Deploy Nginx test app
 
-- Using the Nginx deployment YAML defined above, create the file
-  `nginx.yaml`.
+- Using the Nginx deployment YAML defined [above](#yaml-manifests),
+  create the file `nginx.yaml`.
 
 - Next, apply the deployment to the cluster:
 
