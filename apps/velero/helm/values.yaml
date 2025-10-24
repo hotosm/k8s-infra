@@ -1,0 +1,41 @@
+backupSyncPeriod: 48h
+
+# Restic / node-agent required for filesystem-level backups (non-CSI)
+deployNodeAgent: true
+
+configuration:
+  backupStorageLocation:
+    - name: hotosm-k8s-volume-backup
+      provider: aws
+      bucket: hotosm-k8s-volume-backup
+      default: true
+      credential:
+        name: velero-s3-creds
+        key: cloud
+      config:
+        region: us-east-1
+
+  # only needed if using CSI volume snapshots (not restic)
+  # volumeSnapshotLocation:
+  #   - name: hotosm-k8s-volume-snapshots
+  #     provider: aws
+  #     config:
+  #       region: us-east-1
+
+  # ensures all PVCs are included in backups by default
+  defaultVolumesToFsBackup: true
+
+credentials:
+  useSecret: true
+  existingSecret: velero-s3-creds
+
+initContainers:
+  - name: velero-plugin-for-aws
+    image: velero/velero-plugin-for-aws:v1.13.0
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+      - mountPath: /target
+        name: plugins
+
+metrics:
+  enabled: false
