@@ -4,8 +4,10 @@ deployNodeAgent: true
 configuration:
   backupSyncPeriod: 48h
   backupStorageLocation:
-    - name: hotosm-k8s-volume-backup
-      provider: aws
+    - provider: aws
+      # Do not set this, it defaults to 'default', which is used elsewhere
+      # kubectl get backupstoragelocation -n velero
+      # name: hotosm-k8s-volume-backup
       bucket: hotosm-k8s-volume-backup
       default: true
       credential:
