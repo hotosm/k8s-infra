@@ -16,12 +16,14 @@ configuration:
       config:
         region: us-east-1
 
-  # only needed if using CSI volume snapshots (not restic)
-  # volumeSnapshotLocation:
-  #   - name: hotosm-k8s-volume-snapshots
-  #     provider: aws
-  #     config:
-  #       region: us-east-1
+  # we don't actually need this, but deployment complains if it doesn't exist
+  # needed if using CSI volume snapshots (not restic)
+  volumeSnapshotLocation:
+    # Default name is 'default', which we want
+    # - name: hotosm-k8s-volume-snapshots
+    - provider: aws
+      config:
+        region: us-east-1
 
   # ensures all PVCs are included in backups by default
   defaultVolumesToFsBackup: true
