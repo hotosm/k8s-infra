@@ -1,9 +1,8 @@
-backupSyncPeriod: 48h
-
 # Restic / node-agent required for filesystem-level backups (non-CSI)
 deployNodeAgent: true
 
 configuration:
+  backupSyncPeriod: 48h
   backupStorageLocation:
     - name: hotosm-k8s-volume-backup
       provider: aws
