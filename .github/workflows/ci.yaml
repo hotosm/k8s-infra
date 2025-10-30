@@ -1,9 +1,15 @@
 name: Deploy Changes
 on:
   push:
+    paths:
+      - kubernetes/**
+      - terraform/**
     branches:
       - main
   pull_request:
+    paths:
+      - kubernetes/**
+      - terraform/**
     branches:
       - main
 
