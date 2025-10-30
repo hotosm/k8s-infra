@@ -37,26 +37,12 @@ argocd app sync --all
   Velero components via GitOps.
 - The Velero CLI is needed to run the following commands.
 
-Install Velero (needed?):
-
-```bash
-velero install \
-  --provider aws \
-  --plugins velero/velero-plugin-for-aws:v1.13.0 \
-  --bucket my-backup-bucket \
-  --backup-location-config region=us-east-1 \
-  --use-volume-snapshots=false \
-  --use-restic \
-  --secret-file ./credentials-velero
-```
-
 Create a backup:
 
 ```bash
 velero backup create pv-only \
   --include-resources persistentvolumes,persistentvolumeclaims \
   --include-namespaces '*' \
-  --use-restic \
   --wait
 ```
 
@@ -69,7 +55,8 @@ velero backup describe pv-only --details
 > [!IMPORTANT]
 > Switch to the local TalosOS cluster now.
 
-Install to TalosOS:
+We install Velero without ArgoCD, as our app installs
+all require the persistent volumes to be present first:
 
 ```bash
 velero install \
@@ -77,7 +64,6 @@ velero install \
   --plugins velero/velero-plugin-for-aws:v1.13.0 \
   --bucket my-backup-bucket \
   --backup-location-config region=us-east-1 \
-  --use-restic \
   --use-volume-snapshots=false \
   --secret-file ./credentials-velero
 ```
