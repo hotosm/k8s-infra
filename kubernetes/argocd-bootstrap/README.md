@@ -19,6 +19,9 @@
 
     ```bash
     argocd admin initial-password -n argocd
+    kubectl port-forward svc/argocd-server -n argocd 8081:443 &
+    argocd login argocd login localhost:8081
+    argocd account update-password
     ```
 
 - Access the UI:
@@ -27,8 +30,6 @@
     kubectl port-forward svc/argocd-server -n argocd 8080:443
     # Visit https://localhost:8080
     ```
-
-- After first login, change the admin password via the UI.
 
 ## Boostrap Root App
 
