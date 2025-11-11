@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: hanko
-          image: ghcr.io/teamhanko/hanko:main
+          image: ghcr.io/teamhanko/hanko:v2.1.0
           imagePullPolicy: IfNotPresent
           command:
             - /hanko
@@ -51,7 +51,7 @@ spec:
               subPath: config.yaml
       initContainers:
         - name: hanko-migrate
-          image: ghcr.io/teamhanko/hanko:main
+          image: ghcr.io/teamhanko/hanko:v2.1.0
           imagePullPolicy: IfNotPresent
           command:
             - /hanko
