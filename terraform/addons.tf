@@ -56,23 +56,3 @@ resource "kubernetes_storage_class" "gp3" {
   }
   depends_on = [aws_eks_addon.ebs_provisioner]
 }
-
-# FIXME
-# FIXME
-# Legacy GP2 provider (temporary, to be deleted post-migration)
-# This is used by eoAPI currently
-# If we migrate the CrunchyDB --> CloudNativeDB, then update vars
-# we can probably delete this after
-# https://github.com/hotosm/k8s-infra/issues/38
-resource "kubernetes_storage_class" "gp2" {
-  metadata {
-    name = "gp2"
-  }
-  storage_provisioner = "kubernetes.io/aws-ebs"
-  reclaim_policy      = "Delete"
-  volume_binding_mode = "WaitForFirstConsumer"
-  parameters = {
-    type   = "gp2"
-    fsType = "ext4"
-  }
-}
