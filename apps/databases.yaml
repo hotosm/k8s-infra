@@ -1,0 +1,19 @@
+# Deploy databases from REPO_ROOT/databases dir
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: databases
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/hotosm/k8s-infra.git'
+    path: 'databases'
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: postgres
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
