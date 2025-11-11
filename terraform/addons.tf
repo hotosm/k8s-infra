@@ -35,3 +35,57 @@ resource "aws_eks_addon" "ebs_provisioner" {
     aws_iam_role_policy_attachment.ebs_provisioner
   ]
 }
+
+# Add storage classes that reference the aws-ebs-csi-driver
+# Default GP3 (fast and cheap)
+resource "kubernetes_storage_class" "ebs_gp3_csi" {
+  metadata {
+    name = "ebs-gp3-csi"
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "true"
+    }
+  }
+  storage_provisioner = "ebs.csi.aws.com"
+  reclaim_policy      = "Delete"
+  volume_binding_mode = "WaitForFirstConsumer"
+  allow_volume_expansion = true
+  parameters = {
+    type = "gp3"
+  }
+  depends_on = [
+    aws_eks_addon.ebs_provisioner
+  ]
+}
+# GP2 for databases (CloudNativePG)
+resource "kubernetes_storage_class" "ebs_gp2_csi" {
+  metadata {
+    name = "ebs-gp2-csi"
+  }
+  storage_provisioner = "ebs.csi.aws.com"
+  reclaim_policy      = "Keep"
+  volume_binding_mode = "WaitForFirstConsumer"
+  allow_volume_expansion = true
+  parameters = {
+    type = "gp2"
+  }
+  depends_on = [
+    aws_eks_addon.ebs_provisioner
+  ]
+}
+# FIXME
+# FIXME
+# Legacy GP2 provider that needs to be migrated & deleted
+# This is used by eoAPI currently
+# If we migrate the CrunchyDB --> CloudNativeDB, then update vars
+# we can probably delete this after
+resource "kubernetes_storage_class" "gp2" {
+  metadata {
+    name = "gp2"
+  }
+  storage_provisioner = "kubernetes.io/aws-ebs"
+  reclaim_policy = "Delete"
+  volume_binding_mode = "WaitForFirstConsumer"
+  parameters = {
+    type = "gp2"
+  }
+}
