@@ -45,36 +45,38 @@ resource "kubernetes_storage_class" "ebs_gp3_csi" {
       "storageclass.kubernetes.io/is-default-class" = "true"
     }
   }
-  storage_provisioner = "ebs.csi.aws.com"
-  reclaim_policy      = "Delete"
-  volume_binding_mode = "WaitForFirstConsumer"
+  storage_provisioner    = "ebs.csi.aws.com"
+  reclaim_policy         = "Delete"
+  volume_binding_mode    = "WaitForFirstConsumer"
   allow_volume_expansion = true
   parameters = {
-    type = "gp3"
+    type      = "gp3"
+    fsType    = "ext4"
+    encrypted = "true"
   }
-  depends_on = [
-    aws_eks_addon.ebs_provisioner
-  ]
+  depends_on = [aws_eks_addon.ebs_provisioner]
 }
+
 # GP2 for databases (CloudNativePG)
 resource "kubernetes_storage_class" "ebs_gp2_csi" {
   metadata {
     name = "ebs-gp2-csi"
   }
-  storage_provisioner = "ebs.csi.aws.com"
-  reclaim_policy      = "Keep"
-  volume_binding_mode = "WaitForFirstConsumer"
+  storage_provisioner    = "ebs.csi.aws.com"
+  reclaim_policy         = "Retain"
+  volume_binding_mode    = "WaitForFirstConsumer"
   allow_volume_expansion = true
   parameters = {
-    type = "gp2"
+    type      = "gp2"
+    fsType    = "ext4"
+    encrypted = "true"
   }
-  depends_on = [
-    aws_eks_addon.ebs_provisioner
-  ]
+  depends_on = [aws_eks_addon.ebs_provisioner]
 }
+
 # FIXME
 # FIXME
-# Legacy GP2 provider that needs to be migrated & deleted
+# Legacy GP2 provider (temporary, to be deleted post-migration)
 # This is used by eoAPI currently
 # If we migrate the CrunchyDB --> CloudNativeDB, then update vars
 # we can probably delete this after
@@ -83,9 +85,10 @@ resource "kubernetes_storage_class" "gp2" {
     name = "gp2"
   }
   storage_provisioner = "kubernetes.io/aws-ebs"
-  reclaim_policy = "Delete"
+  reclaim_policy      = "Delete"
   volume_binding_mode = "WaitForFirstConsumer"
   parameters = {
-    type = "gp2"
+    type   = "gp2"
+    fsType = "ext4"
   }
 }
