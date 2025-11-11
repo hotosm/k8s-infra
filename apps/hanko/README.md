@@ -16,49 +16,54 @@
 ```yaml
 debug: false
 account:
-    allow_deletion: false
-    allow_signup: true
+  allow_deletion: false
+  allow_signup: true
 database:
-    user: hanko
-    password: xxx
-    host: hanko-db-rw.postgres.svc.cluster.local
-    port: 5432
-    dialect: postgres
+  user: hanko
+  password: xxx
+  host: hanko-db-rw.postgres.svc.cluster.local
+  port: 5432
+  dialect: postgres
 email:
-    enabled: true
-    optional: false
-    acquire_on_registration: true
-    acquire_on_login: false
-    # Else OSM login does not work (we use dummy emails)
-    require_verification: false
-    limit: 5
-    use_as_login_identifier: true
-    max_length: 100
-    use_for_authentication: true
-    passcode_ttl: 300
+  enabled: true
+  email:
+    from_address: no-reply@example.com
+    from_name: Example Application
+
+  enabled: true
+  optional: false
+  acquire_on_registration: true
+  acquire_on_login: false
+  # Else OSM login does not work (we use dummy emails)
+  require_verification: false
+  limit: 5
+  use_as_login_identifier: true
+  max_length: 100
+  use_for_authentication: true
+  passcode_ttl: 300
 email_delivery:
-    enabled: true
-    from_address: login@hotosm.org
-    from_name: HOTOSM
-    smtp:
+  enabled: true
+  from_address: login@hotosm.org
+  from_name: HOTOSM
+  smtp:
     host: "smtp.gmail.com"
     port: "587"
-    user: sysadmin@hotosm.org
+    user: xxx
     password: "xxx"
 secrets:
-    keys:
+  keys:
     - xxx
 # Session
 service:
-    name: HOTOSM Login
+  name: HOTOSM Login
 session:
-    enable_auth_token_header: true
-    audience:
+  enable_auth_token_header: true
+  audience:
     - "https://login.hotosm.org"
-    issuer: "https://login.hotosm.org"
-    # Change this to expire JWT faster
-    lifespan: 72h
-    cookie:
+  issuer: "https://login.hotosm.org"
+  # Change this to expire JWT faster
+  lifespan: 72h
+  cookie:
     name: "hanko"
     # .hotosm.org works for all levels of subdomain nesting
     domain: ".hotosm.org"
@@ -67,9 +72,9 @@ session:
     http_only: true
     same_site: "lax"
 server:
-    public:
+  public:
     cors:
-        allow_origins:
+      allow_origins:
         - "https://portal.hotosm.org"
         - "https://demo.login.hotosm.org"
         - "https://ui.hotosm.org"
@@ -77,49 +82,50 @@ server:
         - "https://hotosm.github.io/openaerialmap"
 # Login methods
 password:
-    enabled: true
+  enabled: true
 third_party:
-    error_redirect_url: https://login.hotosm.org
-    redirect_url: https://login.hotosm.org/thirdparty/callback
-    allowed_redirect_urls:
+  error_redirect_url: https://login.hotosm.org
+  redirect_url: https://login.hotosm.org/thirdparty/callback
+  allowed_redirect_urls:
     - https://**.hotosm.org
     - https://ui.hotosm.org
-    providers:
+  providers:
     google:
-        enabled: true
-        client_id: "xxx"
-        secret: "xxx"
-    custom_providers:
+      enabled: true
+      client_id: "xxx"
+      secret: "xxx"
+  custom_providers:
     openstreetmap:
-        enabled: true
-        display_name: "OpenStreetMap"
-        client_id: "xxx"
-        secret: "xxx"
-        scopes:
+      enabled: true
+      display_name: "OpenStreetMap"
+      client_id: "xxx"
+      secret: "xxx"
+      scopes:
         - "read_prefs"
         - "send_messages"
         - "write_api"
-        # OSM does not implement OpenID Connect as an indentity provider
-        # See: https://github.com/openstreetmap/openstreetmap-website/issues/5063
-        use_discovery: false
-        # issuer: "https://www.openstreetmap.org/.well-known/openid-configuration"
-        authorization_endpoint: "https://www.openstreetmap.org/oauth2/authorize"
-        token_endpoint: "https://www.openstreetmap.org/oauth2/token"
-        # userinfo_endpoint: "https://www.openstreetmap.org/oauth2/userinfo" # this endpoint is forbidden
-        # userinfo_endpoint: "https://www.openstreetmap.org/api/0.6/user/details.json" # this endpoint doesn't have email key
-        userinfo_endpoint: "http://osm-userinfo.hanko.svc.cluster.local:8080"
-        # Do not link to existing user accounts, as OSM does not return email address
-        allow_linking: false
+      # OSM does not implement OpenID Connect as an indentity provider
+      # See: https://github.com/openstreetmap/openstreetmap-website/issues/5063
+      use_discovery: false
+      # issuer: "https://www.openstreetmap.org/.well-known/openid-configuration"
+      authorization_endpoint: "https://www.openstreetmap.org/oauth2/authorize"
+      token_endpoint: "https://www.openstreetmap.org/oauth2/token"
+      # userinfo_endpoint: "https://www.openstreetmap.org/oauth2/userinfo" # this endpoint is forbidden
+      # userinfo_endpoint: "https://www.openstreetmap.org/api/0.6/user/details.json" # this endpoint doesn't have email key
+      userinfo_endpoint: "http://osm-userinfo.hanko.svc.cluster.local:8080"
+      # Do not link to existing user accounts, as OSM does not return email address
+      allow_linking: false
 webauthn:
-    timeouts:
+  timeouts:
     registration: 600000
     login: 600000
-    relying_party:
+  relying_party:
     id: login.hotosm.org
     origins:
-        - "https://login.hotosm.org"
+      - "https://login.hotosm.org"
+# We don't need such high level security for OSM data...
 mfa:
-    enabled: false
+  enabled: false
 ```
 
 - Then create a `secret.yaml` from the config:
