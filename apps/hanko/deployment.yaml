@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hanko
+  namespace: hanko
+  labels:
+    app: hanko
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hanko
+  template:
+    metadata:
+      labels:
+        app: hanko
+    spec:
+      containers:
+        - name: hanko
+          image: ghcr.io/teamhanko/hanko:main
+          imagePullPolicy: IfNotPresent
+          command:
+            - /hanko
+          args:
+            - serve
+            - all
+            - '--config'
+            - /etc/config/config.yaml
+          ports:
+            - name: http-public
+              containerPort: 8000
+              protocol: TCP
+            - name: http-admin
+              containerPort: 8001
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /etc/config/config.yaml
+              subPath: config.yaml
+        # Run the osm-userinfo svc as a sidecar for simplicity
+        - name: osm-userinfo
+          image: ghcr.io/hotosm/login-osm-userinfo:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /etc/config/config.yaml
+              subPath: config.yaml
+      initContainers:
+        - name: hanko-migrate
+          image: ghcr.io/teamhanko/hanko:main
+          imagePullPolicy: IfNotPresent
+          command:
+            - /hanko
+          args:
+            - migrate
+            - up
+            - "--config"
+            - /etc/config/config.yaml
+          volumeMounts:
+            - name: config
+              mountPath: /etc/config/config.yaml
+              subPath: config.yaml
+      volumes:
+        - name: config
+          secret:
+            secretName: hanko-config
+            defaultMode: 420

@@ -7,3 +7,4 @@
 
 # Secret yamls (prior to sealing)
 **/**/secret.yaml
+**/**/config.yaml

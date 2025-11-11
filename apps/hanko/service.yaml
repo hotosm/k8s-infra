@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hanko-public
+  namespace: hanko
+spec:
+  selector:
+    app: hanko
+  ports:
+    - port: 80
+      targetPort: http-public
+      protocol: TCP
+      name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hanko-admin
+  namespace: hanko
+spec:
+  selector:
+    app: hanko
+  ports:
+    - port: 80
+      targetPort: http-admin
+      protocol: TCP
+      name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: osm-userinfo
+  namespace: hanko
+spec:
+  selector:
+    app: hanko
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
