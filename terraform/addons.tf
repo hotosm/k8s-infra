@@ -37,7 +37,7 @@ resource "aws_eks_addon" "ebs_provisioner" {
 }
 
 # Add storage classes that reference the aws-ebs-csi-driver
-# Default GP3 (fast and cheap)
+# Default GP3 (its faster and cheaper than gp2 in almost all scenarios)
 resource "kubernetes_storage_class" "ebs_gp3_csi" {
   metadata {
     name = "ebs-gp3-csi"
@@ -46,28 +46,11 @@ resource "kubernetes_storage_class" "ebs_gp3_csi" {
     }
   }
   storage_provisioner    = "ebs.csi.aws.com"
-  reclaim_policy         = "Delete"
-  volume_binding_mode    = "WaitForFirstConsumer"
-  allow_volume_expansion = true
-  parameters = {
-    type      = "gp3"
-    fsType    = "ext4"
-    encrypted = "true"
-  }
-  depends_on = [aws_eks_addon.ebs_provisioner]
-}
-
-# GP2 for databases (CloudNativePG)
-resource "kubernetes_storage_class" "ebs_gp2_csi" {
-  metadata {
-    name = "ebs-gp2-csi"
-  }
-  storage_provisioner    = "ebs.csi.aws.com"
   reclaim_policy         = "Retain"
   volume_binding_mode    = "WaitForFirstConsumer"
   allow_volume_expansion = true
   parameters = {
-    type      = "gp2"
+    type      = "gp3"
     fsType    = "ext4"
     encrypted = "true"
   }
@@ -80,6 +63,7 @@ resource "kubernetes_storage_class" "ebs_gp2_csi" {
 # This is used by eoAPI currently
 # If we migrate the CrunchyDB --> CloudNativeDB, then update vars
 # we can probably delete this after
+# https://github.com/hotosm/k8s-infra/issues/38
 resource "kubernetes_storage_class" "gp2" {
   metadata {
     name = "gp2"
