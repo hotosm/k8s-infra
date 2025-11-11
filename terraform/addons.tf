@@ -35,24 +35,3 @@ resource "aws_eks_addon" "ebs_provisioner" {
     aws_iam_role_policy_attachment.ebs_provisioner
   ]
 }
-
-# Add storage classes that reference the aws-ebs-csi-driver
-# Default GP3 (its faster and cheaper than gp2 in almost all scenarios)
-resource "kubernetes_storage_class" "gp3" {
-  metadata {
-    name = "gp3"
-    annotations = {
-      "storageclass.kubernetes.io/is-default-class" = "true"
-    }
-  }
-  storage_provisioner    = "ebs.csi.aws.com"
-  reclaim_policy         = "Retain"
-  volume_binding_mode    = "WaitForFirstConsumer"
-  allow_volume_expansion = true
-  parameters = {
-    type      = "gp3"
-    fsType    = "ext4"
-    encrypted = "true"
-  }
-  depends_on = [aws_eks_addon.ebs_provisioner]
-}
