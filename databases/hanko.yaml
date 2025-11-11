@@ -1,0 +1,57 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: hanko-db
+  labels:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/version: 18-standard-trixie
+
+spec:
+  instances: 1
+  description: "Hanko Database"
+  imageName: "ghcr.io/cloudnative-pg/postgresql:18-standard-trixie"
+
+  primaryUpdateStrategy: unsupervised
+
+  bootstrap:
+    initdb:
+      database: hanko
+      owner: hanko
+      secret:
+        # Kubernetes basic-auth convention has keys:
+        # - username
+        # - password
+        name: hanko-db-creds
+
+  storage:
+    storageClass: gp3
+    size: 2Gi
+  walStorage:
+    storageClass: gp3
+    size: 2Gi
+
+  # prometheus
+  monitoring:
+    enablePodMonitor: false
+
+  # see https://cloudnative-pg.io/documentation/1.22/kubernetes_upgrade/
+  nodeMaintenanceWindow:
+    reusePVC: false # rebuild from other replica instead
+
+  backup:
+    retentionPolicy: "60d"
+    barmanObjectStore:
+      destinationPath: s3://hotosm-k8s-db-backup/hanko
+      endpointURL: https://s3.amazonaws.com
+      s3Credentials:
+        accessKeyId:
+          name: s3-creds
+          key: access-key-id
+        secretAccessKey:
+          name: s3-creds
+          key: secret-access-key
+      wal:
+        compression: gzip # this saves a lot of storage
+      data:
+        compression: gzip
+        jobs: 2

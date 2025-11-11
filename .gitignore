@@ -4,3 +4,6 @@
 # .tfstate files
 *.tfstate
 *.tfstate.*
+
+# Secret yamls (prior to sealing)
+**/**/secret.yaml
