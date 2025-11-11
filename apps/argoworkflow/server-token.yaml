@@ -1,0 +1,9 @@
+# Used to generate a secret containing a login token for the UI
+# kubectl get secret argo-server-token -o jsonpath='{.data.token}' | base64 -d
+apiVersion: v1
+kind: Secret
+metadata:
+  name: argo-server-token
+  annotations:
+    kubernetes.io/service-account.name: argo-server
+type: kubernetes.io/service-account-token

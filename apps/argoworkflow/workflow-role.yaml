@@ -1,0 +1,102 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: argo-odm
+  namespace: argo
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: argo-odm-role
+  namespace: argo
+rules:
+  # Pod permissions for workflow execution
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - pods/log
+    verbs:
+      - get
+      - watch
+      - patch
+      - list
+  - apiGroups:
+      - ""
+    resources:
+      - pods/exec
+    verbs:
+      - create
+  # Workflow task resources (required for containerSet)
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - workflows
+      - workflows/status
+      - workflows/finalizers
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - workflowtasksets
+      - workflowtasksets/status
+      - workflowtasksets/finalizers
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - workflowtaskresults
+      - workflowtaskresults/status
+      - workflowtaskresults/finalizers
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  # ConfigMaps for artifacts and outputs
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - watch
+      - list
+  # Secrets access (for S3 credentials if needed)
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - get
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: argo-odm-binding
+  namespace: argo
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: argo-odm-role
+subjects:
+  - kind: ServiceAccount
+    name: argo-odm
+    namespace: argo
