@@ -11,6 +11,7 @@ sources:
 domainFilters:
   - k8s-prod.hotosm.org
   - imagery.hotosm.org
+  - login.hotosm.org
 aws:
   zoneType: public
 env:
