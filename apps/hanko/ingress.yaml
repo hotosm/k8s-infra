@@ -13,6 +13,7 @@ metadata:
     external-dns.alpha.kubernetes.io/hostname: login.hotosm.org
     external-dns.alpha.kubernetes.io/ttl: "300"
 spec:
+  ingressClassName: nginx
   tls:
     - hosts:
         - login.hotosm.org
