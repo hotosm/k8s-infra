@@ -1,20 +1,20 @@
-# apiVersion: argoproj.io/v1alpha1
-# kind: Application
-# metadata:
-#   name: hanko
-#   namespace: argocd
-# spec:
-#   project: default
-#   source:
-#     repoURL: 'https://github.com/hotosm/k8s-infra.git'
-#     path: 'apps/hanko'
-#     targetRevision: HEAD
-#   destination:
-#     server: https://kubernetes.default.svc
-#     namespace: hanko
-#   syncPolicy:
-#     automated:
-#       selfHeal: true
-#       prune: true
-#     syncOptions:
-#       - CreateNamespace=true
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hanko
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/hotosm/k8s-infra.git'
+    path: 'apps/hanko'
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: hanko
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
