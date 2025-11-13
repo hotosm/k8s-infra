@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: login-backend
+  namespace: login
+  labels:
+    app: login-backend
+    component: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: login-backend
+  template:
+    metadata:
+      labels:
+        app: login-backend
+        component: backend
+    spec:
+      containers:
+      - name: backend
+        image: ghcr.io/hotosm/login-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        env:
+        - name: HANKO_API_URL
+          value: "https://login.hotosm.org"
+        - name: COOKIE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: login-backend-secrets
+              key: cookie-secret
+        - name: COOKIE_DOMAIN
+          value: ".hotosm.org"
+        - name: OSM_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: login-backend-secrets
+              key: osm-client-id
+        - name: OSM_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: login-backend-secrets
+              key: osm-client-secret
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      restartPolicy: Always
