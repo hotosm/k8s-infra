@@ -10,6 +10,7 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/priority: "10"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     external-dns.alpha.kubernetes.io/hostname: login.hotosm.org
     external-dns.alpha.kubernetes.io/ttl: "300"
@@ -29,6 +30,14 @@ spec:
       # Login UI at /login - rewrite to / for nginx SPA routing
       - path: /login(/|$)(.*)
         pathType: ImplementationSpecific
+        backend:
+          service:
+            name: login-frontend
+            port:
+              number: 80
+      # Static assets - no rewrite needed
+      - path: /assets
+        pathType: Prefix
         backend:
           service:
             name: login-frontend
