@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: login-frontend
+  namespace: login
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/enable-access-log: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: login.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+  labels:
+    app: login-frontend
+    component: frontend
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - login.hotosm.org
+    secretName: login-frontend-tls
+  rules:
+  - host: login.hotosm.org
+    http:
+      paths:
+      # Login UI at /login
+      - path: /login
+        pathType: Prefix
+        backend:
+          service:
+            name: login-frontend
+            port:
+              number: 80

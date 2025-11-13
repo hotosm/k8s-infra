@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: login-backend
+  namespace: login
+  labels:
+    app: login-backend
+    component: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: login-backend
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000
+    protocol: TCP
