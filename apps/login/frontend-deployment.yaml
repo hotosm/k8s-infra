@@ -25,6 +25,10 @@ spec:
         - containerPort: 80
           name: http
           protocol: TCP
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: default.conf
         livenessProbe:
           httpGet:
             path: /
@@ -41,4 +45,8 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 3
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: login-frontend-nginx-config
       restartPolicy: Always
