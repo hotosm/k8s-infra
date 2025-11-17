@@ -84,9 +84,10 @@ server:
 password:
   enabled: true
 third_party:
-  error_redirect_url: https://login.hotosm.org
-  redirect_url: https://login.hotosm.org/thirdparty/callback
+  error_redirect_url: https://login.hotosm.org/app/error
+  redirect_url: https://login.hotosm.org/app/thirdparty/callback
   allowed_redirect_urls:
+    - https://**.hotosm.org/app/**
     - https://**.hotosm.org
     - https://ui.hotosm.org
   providers:
