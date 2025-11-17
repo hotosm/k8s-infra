@@ -17,6 +17,31 @@ vector:
   # needed currently, so it is disabled to save on some cluster resources.
   enabled: false
 
+raster:
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 10
+    # `type`: "cpu" || "requestRate" || "both"
+    type: "cpu"
+    behaviour: 
+      scaleDown:
+        stabilizationWindowSeconds: 60
+      scaleUp:
+        stabilizationWindowSeconds: 0
+    targets:
+      # matches `type` value above unless `type: "both"` is selected
+      cpu: 85
+      # requestRate: 15000 ## enable after load testing
+  settings:
+    resources:
+      requests:
+        cpu: "1024m"
+        memory: "3Gi"
+      limits:
+        cpu: "2048m"
+        memory: "4Gi"
+
 stac:
   image:
     # From https://github.com/hotosm/OpenAerialMap/tree/main/backend/stac-api
