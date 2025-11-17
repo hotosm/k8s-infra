@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: login-frontend-login
+  name: login-frontend-app
   namespace: login
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "100m"
@@ -22,13 +22,13 @@ spec:
   tls:
   - hosts:
     - login.hotosm.org
-    secretName: login-frontend-tls
+    secretName: login-frontend-app-tls
   rules:
   - host: login.hotosm.org
     http:
       paths:
-      # Login UI at /login - rewrite to / for nginx SPA routing
-      - path: /login(/|$)(.*)
+      # Login UI at /app - rewrite to / for nginx SPA routing
+      - path: /app(/|$)(.*)
         pathType: ImplementationSpecific
         backend:
           service:
