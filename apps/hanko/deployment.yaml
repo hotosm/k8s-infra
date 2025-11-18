@@ -26,6 +26,17 @@ spec:
             - all
             - '--config'
             - /etc/config/config.yaml
+          env:
+            - name: SESSION_COOKIE_DOMAIN
+              value: ".hotosm.org"
+            - name: SESSION_COOKIE_HTTP_ONLY
+              value: "true"
+            - name: SESSION_COOKIE_SAME_SITE
+              value: "lax"
+            - name: SESSION_COOKIE_SECURE
+              value: "true"
+            - name: THIRD_PARTY_COOKIE_DOMAIN
+              value: ".hotosm.org"
           ports:
             - name: http-public
               containerPort: 8000
