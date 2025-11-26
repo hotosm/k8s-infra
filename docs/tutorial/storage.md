@@ -2,6 +2,18 @@
 
 Kubernetes doesn't provide storage - you need an external system.
 
+## Storage Classes
+
+Storage Classes are Kubernetes' abstraction layer for dynamic provisioning. They define:
+- Which provisioner to use (e.g., AWS EBS, Longhorn, NFS)
+- Performance characteristics (SSD vs HDD, replication factor)
+- Reclaim policies (delete or retain volumes when claims are deleted)
+
+When you create a PersistentVolumeClaim (PVC), Kubernetes automatically provisions storage from the
+specified StorageClass.
+
+Most clusters have a default StorageClass, so you often don't need to specify one explicitly.
+
 ## Options
 
 ### Local/HostPath
