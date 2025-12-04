@@ -1,0 +1,175 @@
+# Drone Task Manager Application - Production Environment
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: drone-tm-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/hotosm/drone-tm
+    targetRevision: HEAD
+    path: charts/drone-tm
+    helm:
+      values: |
+        global:
+          domain: drone-tm.hotosm.org
+          storageClass: "gp3"
+          ingress:
+            className: "nginx"
+        
+        backend:
+          replicaCount: 3
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+            requests:
+              cpu: 1000m
+              memory: 1Gi
+          autoscaling:
+            enabled: true
+            minReplicas: 3
+            maxReplicas: 10
+            targetCPUUtilizationPercentage: 70
+          ingress:
+            enabled: true
+            hosts:
+              - host: api.drone-tm.hotosm.org
+                paths:
+                  - path: /
+                    pathType: Prefix
+            tls:
+              - secretName: drone-tm-prod-tls
+                hosts:
+                  - api.drone-tm.hotosm.org
+        
+        frontend:
+          replicaCount: 3
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 250m
+              memory: 256Mi
+          ingress:
+            enabled: true
+            hosts:
+              - host: drone-tm.hotosm.org
+                paths:
+                  - path: /
+                    pathType: Prefix
+            tls:
+              - secretName: drone-tm-prod-tls
+                hosts:
+                  - drone-tm.hotosm.org
+        
+        worker:
+          replicaCount: 3
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 512Mi
+        
+        odm:
+          enabled: true
+          nodeodm:
+            replicaCount: 2
+            resources:
+              limits:
+                cpu: 4000m
+                memory: 8Gi
+              requests:
+                cpu: 2000m
+                memory: 4Gi
+          webodm:
+            replicaCount: 1
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 2Gi
+              requests:
+                cpu: 500m
+                memory: 1Gi
+          worker:
+            replicaCount: 2
+            resources:
+              limits:
+                cpu: 2000m
+                memory: 4Gi
+              requests:
+                cpu: 1000m
+                memory: 2Gi
+        
+        postgresql:
+          enabled: true
+          primary:
+            resources:
+              limits:
+                cpu: 4000m
+                memory: 4Gi
+              requests:
+                cpu: 2000m
+                memory: 2Gi
+            persistence:
+              size: 200Gi
+              storageClass: "gp3"
+        
+        minio:
+          enabled: true
+          replicas: 2
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+            requests:
+              cpu: 1000m
+              memory: 2Gi
+          persistence:
+            size: 500Gi
+            storageClass: "gp3"
+        
+        redis:
+          enabled: true
+          architecture: replication
+          master:
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 2Gi
+              requests:
+                cpu: 500m
+                memory: 1Gi
+            persistence:
+              size: 50Gi
+              storageClass: "gp3"
+          replica:
+            replicaCount: 2
+            resources:
+              limits:
+                cpu: 500m
+                memory: 1Gi
+              requests:
+                cpu: 250m
+                memory: 512Mi
+            persistence:
+              size: 25Gi
+              storageClass: "gp3"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: drone-tm-prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+  revisionHistoryLimit: 10
