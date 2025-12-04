@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tm-sandbox
+  namespace: tm-sandbox
+spec:
+  project: default
+  sources:
+    # Helm chart + values
+    - repoURL: https://github.com/naxa-developers/osm-sandbox-dashboard/
+      targetRevision: feat/sandbox-login
+      path: dashboard-charts
+      helm:
+        releaseName: tm-sandbox
+        valueFiles:
+          - $k8s-infra/apps/tm-sandbox/helm/values.yaml
+
+    # Git repo containing values.yaml
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+
+    # Extra resources
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/tm-sandbox
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tm-sandbox
+
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
