@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: tm-sandbox
-  namespace: tm-sandbox
+  namespace: argocd
 spec:
   project: default
   sources:
@@ -33,3 +33,5 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    syncOptions:
+      - CreateNamespace=true
