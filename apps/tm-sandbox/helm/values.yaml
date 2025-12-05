@@ -11,6 +11,10 @@ ssl_certificate:
 service_account:
   create: true
 
+extraEnvFrom:
+  - secretRef:
+      name: tm-sandbox-dashboard-secret
+
 db:
   enabled: true
   image:
@@ -23,7 +27,6 @@ db:
   env:
     POSTGRES_DB: db_dashboard
     POSTGRES_USER: postgres
-    POSTGRES_PASSWORD: postgres
   persistenceDisk:
     enabled: true
     mountPath: /var/lib/postgresql/data
@@ -60,11 +63,6 @@ dashboard:
       storageClassName: gp3
       capacity:
         storage: 1Gi
-
-  envFrom:
-    - secretRef:
-        name: tm-sandbox-dashboard-secret
-
   env:
     ENVIRONMENT: production
     #################### Dashboard osm auth  ####################
