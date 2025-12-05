@@ -6,7 +6,7 @@ adminEmail: admin@osmsandbox.naxadev.com
 
 ssl_certificate:
   create_cluster_issuer: false
-  create_cert: false
+  create_cert: true
 
 service_account:
   create: true
