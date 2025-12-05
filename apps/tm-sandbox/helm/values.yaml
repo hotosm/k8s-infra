@@ -1,0 +1,115 @@
+environment: production
+serviceType: ClusterIP
+namespace: tm-sandbox
+createClusterIssuer: true
+adminEmail: admin@osmsandbox.naxadev.com
+
+ssl_certificate:
+  create_cluster_issuer: false
+  create_cert: false
+
+service_account:
+  create: true
+
+db:
+  enabled: true
+  image:
+    name: postgres
+    tag: 16
+  nodeSelector:
+    enabled: true
+    label_key: nodegroup_type
+    label_value: tm-sandbox
+  env:
+    POSTGRES_DB: db_dashboard
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+  persistenceDisk:
+    enabled: true
+    mountPath: /var/lib/postgresql/data
+    subPath: postgresql-db
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: gp3
+      capacity:
+        storage: 1Gi
+  resources:
+    enabled: false
+    requests:
+      memory: "1024Mi"
+      cpu: "1"
+    limits:
+      memory: "1536Mi"
+      cpu: "1.5"
+  sharedMemorySize: 16Mi
+
+dashboard:
+  image:
+    name: naxa/osm-sandbox-dashboard
+    tag: eks
+  enabled: true
+  ingressDomain: eks-dashboard.osmsandbox.naxadev.com
+  persistenceDisk:
+    enabled: true
+    mountPath: /app/values/applied
+    subPath: applied_values
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: gp3
+      capacity:
+        storage: 1Gi
+
+  envFrom:
+    - secretRef:
+        name: tm-sandbox-dashboard-secret
+
+  env:
+    ENVIRONMENT: production
+    #################### Dashboard osm auth  ####################
+    OSM_CLIENT_ID: KXWqpKhFYuAPKdbGG_Jko1usvFLGthKZ-n2CemLaKfQ
+    REDIRECT_URI: "https://eks-dashboard.osmsandbox.naxadev.com/redirect_sandbox"
+    OSM_INSTANCE_URL: "https://www.openstreetmap.org"
+    OSM_INSTANCE_SCOPES: "read_prefs"
+
+    ## Token
+    ACCESS_TOKEN_EXPIRE_MINUTES:  1440
+    
+    #################### Sandbox env vars ####################
+    OSM_SANDBOX_CHART: /osm-sandbox-deploy
+
+    #################### Sandbox Database env vars ####################
+    SANDBOX_PG_DB_PORT: "5432"
+    SANDBOX_PG_DB_USER: postgres
+    SANDBOX_PG_DB_NAME: sandbox_db
+
+    #################### Sandbox Api env vars ####################
+    SANDBOX_DOMAIN: "eks-boxes.osmsandbox.naxadev.com"
+    SANDBOX_NAMESPACE: "tm-sandbox"
+    SANDBOX_MAILER_ADDRESS: "none"
+    SANDBOX_MAILER_DOMAIN: osmsandbox.naxadev.com
+    SANDBOX_MAILER_USERNAME: "none"
+    SANDBOX_OSM_id_key: 7274c9d5-138e-44b9-aa46-c4384e6cc63c
+    SANDBOX_OAUTH_CLIENT_ID: 7274c9d5-138e-44b9-aa46-c4384e6cc63c
+    SANDBOX_MAILER_FROM: osm-sandbox-admins@googlegroups.com
+    SANDBOX_NOMINATIM_URL: "none"
+    SANDBOX_OVERPASS_URL: "none"
+    SANDBOX_NEW_RELIC_LICENSE_KEY: "none"
+    SANDBOX_NEW_RELIC_APP_NAME: "none"
+    SANDBOX_ORGANIZATION_NAME: OpenStreetMap-Sandbox
+    SANDBOX_WEBSITE_STATUS: "online"
+    SANDBOX_TM_OAUTH_CLIENT_ID: bd13001a-29ad-4ba0-bc76-ba3fcdb80cd0
+    
+  resources:
+    enabled: true
+    requests:
+      memory: "1024Mi"
+      cpu: "1"
+    limits:
+      memory: "1536Mi"
+      cpu: "1.5"
+  nodeSelector:
+    enabled: true
+    label_key: nodegroup_type
+    label_value: tm-sandbox
