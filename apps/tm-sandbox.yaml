@@ -17,12 +17,12 @@ spec:
 
     # Git repo containing values.yaml
     - repoURL: https://github.com/hotosm/k8s-infra.git
-      targetRevision: HEAD
+      targetRevision: feat/add-tm-sandbox-app
       ref: k8s-infra
 
     # Extra resources
     - repoURL: https://github.com/hotosm/k8s-infra.git
-      targetRevision: HEAD
+      targetRevision: feat/add-tm-sandbox-app
       path: apps/tm-sandbox
 
   destination:
