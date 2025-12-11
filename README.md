@@ -38,3 +38,21 @@ See the [inital proposal](about/proposal.md) for more background.
     - ex: PostgresCluster CRD requires the role ARN authorized for backups. Role and bucket are created in TF.
 - Global cluster resources are provisioned through TF, but argument can be made for their management by K8s. 
 - Ideal solution enables cluster resources to reference, mount, inject, etc. TF-managed information with minimal developer intervention.
+
+## Roadmap
+
+<!-- prettier-ignore-start -->
+| Status | Tool Migrated | Date Estimate |
+|:------:|:-------:|:--------|
+|✅| OpenAerialMap | Sep '25 |
+|⚙️| FieldTM | Jan '26 |
+|⚙️| Portal + Login | Jan '26 |
+| | DroneTM + ScaleODM | Feb '26 |
+| | ODK, QFieldCloud | Mar '26 |
+| | uMap, ChatMap | May '26 |
+| | fAIr | June '26 |
+| | Export Tool | Dec '26 |
+|❌| Tasking Manager | Not currently planned |
+|❌| Raw Data API | Not currently planned |
+<!-- prettier-ignore-end -->
+
