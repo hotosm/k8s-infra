@@ -51,6 +51,7 @@ See the [inital proposal](about/proposal.md) for more background.
 | | ODK, QFieldCloud | Mar '26 |
 | | uMap, ChatMap | May '26 |
 | | fAIr | June '26 |
+| | HDX Country Exports | Sep '26 |
 | | Export Tool | Dec '26 |
 |❌| Tasking Manager | Not currently planned |
 |❌| Raw Data API | Not currently planned |
