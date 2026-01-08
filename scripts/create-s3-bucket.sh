@@ -3,7 +3,7 @@ set -euo pipefail
 # -------------------------------------------------------------
 # Create an S3 bucket and an IAM user with scoped access
 # Usage:
-#   ./create-s3-user.sh <bucket-name> [profile-name]
+#   bash create-s3-bucket.sh <bucket-name> [profile-name]
 #
 # Environment:
 #   AWS_REGION (optional) - defaults to us-east-1
