@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: xlsforms-builder
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    # Helm chart + values
+    - repoURL: oci://ghcr.io/hotosm/charts
+      chart: xlsforms-builder
+      targetRevision: 0.1.1
+      helm:
+        releaseName: xlsforms-builder
+        # valueFiles:
+        #   - $k8s-infra/apps/xlsforms-builder/helm/values.yaml
+
+    # # Git repo containing values.yaml
+    # - repoURL: https://github.com/hotosm/k8s-infra.git
+    #   targetRevision: HEAD
+    #   ref: k8s-infra
+
+    # Extra resources
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/xlsforms-builder
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: field
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
