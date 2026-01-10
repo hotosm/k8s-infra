@@ -7,7 +7,7 @@ spec:
   project: default
   sources:
     # Helm chart + values
-    - repoURL: oci://ghcr.io/hotosm/charts
+    - repoURL: oci://ghcr.io/hotosm/charts/xlsform-builder
       chart: xlsforms-builder
       targetRevision: 0.1.1
       helm:
