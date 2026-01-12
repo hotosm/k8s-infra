@@ -9,7 +9,7 @@ spec:
     # Helm chart + values
     - repoURL: oci://ghcr.io/hotosm/charts/xlsform-builder
       chart: xlsforms-builder
-      targetRevision: 0.1.2
+      targetRevision: 0.1.3
       helm:
         releaseName: xlsforms-builder
         # valueFiles:
