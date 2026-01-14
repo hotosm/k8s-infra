@@ -13,6 +13,7 @@ domainFilters:
   - imagery.hotosm.org
   - login.hotosm.org
   - field.hotosm.org
+  - sandbox.hotosm.org
 aws:
   zoneType: public
 env:
