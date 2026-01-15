@@ -2,7 +2,7 @@ environment: production
 serviceType: ClusterIP
 namespace: tm-sandbox
 createClusterIssuer: true
-adminEmail: admin@osmsandbox.naxadev.com
+adminEmail: admin@sandbox.hotosm.org
 
 ssl_certificate:
   create_cluster_issuer: false
@@ -52,7 +52,7 @@ dashboard:
     name: naxa/osm-sandbox-dashboard
     tag: eks
   enabled: true
-  ingressDomain: eks-dashboard.osmsandbox.naxadev.com
+  ingressDomain: sandbox.hotosm.org
   persistenceDisk:
     enabled: true
     mountPath: /app/values/applied
@@ -67,7 +67,7 @@ dashboard:
     ENVIRONMENT: production
     #################### Dashboard osm auth  ####################
     OSM_CLIENT_ID: KXWqpKhFYuAPKdbGG_Jko1usvFLGthKZ-n2CemLaKfQ
-    REDIRECT_URI: "https://eks-dashboard.osmsandbox.naxadev.com/redirect_sandbox"
+    REDIRECT_URI: "https://sandbox.hotosm.org/redirect_sandbox"
     OSM_INSTANCE_URL: "https://www.openstreetmap.org"
     OSM_INSTANCE_SCOPES: "read_prefs"
 
@@ -83,10 +83,10 @@ dashboard:
     SANDBOX_PG_DB_NAME: sandbox_db
 
     #################### Sandbox Api env vars ####################
-    SANDBOX_DOMAIN: "eks-boxes.osmsandbox.naxadev.com"
+    SANDBOX_DOMAIN: "sandbox.hotosm.org"
     SANDBOX_NAMESPACE: "tm-sandbox"
     SANDBOX_MAILER_ADDRESS: "none"
-    SANDBOX_MAILER_DOMAIN: osmsandbox.naxadev.com
+    SANDBOX_MAILER_DOMAIN: sandbox.hotosm.org
     SANDBOX_MAILER_USERNAME: "none"
     SANDBOX_OSM_id_key: 7274c9d5-138e-44b9-aa46-c4384e6cc63c
     SANDBOX_OAUTH_CLIENT_ID: 7274c9d5-138e-44b9-aa46-c4384e6cc63c
