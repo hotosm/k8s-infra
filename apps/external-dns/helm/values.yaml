@@ -13,7 +13,9 @@ domainFilters:
   - imagery.hotosm.org
   - login.hotosm.org
   - field.hotosm.org
+  - drone.hotosm.org
   - sandbox.hotosm.org
+  - export.hotosm.org
 aws:
   zoneType: public
 env:
