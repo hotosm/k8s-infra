@@ -22,6 +22,12 @@ spec:
         # - username
         # - password
         name: dronetm-db-prod-creds
+      # Required to enable PostGIS
+      postInitSQL:
+        - CREATE EXTENSION IF NOT EXISTS postgis;
+        - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder CASCADE;
+        - CREATE EXTENSION IF NOT EXISTS postgis_topology CASCADE;
+        - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
 
   storage:
     storageClass: gp3
@@ -55,3 +61,22 @@ spec:
       data:
         compression: gzip
         jobs: 2
+
+# ---
+# 
+# This is another approach, but we stick to the simpler
+# postInitSQL script above
+# apiVersion: postgresql.cnpg.io/v1
+# kind: Database
+# metadata:
+#   name: dronetm-db-prod
+# spec:
+#   name: dronetm
+#   owner: drone_tm_prod_rw
+#   cluster:
+#     name: dronetm-db-prod
+#   extensions:
+#   - name: postgis
+#   - name: postgis_topology
+#   - name: fuzzystrmatch
+#   - name: postgis_tiger_geocoder
