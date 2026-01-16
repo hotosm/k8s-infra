@@ -4,12 +4,12 @@ metadata:
   name: hanko-db
   labels:
     app.kubernetes.io/component: database
-    app.kubernetes.io/version: 18-standard-trixie
+    app.kubernetes.io/version: 18-system-trixie
 
 spec:
   instances: 1
   description: "Hanko Database"
-  imageName: "ghcr.io/cloudnative-pg/postgresql:18-standard-trixie"
+  imageName: "ghcr.io/cloudnative-pg/postgresql:18-system-trixie"
 
   primaryUpdateStrategy: unsupervised
 

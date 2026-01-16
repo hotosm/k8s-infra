@@ -4,12 +4,12 @@ metadata:
   name: dronetm-db-prod
   labels:
     app.kubernetes.io/component: database
-    app.kubernetes.io/version: 16-3-standard-trixie
+    app.kubernetes.io/version: 16-3-system-trixie
 
 spec:
   instances: 1
   description: "DroneTM Database"
-  imageName: "ghcr.io/cloudnative-pg/postgis:16-3-standard-trixie"
+  imageName: "ghcr.io/cloudnative-pg/postgis:16-3-system-trixie"
 
   primaryUpdateStrategy: unsupervised
 
