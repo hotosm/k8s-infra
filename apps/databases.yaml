@@ -17,3 +17,9 @@ spec:
     automated:
       selfHeal: true
       prune: true
+  # Enable this an apply to temporary block database syncs
+  # ignoreDifferences:
+  #   - group: argoproj.io
+  #     kind: Application
+  #     jsonPointers:
+  #       - /spec/syncPolicy
