@@ -150,6 +150,23 @@ git add sealed-secret.yaml
 git commit -m "Update sealed secret"
 ```
 
+## Emergency Recovery
+
+To retrieve a secret from a sealed secret file (offline):
+
+- Get the saved master key.
+- Then run:
+
+```bash
+kubeseal \
+  --recovery-unseal \
+  --recovery-private-key master-key.key \
+  -f sealed-secret.yaml -o yaml > secret.yaml
+```
+
+- This will produce a normal Kubernetes secret, which you can base64
+  decode as needed.
+
 ## Other Options
 
 - Cloud provider integrations (AWS Secrets Manager, etc.) - not portable
