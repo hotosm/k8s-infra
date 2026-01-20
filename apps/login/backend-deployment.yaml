@@ -26,8 +26,19 @@ spec:
           name: http
           protocol: TCP
         env:
+        # Auth config
+        - name: AUTH_PROVIDER
+          value: "hanko"
         - name: HANKO_API_URL
           value: "https://login.hotosm.org"
+        - name: JWT_ISSUER
+          value: "https://login.hotosm.org"
+        # URLs
+        - name: BACKEND_URL
+          value: "https://login.hotosm.org"
+        - name: FRONTEND_URL
+          value: "https://login.hotosm.org"
+        # Cookie config
         - name: COOKIE_SECRET
           valueFrom:
             secretKeyRef:
@@ -35,6 +46,18 @@ spec:
               key: cookie-secret
         - name: COOKIE_DOMAIN
           value: ".hotosm.org"
+        # Database
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: login-backend-secrets
+              key: database-url
+        - name: HANKO_DB_URL
+          valueFrom:
+            secretKeyRef:
+              name: login-backend-secrets
+              key: hanko-db-url
+        # OSM OAuth
         - name: OSM_CLIENT_ID
           valueFrom:
             secretKeyRef:
@@ -45,6 +68,27 @@ spec:
             secretKeyRef:
               name: login-backend-secrets
               key: osm-client-secret
+        - name: OSM_REDIRECT_URI
+          value: "https://login.hotosm.org/api/auth/osm/callback"
+        - name: OSM_URL
+          value: "https://www.openstreetmap.org"
+        - name: OSM_SCOPE
+          value: "read_prefs"
+        # Logging
+        - name: LOG_LEVEL
+          value: "INFO"
+        # Admin
+        - name: ADMIN_EMAILS
+          value: "sysadmin@hotosm.org"
+        # App URLs for admin proxy
+        - name: DRONETM_BACKEND_URL
+          value: "https://dronetm.hotosm.org"
+        - name: FAIR_BACKEND_URL
+          value: "https://fair.hotosm.org"
+        - name: PORTAL_BACKEND_URL
+          value: "https://portal.hotosm.org"
+        - name: OAM_BACKEND_URL
+          value: "https://openaerialmap.org"
         livenessProbe:
           httpGet:
             path: /health
