@@ -10,7 +10,7 @@ spec:
     path: 'apps/hanko'
     # targetRevision: HEAD
     # FIXME temp until debugging complete
-    targetRevision: add-login-service
+    targetRevision: main
   destination:
     server: https://kubernetes.default.svc
     namespace: login
