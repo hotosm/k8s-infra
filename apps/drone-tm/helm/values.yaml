@@ -11,7 +11,8 @@ env:
   POSTGRES_HOST: "dronetm-db-prod-rw.postgres.svc.cluster.local"
   POSTGRES_DB: "drone_tm_prod"
   POSTGRES_USER: "drone_tm_prod_rw"
-  S3_ENDPOINT: "https://s3-accelerate.amazonaws.com"
+  S3_ENDPOINT_DOWNLOAD: "https://d2ymfcf63vwwpt.cloudfront.net"
+  S3_ENDPOINT_UPLOAD: "https://s3-accelerate.amazonaws.com"
   S3_BUCKET_NAME: "dronetm-prod"
   EXTRA_CORS_ORIGINS: '["https://drone-tm.example.com"]'
   MONITORING: "sentry"
@@ -40,13 +41,16 @@ ingress:
         - path: /api
           pathType: Prefix
 
-# # We need to override the frontend image for now, to enable the dynamic VITE_API_URL injection
-# frontendAssets:
-#   image:
-#     tag: "main"
+# FIXME temporary override until new release, then remove
+frontendAssets:
+  image:
+    tag: "dev"
 
 # Main application services
 backend:
+  # FIXME temporary override until new release, then remove
+  image:
+    tag: "dev"
   replicaCount: 3
   resources:
     limits:
@@ -63,6 +67,9 @@ backend:
     targetCPUUtilizationPercentage: 80
 
 worker:
+  # FIXME temporary override until new release, then remove
+  image:
+    tag: "dev"
   replicaCount: 2
   resources:
     limits:
