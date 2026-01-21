@@ -58,4 +58,3 @@ See the [inital proposal](about/proposal.md) for more background.
 |❌| Tasking Manager | Not currently planned |
 |❌| Raw Data API | Not currently planned |
 <!-- prettier-ignore-end -->
-
