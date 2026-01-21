@@ -1,0 +1,79 @@
+# For default 8GB redis volume
+global:
+  storageClass: "gp3"
+
+existingSecret:
+  name: "drone-tm-prod-secrets"
+env:
+  DOMAIN: "drone.hotosm.org"
+  DEBUG: "False"
+  LOG_LEVEL: "INFO"
+  POSTGRES_HOST: "dronetm-db-prod-rw.postgres.svc.cluster.local"
+  POSTGRES_DB: "drone_tm_prod"
+  POSTGRES_USER: "drone_tm_prod_rw"
+  S3_ENDPOINT: "https://s3-accelerate.amazonaws.com"
+  S3_BUCKET_NAME: "dronetm-prod"
+  EXTRA_CORS_ORIGINS: '["https://drone-tm.example.com"]'
+  MONITORING: "sentry"
+  SMTP_HOST: "email-smtp.ap-south-1.amazonaws.com"
+  SMTP_PORT: "587"
+  SMTP_USER: "AKIAZ7LFYEFS5XWF5LVV"
+  EMAILS_FROM_EMAIL: "noreply@drone.hotosm.org"
+  EMAILS_FROM_NAME: "Drone Tasking Manager"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: drone.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+  tls:
+    - hosts:
+        - drone.hotosm.org
+      secretName: drone-tm-tls
+  hosts:
+    - host: drone.hotosm.org
+      paths:
+        - path: /
+          pathType: Prefix
+        - path: /api
+          pathType: Prefix
+
+# # We need to override the frontend image for now, to enable the dynamic VITE_API_URL injection
+# frontendAssets:
+#   image:
+#     tag: "main"
+
+# Main application services
+backend:
+  replicaCount: 3
+  resources:
+    limits:
+      cpu: 900m
+      memory: 1.5Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  # FIXME enable autoscaling at some point
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+
+worker:
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  # FIXME enable autoscaling at some point
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
