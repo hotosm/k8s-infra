@@ -84,7 +84,7 @@ eksctl get iamidentitymapping --cluster hotosm-production-cluster \
 ### Using the role
 
 This role should have access to view pods / deployment progress,
-but not modify things.
+but not modify things / exec / view secrets.
 
 `~/.aws/config`
 ```toml
