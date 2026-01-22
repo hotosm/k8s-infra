@@ -16,10 +16,10 @@ env:
   S3_BUCKET_NAME: "dronetm-prod"
   EXTRA_CORS_ORIGINS: '["https://drone-tm.example.com"]'
   MONITORING: "sentry"
-  SMTP_HOST: "email-smtp.ap-south-1.amazonaws.com"
+  SMTP_HOST: "email-smtp.us-east-1.amazonaws.com"
   SMTP_PORT: "587"
-  SMTP_USER: "AKIAZ7LFYEFS5XWF5LVV"
-  EMAILS_FROM_EMAIL: "noreply@drone.hotosm.org"
+  SMTP_USER: "AKIAZYDVV4ILPVD5CLBF"
+  EMAILS_FROM_EMAIL: "noreply@hotosm.org"
   EMAILS_FROM_NAME: "Drone Tasking Manager"
 
 ingress:
