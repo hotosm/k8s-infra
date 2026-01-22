@@ -19,7 +19,6 @@ env:
   S3_ENDPOINT_DOWNLOAD: "https://d2ymfcf63vwwpt.cloudfront.net"
   S3_ENDPOINT_UPLOAD: "https://s3-accelerate.amazonaws.com"
   S3_BUCKET_NAME: "dronetm-prod"
-  EXTRA_CORS_ORIGINS: '["https://drone-tm.example.com"]'
   MONITORING: "sentry"
   SMTP_HOST: "email-smtp.us-east-1.amazonaws.com"
   SMTP_PORT: "587"
