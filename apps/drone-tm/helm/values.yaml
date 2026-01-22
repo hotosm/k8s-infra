@@ -1,6 +1,6 @@
 # Cost tracking
 podLabels:
-  product: dronetm
+  project: dronetm
   tool: dronetm
 
 # For default 8GB redis volume
@@ -46,7 +46,7 @@ ingress:
         - path: /api
           pathType: Prefix
   labels:
-    product: dronetm
+    project: dronetm
     tool: dronetm
 
 # FIXME temporary override until new release, then remove
@@ -81,6 +81,8 @@ worker:
   # FIXME temporary override until new release, then remove
   image:
     tag: "dev"
+    pullPolicy: Always
+
   replicaCount: 2
   resources:
     limits:
@@ -98,5 +100,5 @@ worker:
 
 dragonfly:
   commonLabels:
-    product: dronetm
+    project: dronetm
     tool: dronetm
