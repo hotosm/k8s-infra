@@ -134,7 +134,7 @@ mfa:
 ```bash
 kubectl create secret generic hanko-config \
   --from-file=config.yaml=./config.yaml \
-  --namespace hanko \
+  --namespace login \
   --dry-run=client -o yaml > secret.yaml
 ```
 

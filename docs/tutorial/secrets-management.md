@@ -34,11 +34,23 @@ spec:
   source:
     chart: sealed-secrets
     repoURL: https://bitnami-labs.github.io/sealed-secrets
-    targetRevision: 2.17.3
+    targetRevision: 2.18.0
+    # We override keyrenewperiod this to provide a simpler GitOps experience.
+    #
+    # With key renewal enabled - best practice - this means the master key is
+    # renewed every 30 days.
+    # 
+    # In the event of recovery, we need to have made sure we had the latest key
+    # backed up - this is unrealistic.
+    #
+    # Options to backup via cron into object storage are undesirable.
+    # Simply keeping the primary key very safe is a simple solution.
+    # A tradeoff between operational complexity and security.
     helm:
       releaseName: sealed-secrets-controller
       valuesObject:
         fullnameOverride: sealed-secrets-controller
+        keyrenewperiod: 0
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
@@ -137,6 +149,23 @@ rm secret.yaml
 git add sealed-secret.yaml
 git commit -m "Update sealed secret"
 ```
+
+## Emergency Recovery
+
+To retrieve a secret from a sealed secret file (offline):
+
+- Get the saved master key.
+- Then run:
+
+```bash
+kubeseal \
+  --recovery-unseal \
+  --recovery-private-key master-key.key \
+  -f sealed-secret.yaml -o yaml > secret.yaml
+```
+
+- This will produce a normal Kubernetes secret, which you can base64
+  decode as needed.
 
 ## Other Options
 
