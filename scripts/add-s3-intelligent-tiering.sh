@@ -3,7 +3,7 @@ set -euo pipefail
 # -------------------------------------------------------------
 # Apply lifecycle policy to transition ALL objects to Intelligent-Tiering
 # Usage:
-#   bash enable-intelligent-tiering.sh <bucket-name> [profile-name]
+#   bash add-s3-intelligent-tiering.sh <bucket-name> [profile-name]
 #
 # This policy:
 #   - Transitions ALL objects (existing + new) to Intelligent-Tiering after 0 days

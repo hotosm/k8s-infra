@@ -1,3 +1,8 @@
+# Cost tracking
+podLabels:
+  product: dronetm
+  tool: dronetm
+
 # For default 8GB redis volume
 global:
   storageClass: "gp3"
@@ -40,6 +45,9 @@ ingress:
           pathType: Prefix
         - path: /api
           pathType: Prefix
+  labels:
+    product: dronetm
+    tool: dronetm
 
 # FIXME temporary override until new release, then remove
 frontendAssets:
@@ -87,3 +95,8 @@ worker:
     minReplicas: 1
     maxReplicas: 10
     targetCPUUtilizationPercentage: 80
+
+dragonfly:
+  commonLabels:
+    product: dronetm
+    tool: dronetm
