@@ -45,12 +45,15 @@ ingress:
 frontendAssets:
   image:
     tag: "dev"
+    pullPolicy: Always
 
 # Main application services
 backend:
   # FIXME temporary override until new release, then remove
   image:
     tag: "dev"
+    pullPolicy: Always
+
   replicaCount: 3
   resources:
     limits:
