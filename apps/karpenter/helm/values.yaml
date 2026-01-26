@@ -1,0 +1,16 @@
+# https://github.com/aws/karpenter-provider-aws/blob/main/charts/karpenter/values.yaml
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: xxx-CONFIGURE-ME-xxx
+settings:
+  clusterName: "hotosm-production-cluster"
+  # -- Cluster endpoint. If not set, will be discovered during startup (EKS only).
+  clusterEndpoint: ""
+  # -- Marking this true means that your cluster is running with an EKS control plane and Karpenter should attempt to discover cluster details from the DescribeCluster API.
+  eksControlPlane: true
+  # -- The VM memory overhead as a percent that will be subtracted from the total memory for all instance types. The value of `0.075` equals to 7.5%.
+  vmMemoryOverheadPercent: 0.075
+  # -- Interruption queue is the name of the SQS queue used for processing interruption events from EC2.
+  # Interruption handling is disabled if not specified. Enabling interruption handling may
+  # require additional permissions on the controller service account. Additional permissions are outlined in the docs.
+  interruptionQueue: ""
