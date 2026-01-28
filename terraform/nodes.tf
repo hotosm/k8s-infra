@@ -29,6 +29,47 @@ resource "aws_iam_role_policy_attachment" "node_worker_ecr_policy_attachment" {
   role       = aws_iam_role.nodegroup.name
 }
 
+resource "aws_iam_role" "karpenter_node" {
+  name                 = "KarpenterNodeRole-${aws_eks_cluster.cluster.name}"
+  permissions_boundary = var.permissions_boundary
+
+  assume_role_policy = jsonencode({
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+    }]
+    Version = "2012-10-17"
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "karpenter_node_worker_policy_attachment" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  role       = aws_iam_role.karpenter_node.name
+}
+
+resource "aws_iam_role_policy_attachment" "karpenter_node_worker_cni_policy_attachment" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  role       = aws_iam_role.karpenter_node.name
+}
+
+resource "aws_iam_role_policy_attachment" "karpenter_node_worker_ecr_policy_attachment" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
+  role       = aws_iam_role.karpenter_node.name
+}
+
+resource "aws_iam_role_policy_attachment" "karpenter_node_ssm_policy_attachment" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = aws_iam_role.karpenter_node.name
+}
+
+resource "aws_iam_instance_profile" "karpenter_node" {
+  name = "KarpenterNodeRole-${aws_eks_cluster.cluster.name}"
+  role = aws_iam_role.karpenter_node.name
+}
+
 resource "aws_eks_node_group" "core_nodes" {
   cluster_name    = aws_eks_cluster.cluster.name
   node_group_name = "core"
