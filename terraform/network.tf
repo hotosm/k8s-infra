@@ -13,19 +13,19 @@ module "vpc" {
 
   # Tagging required for Karpenter and EKS discovery
   tags = {
-    "karpenter.sh/discovery"                                          = "${local.cluster_prefix}-cluster"
-    "kubernetes.io/cluster/${local.cluster_prefix}-cluster"           = "owned"
+    "karpenter.sh/discovery"                                = "${local.cluster_prefix}-cluster"
+    "kubernetes.io/cluster/${local.cluster_prefix}-cluster" = "owned"
   }
 
   private_subnet_tags = {
-    "karpenter.sh/discovery"                                          = "${local.cluster_prefix}-cluster"
-    "kubernetes.io/role/internal-elb"                                 = "1"
-    "kubernetes.io/cluster/${local.cluster_prefix}-cluster"           = "owned"
+    "karpenter.sh/discovery"                                = "${local.cluster_prefix}-cluster"
+    "kubernetes.io/role/internal-elb"                       = "1"
+    "kubernetes.io/cluster/${local.cluster_prefix}-cluster" = "owned"
   }
 
   public_subnet_tags = {
-    "karpenter.sh/discovery"                                          = "${local.cluster_prefix}-cluster"
-    "kubernetes.io/role/elb"                                          = "1"
-    "kubernetes.io/cluster/${local.cluster_prefix}-cluster"           = "owned"
+    "karpenter.sh/discovery"                                = "${local.cluster_prefix}-cluster"
+    "kubernetes.io/role/elb"                                = "1"
+    "kubernetes.io/cluster/${local.cluster_prefix}-cluster" = "owned"
   }
 }

@@ -26,8 +26,8 @@ data "aws_iam_policy_document" "karpenter_controller" {
   # Core Karpenter controller permissions based on the official migration guide:
   # https://karpenter.sh/docs/getting-started/migrating-from-cas/
   statement {
-    sid     = "KarpenterReadWrite"
-    effect  = "Allow"
+    sid    = "KarpenterReadWrite"
+    effect = "Allow"
     actions = [
       "ssm:GetParameter",
       "ec2:DescribeImages",
