@@ -63,7 +63,7 @@ jobs:
         run: |
           kubectl apply -f kubernetes/manifests/ ${{ github.event_name == 'pull_request' && '--dry-run=client' || '' }}
       - name: Deploy eoAPI Chart
-        uses: helmfile/helmfile-action@v2.0.4
+        uses: helmfile/helmfile-action@v2.1.1
         with:
           helmfile-args: ${{ github.event_name == 'push' && 'apply' || 'diff' }}
           helmfile-workdirectory: kubernetes/helm
