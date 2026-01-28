@@ -21,6 +21,19 @@ resource "aws_eks_cluster" "cluster" {
   ]
 }
 
+# Tag the cluster security group for Karpenter discovery
+resource "aws_ec2_tag" "cluster_security_group_discovery" {
+  resource_id = aws_eks_cluster.cluster.vpc_config[0].cluster_security_group_id
+  key         = "karpenter.sh/discovery"
+  value       = aws_eks_cluster.cluster.name
+}
+
+resource "aws_ec2_tag" "cluster_security_group_cluster_tag" {
+  resource_id = aws_eks_cluster.cluster.vpc_config[0].cluster_security_group_id
+  key         = "kubernetes.io/cluster/${aws_eks_cluster.cluster.name}"
+  value       = "owned"
+}
+
 data "aws_iam_policy_document" "assume_role" {
   statement {
     effect = "Allow"
