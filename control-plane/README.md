@@ -23,5 +23,5 @@ The official AWS manual Talos config can be found
 ```bash
 tofu init
 tofu plan
-tofu apply --dry-run
+tofu apply --dry-run=client
 ```
