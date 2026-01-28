@@ -20,6 +20,11 @@ permissions:
   checks: write
   pull-requests: write
 
+# Only allow one run at a time, to avoid corrupting state
+concurrency:
+  group: terraform-main
+  cancel-in-progress: false
+
 env:
   AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
   VAR_FILE: ${{ vars.VAR_FILE || 'vars/production.tfvars' }}
