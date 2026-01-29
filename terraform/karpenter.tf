@@ -43,8 +43,7 @@ data "aws_iam_policy_document" "karpenter_controller" {
       "ec2:CreateLaunchTemplate",
       "ec2:CreateFleet",
       "ec2:DescribeSpotPriceHistory",
-      "pricing:GetProducts",
-      "iam:ListInstanceProfiles"
+      "pricing:GetProducts"
     ]
     resources = ["*"]
   }
@@ -83,6 +82,85 @@ data "aws_iam_policy_document" "karpenter_controller" {
     resources = [
       "arn:aws:eks:${var.region}:${data.aws_caller_identity.current.account_id}:cluster/${aws_eks_cluster.cluster.name}"
     ]
+  }
+
+  statement {
+    sid    = "AllowScopedInstanceProfileCreationActions"
+    effect = "Allow"
+    actions = [
+      "iam:CreateInstanceProfile"
+    ]
+    resources = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:RequestTag/kubernetes.io/cluster/${aws_eks_cluster.cluster.name}"
+      values   = ["owned"]
+    }
+    condition {
+      test     = "StringLike"
+      variable = "aws:RequestTag/karpenter.k8s.aws/ec2nodeclass"
+      values   = ["*"]
+    }
+  }
+
+  statement {
+    sid       = "AllowScopedInstanceProfileTagActions"
+    effect    = "Allow"
+    actions   = [
+      "iam:TagInstanceProfile"
+    ]
+    resources = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceTag/kubernetes.io/cluster/${aws_eks_cluster.cluster.name}"
+      values   = ["owned"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:RequestTag/kubernetes.io/cluster/${aws_eks_cluster.cluster.name}"
+      values   = ["owned"]
+    }
+    condition {
+      test     = "StringLike"
+      variable = "aws:ResourceTag/karpenter.k8s.aws/ec2nodeclass"
+      values   = ["*"]
+    }
+    condition {
+      test     = "StringLike"
+      variable = "aws:RequestTag/karpenter.k8s.aws/ec2nodeclass"
+      values   = ["*"]
+    }
+  }
+
+  statement {
+    sid       = "AllowScopedInstanceProfileActions"
+    effect    = "Allow"
+    actions   = [
+      "iam:AddRoleToInstanceProfile",
+      "iam:RemoveRoleFromInstanceProfile",
+      "iam:DeleteInstanceProfile"
+    ]
+    resources = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceTag/kubernetes.io/cluster/${aws_eks_cluster.cluster.name}"
+      values   = ["owned"]
+    }
+    condition {
+      test     = "StringLike"
+      variable = "aws:ResourceTag/karpenter.k8s.aws/ec2nodeclass"
+      values   = ["*"]
+    }
+  }
+
+  statement {
+    sid       = "AllowInstanceProfileReadListActions"
+    effect    = "Allow"
+    actions   = [
+      "iam:ListInstanceProfiles",
+      "iam:GetInstanceProfile"
+    ]
+    resources = ["*"]
   }
 
   # SQS permissions for interruption handling (not in the base guide but required when using interruptionQueue)
