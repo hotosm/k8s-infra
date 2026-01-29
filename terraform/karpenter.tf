@@ -43,7 +43,8 @@ data "aws_iam_policy_document" "karpenter_controller" {
       "ec2:CreateLaunchTemplate",
       "ec2:CreateFleet",
       "ec2:DescribeSpotPriceHistory",
-      "pricing:GetProducts"
+      "pricing:GetProducts",
+      "iam:ListInstanceProfiles"
     ]
     resources = ["*"]
   }
