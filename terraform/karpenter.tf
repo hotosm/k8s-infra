@@ -104,9 +104,9 @@ data "aws_iam_policy_document" "karpenter_controller" {
   }
 
   statement {
-    sid       = "AllowScopedInstanceProfileTagActions"
-    effect    = "Allow"
-    actions   = [
+    sid    = "AllowScopedInstanceProfileTagActions"
+    effect = "Allow"
+    actions = [
       "iam:TagInstanceProfile"
     ]
     resources = ["*"]
@@ -133,9 +133,9 @@ data "aws_iam_policy_document" "karpenter_controller" {
   }
 
   statement {
-    sid       = "AllowScopedInstanceProfileActions"
-    effect    = "Allow"
-    actions   = [
+    sid    = "AllowScopedInstanceProfileActions"
+    effect = "Allow"
+    actions = [
       "iam:AddRoleToInstanceProfile",
       "iam:RemoveRoleFromInstanceProfile",
       "iam:DeleteInstanceProfile"
@@ -154,9 +154,9 @@ data "aws_iam_policy_document" "karpenter_controller" {
   }
 
   statement {
-    sid       = "AllowInstanceProfileReadListActions"
-    effect    = "Allow"
-    actions   = [
+    sid    = "AllowInstanceProfileReadListActions"
+    effect = "Allow"
+    actions = [
       "iam:ListInstanceProfiles",
       "iam:GetInstanceProfile"
     ]
