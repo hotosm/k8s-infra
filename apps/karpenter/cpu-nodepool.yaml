@@ -4,7 +4,7 @@
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
-  name: cpu-autoscale-spot
+  name: cpu-autoscale
 spec:
   template:
     metadata:
