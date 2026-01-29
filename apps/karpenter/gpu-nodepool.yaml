@@ -19,6 +19,8 @@ spec:
     spec:
       nodeClassRef:
         name: autoscale
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
 
       taints:
         - key: nvidia.com/gpu
@@ -51,4 +53,4 @@ spec:
     cpu: "200"
 
   disruption:
-    consolidationPolicy: WhenUnderutilized
+    consolidationPolicy: WhenEmptyOrUnderutilized
