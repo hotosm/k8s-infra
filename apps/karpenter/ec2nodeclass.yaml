@@ -25,3 +25,10 @@ spec:
   tags:
     Name: karpenter-autoscale
     karpenter.sh/discovery: hotosm-production-cluster
+
+  # The machine image used as the node base OS
+  amiSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: hotosm-production-cluster
+    # AMD64 Debian Trixie (13)
+    - id: ami-0f9c27b471bdcd702
