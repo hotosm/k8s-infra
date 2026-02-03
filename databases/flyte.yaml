@@ -1,3 +1,7 @@
+# Databases 'flyteadmin' + 'datacatalog' used by Flyte
+# Decided to deploy within same cluster for simplicity
+# (despite best practices one db per cluster)
+
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -15,13 +19,16 @@ spec:
 
   bootstrap:
     initdb:
-      database: flyte
+      database: flyteadmin # Primary database
       owner: flyte
       secret:
         # Kubernetes basic-auth convention has keys:
         # - username
         # - password
         name: flyte-db-creds
+      # Additional database required by flyte
+      postInitSQL:
+        - CREATE DATABASE datacatalog OWNER flyte;
 
   storage:
     storageClass: gp3
