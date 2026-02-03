@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mlflow
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    # Helm chart + values
+    - repoURL: https://community-charts.github.io/helm-charts
+      chart: mlflow
+      targetRevision: 1.8.1
+      helm:
+        releaseName: mlflow
+        valueFiles:
+          - $k8s-infra/apps/mlflow/helm/values.yaml
+
+    # Git repo containing values.yaml
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+
+    # Extra resources
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/mlflow
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mlflow
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
