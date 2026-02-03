@@ -26,7 +26,7 @@ telemetry:
 # -- Mlflow database connection settings
 backendStore:
   # Enable this to run the migrations - ideally disable after done
-  databaseMigration: true
+  databaseMigration: false
   # Check for db running before starting main container
   databaseConnectionCheck: true
   postgres:
