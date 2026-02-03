@@ -31,7 +31,7 @@ backendStore:
   databaseConnectionCheck: true
   postgres:
     enabled: true
-    host: "mlflow-db-prod-rw.postgres.svc.cluster.local"
+    host: "mlflow-db-rw.postgres.svc.cluster.local"
     port: 5432
     database: "mlflow"
     driver: "psycopg2"
