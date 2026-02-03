@@ -14,11 +14,11 @@ spec:
   template:
     metadata:
       labels:
-        nodegroup: autoscale
+        nodegroup: autoscale-gpu
         node-type: gpu
     spec:
       nodeClassRef:
-        name: autoscale
+        name: autoscale-gpu
         group: karpenter.k8s.aws
         kind: EC2NodeClass
 
@@ -27,10 +27,6 @@ spec:
           value: "true"
           effect: NoSchedule
 
-        - key: spot
-          value: "true"
-          effect: PreferNoSchedule
-
       requirements:
         - key: karpenter.k8s.aws/instance-family
           operator: In
@@ -38,7 +34,7 @@ spec:
 
         - key: karpenter.sh/capacity-type
           operator: In
-          values: ["spot", "on-demand"]
+          values: ["on-demand"]
 
         - key: kubernetes.io/arch
           operator: In
@@ -47,7 +43,7 @@ spec:
         # Prevent unexpectedly huge GPU nodes
         - key: karpenter.k8s.aws/instance-cpu
           operator: Lt
-          values: ["32"]
+          values: ["8"]
 
   limits:
     cpu: "200"

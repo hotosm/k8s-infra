@@ -1,0 +1,35 @@
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: autoscale-gpu
+spec:
+  amiFamily: AL2
+
+  role: KarpenterNodeRole-hotosm-production-cluster
+
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: hotosm-production-cluster
+
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: hotosm-production-cluster
+
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 50Gi
+        volumeType: gp3
+        deleteOnTermination: true
+
+  tags:
+    Name: karpenter-autoscale-gpu
+    karpenter.sh/discovery: hotosm-production-cluster
+
+  # The machine image used as the node base OS
+  amiSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: hotosm-production-cluster
+    # AMD64 Ubuntu Noble 1.34 for eks (us-east-1)
+    - id: ami-0b80d15d9f1903b69
+    
