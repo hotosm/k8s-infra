@@ -144,6 +144,11 @@ db:
       passwordPath: /etc/db/pass.txt
 
 configmap:
+  logger:
+    # Level 1-3 = INFO, Level 5 = DEBUG
+    level: 5
+    show-source: true
+
   clusters:
     labelClusterMap: {}
     #  labelClusterMap:
