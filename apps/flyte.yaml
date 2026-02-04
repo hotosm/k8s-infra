@@ -1,19 +1,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: mlflow
+  name: flyte
   namespace: argocd
 spec:
   project: default
   sources:
     # Helm chart + values
-    - repoURL: https://community-charts.github.io/helm-charts
-      chart: mlflow
-      targetRevision: 1.8.1
+    - repoURL: https://flyteorg.github.io/flyte
+      chart: flyte-core
+      targetRevision: v0.1.10
       helm:
-        releaseName: mlflow
+        releaseName: flyte
         valueFiles:
-          - $k8s-infra/apps/mlflow/helm/values.yaml
+          - $k8s-infra/apps/flyte/helm/values.yaml
 
     # Git repo containing values.yaml
     - repoURL: https://github.com/hotosm/k8s-infra.git
@@ -23,10 +23,10 @@ spec:
     # Extra resources
     - repoURL: https://github.com/hotosm/k8s-infra.git
       targetRevision: HEAD
-      path: apps/mlflow
+      path: apps/flyte
   destination:
     server: https://kubernetes.default.svc
-    namespace: mlflow
+    namespace: flyte
   syncPolicy:
     automated:
       selfHeal: true
