@@ -9,7 +9,7 @@ spec:
     # Helm chart + values
     - repoURL: https://flyteorg.github.io/flyte
       chart: flyte-core
-      targetRevision: v0.1.10
+      targetRevision: v1.16.3
       helm:
         releaseName: flyte
         valueFiles:
