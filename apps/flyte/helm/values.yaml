@@ -119,17 +119,12 @@ common:
       # --- Override default secret containing the tls certificate
       # secretName:
 
-storage:
-  secretName: "flyte-s3-creds"
+storage:  
+  secretName: "flyte-s3-creds"  
   type: s3
-  bucketName: hotosm-fair-flyte
-  s3:
-    endpoint: "https://s3.amazonaws.com"
-    region: us-east-1
+  bucketName: hotosm-fair-flyte  
+  s3:  
     authType: accesskey
-    # accessKey & secretKey defined in secret specified above
-    accessKey: ""
-    secretKey: ""
 
 # Database configuration
 db:
@@ -139,12 +134,14 @@ db:
       username: flyte
       host: flyte-db-rw.postgres.svc.cluster.local
       dbname: "datacatalog"
+      passwordPath: /etc/db/pass.txt
   admin:
     database:
       port: 5432
       username: flyte
       host: flyte-db-rw.postgres.svc.cluster.local
       dbname: "flyteadmin"
+      passwordPath: /etc/db/pass.txt
 
 configmap:
   clusters:

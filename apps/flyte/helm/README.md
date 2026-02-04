@@ -12,20 +12,45 @@ bash create-s3-bucket.sh hotosm-fair-flyte
 # bash add-s3-intelligent-tiering.sh hotosm-fair-flyte
 ```
 
-```bash
-kubectl create secret generic flyte-s3-creds \
-    --from-literal=accesskey="xxx" \
-    --from-literal=secretkey="xxx" \
-    --dry-run=client \
-    --namespace='flyte' \
-    -o yaml > secret.yaml
+First create `secret.yaml` for the storage config:
 
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: flyte-s3-creds
+  namespace: flyte
+type: Opaque
+stringData:
+  storage.yaml: |
+    storage:
+      type: s3
+      container: hotosm-fair-flyte
+      connection:
+        auth-type: accesskey
+        region: us-east-1
+        endpoint: https://s3.amazonaws.com
+        access-key: xxx
+        secret-key: xxx
+      enable-multicontainer: false
+      limits:
+        maxDownloadMBs: 10
+      cache:
+        max_size_mbs: 0
+        target_gc_percent: 70
+```
+
+Then seal the secret:
+
+```bash
 kubeseal -f secret.yaml -w sealed-s3-creds.yaml
 ```
 
+Finally, create the db sealed secret:
+
 ```bash
 kubectl create secret generic flyte-db-password \
-    --from-literal=postgres-password='xxx' \
+    --from-literal=pass.txt='xxx' \
     --dry-run=client \
     --namespace='flyte' \
     -o yaml > secret.yaml
