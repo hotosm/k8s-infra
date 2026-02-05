@@ -1,7 +1,7 @@
 flyte-core-components:
 configuration:
   database:
-    username: postgres
+    username: flyte
     # This path matches the secret volumeMount below
     passwordPath: /etc/db/pass.txt
     host: flyte-db-rw.postgres.svc.cluster.local
