@@ -22,12 +22,12 @@ metadata:
   namespace: flyte
 type: Opaque
 stringData:
-  s3-secrets.yaml: |
+  013-storage-secrets.yaml: |
     storage:
-      providerConfig:
-        s3:
-          accessKey: "xxx"
-          secretKey: "xxx"
+      stow:
+        config:
+          access_key_id: "xxx"
+          secret_key: "xxx"
 ```
 
 Then seal the secret:
