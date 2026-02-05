@@ -1,35 +1,35 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: flyte
-  namespace: argocd
-spec:
-  project: default
-  sources:
-    # Helm chart + values
-    - repoURL: https://flyteorg.github.io/flyte
-      chart: flyte-core
-      targetRevision: v1.16.3
-      helm:
-        releaseName: flyte
-        valueFiles:
-          - $k8s-infra/apps/flyte/helm/values.yaml
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: flyte
+#   namespace: argocd
+# spec:
+#   project: default
+#   sources:
+#     # Helm chart + values
+#     - repoURL: https://flyteorg.github.io/flyte
+#       chart: flyte-core
+#       targetRevision: v1.16.3
+#       helm:
+#         releaseName: flyte
+#         valueFiles:
+#           - $k8s-infra/apps/flyte/helm/values.yaml
 
-    # Git repo containing values.yaml
-    - repoURL: https://github.com/hotosm/k8s-infra.git
-      targetRevision: HEAD
-      ref: k8s-infra
+#     # Git repo containing values.yaml
+#     - repoURL: https://github.com/hotosm/k8s-infra.git
+#       targetRevision: HEAD
+#       ref: k8s-infra
 
-    # Extra resources
-    - repoURL: https://github.com/hotosm/k8s-infra.git
-      targetRevision: HEAD
-      path: apps/flyte
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: flyte
-  syncPolicy:
-    automated:
-      selfHeal: true
-      prune: true
-    syncOptions:
-      - CreateNamespace=true
+#     # Extra resources
+#     - repoURL: https://github.com/hotosm/k8s-infra.git
+#       targetRevision: HEAD
+#       path: apps/flyte
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: flyte
+#   syncPolicy:
+#     automated:
+#       selfHeal: true
+#       prune: true
+#     syncOptions:
+#       - CreateNamespace=true
