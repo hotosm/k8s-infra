@@ -103,6 +103,18 @@ deployment:
     timeoutSeconds: 1
     failureThreshold: 3
 
+service:
+  type: ClusterIP
+  ports:
+    http: ""  # Keep existing
+    grpc: ""  # Keep existing
+  # Add manager port via extraPorts
+  extraPorts:
+    - name: manager
+      port: 8090
+      targetPort: 8090
+      protocol: TCP
+
 ingress:
   create: false
 
