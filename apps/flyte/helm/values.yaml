@@ -49,7 +49,9 @@ deployment:
   image:
     repository: ghcr.io/hotosm/flyte
     tag: v2.0.2
-    pullPolicy: IfNotPresent
+    # pullPolicy: IfNotPresent
+    # Until development complete
+    pullPolicy: Always
   # extraEnvVars Array with extra environment variables to add to Flyte
   extraEnvVars: []
   # extraEnvVarsConfigMap Name of existing ConfigMap containing extra env vars for Flyte
