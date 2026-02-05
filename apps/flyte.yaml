@@ -34,3 +34,9 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true  # Required for CRDs
+  ignoreDifferences:
+    # Ignore the ServiceAccount from Flyte repo (we use flyte-flyte-binary from Helm chart)
+    - group: ""
+      kind: ServiceAccount
+      name: controller-manager
+      namespace: system

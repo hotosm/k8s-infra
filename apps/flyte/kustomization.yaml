@@ -13,13 +13,6 @@ resources:
   - https://github.com/flyteorg/flyte/executor/config/rbac?ref=v2.0.2
 
 patches:
-  # Exclude ServiceAccount from being deployed
-  - target:
-      kind: ServiceAccount
-      name: controller-manager
-    patch: |-
-      $patch: delete
-
   # Patch ClusterRoleBinding to use our Helm-created ServiceAccount
   - target:
       kind: ClusterRoleBinding
