@@ -84,17 +84,24 @@ deployment:
       secret:
         secretName: flyte-db-password
   # Overrides due to change in Flyte v2
+  # Health checks are on port 8081 (controller-runtime health probe)
   livenessProbe:
     httpGet:
       path: /healthz
-      port: http
+      port: 8090
     initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
   # readinessProbe Override default container readiness probe
   readinessProbe:
     httpGet:
-      path: /healthz
-      port: http
+      path: /readyz
+      port: 8090
     initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
 
 ingress:
   create: false
