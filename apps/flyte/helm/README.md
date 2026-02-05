@@ -22,22 +22,12 @@ metadata:
   namespace: flyte
 type: Opaque
 stringData:
-  storage.yaml: |
+  s3-secrets.yaml: |
     storage:
-      type: s3
-      container: hotosm-fair-flyte
-      connection:
-        auth-type: accesskey
-        region: us-east-1
-        endpoint: https://s3.amazonaws.com
-        access-key: xxx
-        secret-key: xxx
-      enable-multicontainer: false
-      limits:
-        maxDownloadMBs: 10
-      cache:
-        max_size_mbs: 0
-        target_gc_percent: 70
+      providerConfig:
+        s3:
+          accessKey: "xxx"
+          secretKey: "xxx"
 ```
 
 Then seal the secret:

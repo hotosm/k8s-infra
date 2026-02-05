@@ -1,297 +1,109 @@
-flyteadmin:
-  enabled: true
-  replicaCount: 1
-  autoscaling:
+flyte-core-components:
+configuration:
+  database:
+    username: postgres
+    # This path matches the secret volumeMount below
+    passwordPath: /etc/db/pass.txt
+    host: flyte-db-rw.postgres.svc.cluster.local
+    port: 5432
+    dbname: flyte
+    options: sslmode=disable
+  storage:
+    # Same bucket for simplicity
+    metadataContainer: "hotosm-fair-flyte"
+    userDataContainer: "hotosm-fair-flyte"
+    provider: s3
+    providerConfig:
+      s3:
+        region: "us-east-1"
+        disableSSL: false
+        # v2Signing Flag to sign requests with v2 signature
+        # Useful for s3-compatible blob stores (e.g. minio)
+        v2Signing: false
+        endpoint: "https://s3.amazonaws.com"
+        authType: "accesskey"
+        # accessKey & secretKey will be injected by secret for inlineSecretRef
+  logging:
+    level: 5
+    plugins:
+      kubernetes:
+        enabled: false
+        templateUri: ""
+      custom: []
+  auth:
     enabled: false
+    enableAuthServer: false
+  # Flyte CoPilot
+  co-pilot:
+    image:
+      repository: cr.flyte.org/flyteorg/flytecopilot
+      tag: v1.16.3
 
-  # -- Settings for flyteadmin service monitor
-  serviceMonitor:
-    # -- If enabled create the flyteadmin service monitor
-    enabled: false
-    # -- Sets the interval at which metrics will be scraped by prometheus
-    interval: 60s
-    # -- Sets the timeout after which request to scrape metrics will time out
-    scrapeTimeout: 30s
-    # -- Sets the labels for the service monitor which are required by the
-    # prometheus to auto-detect the service monitor and start scrapping the metrics
-    labels: {}
+  # inlineSecretRef Specify an existing Secret containing additional configuration
+  # or overrides for Flyte, to be merged with the base configuration
+  inlineSecretRef: "flyte-s3-creds"
 
-flytescheduler:
-  # -- Settings for flytescheduler service monitor
-  serviceMonitor:
-    # -- If enabled create the flytescheduler service monitor
-    enabled: false
-    # -- Sets the labels for the service monitor which are required by the
-    # prometheus to auto-detect the service monitor and start scraping the metrics
-    labels: {}
-    # -- Sets the interval at which metrics will be scraped by prometheus
-    interval: 60s
-    # -- Sets the timeout after which request to scrape metrics will time out
-    scrapeTimeout: 30s
+deployment:
+  image:
+    repository: cr.flyte.org/flyteorg/flyte-binary
+    # Not ideal in production using latest tag, but currently the only way to
+    # get Flyte v2 in the OSS version
+    tag: latest
+    pullPolicy: IfNotPresent
+  # extraEnvVars Array with extra environment variables to add to Flyte
+  extraEnvVars: []
+  # extraEnvVarsConfigMap Name of existing ConfigMap containing extra env vars for Flyte
+  extraEnvVarsConfigMap: ""
+  # extraEnvVarsSecret Name of existing Secret containing extra env vars for Flyte
+  extraEnvVarsSecret: ""
+  # resources:
+  #   limits:
+  #     memory: 1Gi
+  #   requests:
+  #     cpu: 1
+  # waitForDB Configure init container to wait for DB during pod startup
+  # This is disabled when an external ConfigMap is used to specify Flyte configuration
+  waitForDB:
+    # image Configure image to use for wait-for-db init container
+    image:
+      # repository Init container image repository
+      repository: postgres
+      # tag Init container image tag
+      tag: 17-alpine
+      # pullPolicy Init container image pull policy
+      pullPolicy: IfNotPresent
+  extraVolumeMounts:
+    - name: db-password
+    # Will mount secret to /etc/db/pass.txt
+      mountPath: /etc/db
+      readOnly: true
+  extraVolumes:
+    - name: db-password
+      secret:
+        secretName: flyte-db-password
 
-datacatalog:
-  enabled: true
-  replicaCount: 1
-  autoscaling:
-    enabled: false
-  serviceMonitor:
-    # -- If enabled create the Datacatalog service monitor
-    enabled: false
-    # -- Sets the labels for the service monitor which are required by the
-    # prometheus to auto-detect the service monitor and start scraping the metrics
-    labels: {}
-    # -- Sets the interval at which metrics will be scraped by prometheus
-    interval: 60s
-    # -- Sets the timeout after which request to scrape metrics will time out
-    scrapeTimeout: 30s
+ingress:
+  create: false
 
-# Used to manage tasks in external systems, such as Snowflake, Databricks, Bigquery, or Slack
 flyteconnector:
   enabled: false
 
-flytepropeller:
-  enabled: true
-  manager: false
-  replicaCount: 1
-  prometheus:
-    enabled: false
-
-flyteconsole:
-  enabled: true
-  replicaCount: 1
-  autoscaling:
-    enabled: false
-
-  service:
-    appProtocols:
-      enabled: false
-    annotations: {}
-    type: ClusterIP
-  # Enable Google Analytics
-  ga:
-    enabled: false
-  # -- Settings for flyteconsole service monitor
-  serviceMonitor:
-    # -- If enabled create the flyteconsole service monitor
-    enabled: false
-    # -- Sets the interval at which metrics will be scraped by prometheus
-    interval: 60s
-    # -- Sets the timeout after which request to scrape metrics will time out
-    scrapeTimeout: 30s
-    # -- Sets the labels for the service monitor which are required by the
-    # prometheus to auto-detect the service monitor and start scrapping the metrics
-    labels: {}
-
-# It will enable the redoc route in ingress
-deployRedoc: false
-
-secrets:
-  adminOauthClientCredentials:
-    # If enabled is true, and `clientSecret` is specified, helm will create and mount `flyte-secret-auth`.
-    # If enabled is true, and `clientSecret` is null, it's up to the user to create `flyte-secret-auth` as described in
-    # https://docs.flyte.org/en/latest/deployment/cluster_config/auth_setup.html#oauth2-authorization-server
-    # and helm will mount `flyte-secret-auth`.
-    # If enabled is false, auth is not turned on.
-    # Note: Unsupported combination: enabled.false and clientSecret.someValue
-    enabled: false
-    clientSecret: ~
-    clientId: ~
-    secretName: ~
-
-webhook:
-  enabled: true
-  autoscaling:
-    enabled: false
-  prometheus:
-    enabled: false
-
-common:
-  databaseSecret:
-    name: "flyte-db-password"
-  ingress:
-    enabled: false
-    ingressClassName:
-    annotations:
-      nginx.ingress.kubernetes.io/app-root: /console
-      nginx.ingress.kubernetes.io/service-upstream: "true"
-    tls:
-      enabled: false
-      # --- Override default secret containing the tls certificate
-      # secretName:
-
-storage:  
-  secretName: "flyte-s3-creds"  
-  type: s3
-  bucketName: hotosm-fair-flyte  
-  s3:  
-    authType: accesskey
-
-# Database configuration
-db:
-  datacatalog:
-    database:
-      port: 5432
-      username: flyte
-      host: flyte-db-rw.postgres.svc.cluster.local
-      dbname: "datacatalog"
-      passwordPath: /etc/db/pass.txt
-  admin:
-    database:
-      port: 5432
-      username: flyte
-      host: flyte-db-rw.postgres.svc.cluster.local
-      dbname: "flyteadmin"
-      passwordPath: /etc/db/pass.txt
-
-configmap:
-  logger:
-    # Level 1-3 = INFO, Level 5 = DEBUG
-    level: 5
-    show-source: true
-
-  clusters:
-    labelClusterMap: {}
-    #  labelClusterMap:
-    #    team1:
-    #      - id: testcluster
-    #        weight: 1
-    #    team2:
-    #      - id: testcluster2
-    #        weight: 0.5
-    #      - id: testcluster3
-    #        weight: 0.5
-    clusterConfigs: []
-  #  clusterConfigs:
-  #    - name: "testcluster"
-  #      endpoint: "testcluster_endpoint"
-  #      auth:
-  #        type: "file_path"
-  #        tokenPath: "/path/to/testcluster/token"
-  #        certPath: "/path/to/testcluster/cert"
-  #    - name: "testcluster2"
-  #      endpoint: "testcluster2_endpoint"
-  #      enabled: true
-  #      auth:
-  #        type: "file_path"
-  #        tokenPath: "/path/to/testcluster2/token"
-  #        certPath: "/path/to/testcluster2/cert"
-  #    - name: "testcluster3"
-  #      endpoint: "testcluster3_endpoint"
-  #      enabled: true
-  #      auth:
-  #        type: "file_path"
-  #        tokenPath: "/path/to/testcluster3/token"
-  #        certPath: "/path/to/testcluster3/cert"
-
-  # -- Domains configuration for Flyte projects. This enables the specified number of domains across all projects in Flyte.
-  domain:
-    domains:
-      - id: development
-        name: development
-      - id: staging
-        name: staging
-      - id: production
-        name: production
-
-  # -- Open Telemetry Configuration
-  otel:
-    otel:
-      # -- The type of exporter to use
-      type: noop
-      # -- Configuration for the file exporter type
-      file:
-        filename: "/tmp/trace.txt"
-      # otlpgrpc:
-      #   endpoint: "http://localhost:4317"
-      # otlphttp:
-      #   endpoint: "http://localhost:4318/v1/traces"
-
-  # core:
-  #   # -- follows the structure specified [here](https://pkg.go.dev/github.com/flyteorg/flytepropeller/pkg/controller/config).
-  #   propeller:
-  #     rawoutput-prefix: "s3://{{ .Values.storage.bucketName }}/"
-  #     metadata-prefix: metadata/propeller
-  #     workers: 4
-  #     max-workflow-retries: 30
-  #     workflow-reeval-duration: 30s
-  #     downstream-eval-duration: 30s
-  #     limit-namespace: "all"
-  #     prof-port: 10254
-  #     metrics-prefix: flyte
-  #     enable-admin-launcher: true
-  #     leader-election:
-  #       lock-config-map:
-  #         name: propeller-leader
-  #         namespace: flyte
-  #       enabled: true
-  #       lease-duration: 15s
-  #       renew-deadline: 10s
-  #       retry-period: 2s
-  #     queue:
-  #       type: batch
-  #       batching-interval: 2s
-  #       batch-size: -1
-  #       queue:
-  #         type: maxof
-  #         rate: 100
-  #         capacity: 1000
-  #         base-delay: 5s
-  #         max-delay: 120s
-  #       sub-queue:
-  #         type: bucket
-  #         rate: 10
-  #         capacity: 100
-  #     literal-offloading-config:
-  #       enabled: false
-
-  # enabled_plugins:
-  #   # -- Tasks specific configuration [structure](https://pkg.go.dev/github.com/flyteorg/flytepropeller/pkg/controller/nodes/task/config#GetConfig)
-  #   tasks:
-  #     # -- Plugins configuration, [structure](https://pkg.go.dev/github.com/flyteorg/flytepropeller/pkg/controller/nodes/task/config#TaskPluginConfig)
-  #     task-plugins:
-  #       # -- [Enabled Plugins](https://pkg.go.dev/github.com/lyft/flyteplugins/go/tasks/config#Config). Enable sagemaker*, athena if you install the backend
-  #       # plugins
-  #       enabled-plugins:
-  #         - container
-  #         - sidecar
-  #         - k8s-array
-  #         - connector-service
-  #         - echo
-  #       default-for-task-types:
-  #         container: container
-  #         sidecar: sidecar
-  #         container_array: k8s-array
-  #         # -- Uncomment to enable task type that uses Flyte Agent
-  #         # bigquery_query_job_task: connector-service
-
-  # -- Kubernetes specific Flyte configuration
-  k8s:
-    plugins:
-      # -- Configuration section for all K8s specific plugins [Configuration structure](https://pkg.go.dev/github.com/lyft/flyteplugins/go/tasks/pluginmachinery/flytek8s/config)
-      k8s:
-        default-env-vars: []
-        #  DEFAULT_ENV_VAR: VALUE
-        default-cpus: 100m
-        default-memory: 100Mi
-  remoteData:
-    remoteData:
-      region: "us-east-1"
-      scheme: "s3"
-      signedUrls:
-        durationMinutes: 3
-
-  # -- Section that configures how the Task logs are displayed on the UI. This has to be changed based on your actual logging provider.
-  # Refer to [structure](https://pkg.go.dev/github.com/lyft/flyteplugins/go/tasks/logs#LogConfig) to understand how to configure various
-  # logging engines
-  task_logs:
-    plugins:
-      logs:
-        kubernetes-enabled: true
-
-# Typically for multi-tenant environment resource limiting / sharing, so not as applicable
-cluster_resource_manager:
-  enabled: false
-
-# Enable if we need dask integration
-daskoperator:
-  enabled: false
+enabled_plugins:
+  # -- Tasks specific configuration [structure](https://pkg.go.dev/github.com/flyteorg/flytepropeller/pkg/controller/nodes/task/config#GetConfig)
+  tasks:
+    # -- Plugins configuration, [structure](https://pkg.go.dev/github.com/flyteorg/flytepropeller/pkg/controller/nodes/task/config#TaskPluginConfig)
+    task-plugins:
+      # -- [Enabled Plugins](https://pkg.go.dev/github.com/lyft/flyteplugins/go/tasks/config#Config).
+      # Enable sagemaker*, athena if you install the backend plugins
+      enabled-plugins:
+        - container
+        - sidecar
+        - k8s-array
+        - connector-service
+        - echo
+      default-for-task-types:
+        container: container
+        sidecar: sidecar
+        container_array: k8s-array
+        # -- Uncomment to enable task type that uses Flyte Connector
+        # bigquery_query_job_task: connector-service
