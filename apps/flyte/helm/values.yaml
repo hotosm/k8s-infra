@@ -47,10 +47,8 @@ configuration:
 
 deployment:
   image:
-    repository: cr.flyte.org/flyteorg/flyte-binary
-    # Not ideal in production using latest tag, but currently the only way to
-    # get Flyte v2 in the OSS version
-    tag: latest
+    repository: ghcr.io/hotosm/flyte
+    tag: v2.0.2
     pullPolicy: IfNotPresent
   # extraEnvVars Array with extra environment variables to add to Flyte
   extraEnvVars: []
