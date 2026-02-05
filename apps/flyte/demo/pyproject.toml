@@ -5,7 +5,7 @@ description = "Test out flyte!"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "flytekit==1.16.12",
+    "flyte>=2.0.0b53",
     "pandas==2.3.3",
     "pyarrow==23.0.0",
     "scikit-learn==1.8.0",

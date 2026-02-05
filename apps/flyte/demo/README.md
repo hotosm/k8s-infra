@@ -8,8 +8,8 @@ The basic demo from the Flyte home page.
 2. Port forward Flyte (in different terminals, or using ` &` after the command):
 
 ```bash
-kubectl port-forward svc/flyteconsole -n flyte 8082:80
-kubectl port-forward svc/flyteadmin -n flyte 8083:80
+# For task submission
+kubectl port-forward service/flyte-flyte-binary-http -n flyte 8090:8090
 ```
 
 3. Run the workflow:
@@ -18,8 +18,8 @@ kubectl port-forward svc/flyteadmin -n flyte 8083:80
 uv sync
 
 # Test locally
-uv run pyflyte run main.py training_workflow
+uv run flyte run --local main.py training_workflow
 
 # Test on remote cluster
-uv run pyflyte run --remote main.py training_workflow
+uv run python main.py
 ```
