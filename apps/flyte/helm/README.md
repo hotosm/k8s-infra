@@ -47,3 +47,10 @@ kubectl create secret generic flyte-db-password \
 
 kubeseal -f secret.yaml -w sealed-db-password.yaml
 ```
+
+## Flyte v2 Additional Resources
+
+- As we are doing a custom build of Flyte v2, not released yet,
+  there are a few additional manifests to apply to the cluster.
+- The rbac and crd manifests will be synced from the repo,
+  with our patches applied via kustomization.yaml.
