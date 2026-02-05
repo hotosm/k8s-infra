@@ -71,7 +71,7 @@ deployment:
       # repository Init container image repository
       repository: postgres
       # tag Init container image tag
-      tag: 17-alpine
+      tag: 18-alpine
       # pullPolicy Init container image pull policy
       pullPolicy: IfNotPresent
   extraVolumeMounts:
