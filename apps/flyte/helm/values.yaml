@@ -23,6 +23,8 @@ configuration:
         endpoint: "https://s3.amazonaws.com"
         authType: "accesskey"
         # accessKey & secretKey will be injected by secret for inlineSecretRef
+        accessKey: "placeholder"
+        secretKey: "placeholder"
   logging:
     level: 5
     plugins:
