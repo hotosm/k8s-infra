@@ -1,8 +1,9 @@
 resources:
   - sealed-extra-secrets.yaml
+  - sync-hook-wait-secret.yaml
 
 patches:
-  # Add environment secret reference
+  # Inject secret env vars into main zenml container
   - target:
       kind: Deployment
       name: zenml
