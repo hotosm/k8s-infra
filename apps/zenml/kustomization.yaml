@@ -1,6 +1,5 @@
 resources:
   - sealed-extra-secrets.yaml
-  - sync-hook-wait-secret.yaml
 
 patches:
   # Inject secret env vars into main zenml container
