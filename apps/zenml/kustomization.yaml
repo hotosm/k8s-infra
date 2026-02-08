@@ -1,6 +1,15 @@
 resources:
   - sealed-extra-secrets.yaml
 
-patchesStrategicMerge:
-  - zenml-label-patch.yaml
-  - zenml-env-patch.yaml
+patches:
+  - target:
+      kind: Deployment
+      name: zenml
+      namespace: zenml
+    path: zenml-env-patch.yaml
+
+  - target:
+      kind: Deployment
+      name: zenml
+      namespace: zenml
+    path: zenml-label-patch.yaml
