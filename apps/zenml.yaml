@@ -7,7 +7,7 @@ spec:
   project: default
   sources:
     # Helm chart + values
-    - repoURL: oci://public.ecr.aws/zenml
+    - repoURL: oci://public.ecr.aws/zenml/zenml
       chart: zenml
       targetRevision: 0.93.2
       helm:
