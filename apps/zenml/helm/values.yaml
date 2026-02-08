@@ -73,7 +73,7 @@ zenml:
 
   database:
     # E.g.: "mysql://admin:password@zenml-mysql:3306/database"
-    url: "postgresql+psycopg://zenml@zenml-prod-rw.postgres.svc.cluster.local:5432/zenml"
+    url: "postgresql://zenml@zenml-prod-rw.postgres.svc.cluster.local:5432/zenml"
     # To save having two secrets, we actually manage this within the zenml-extra-secret-env secret instead
     # passwordSecretRef:
     #   name:
