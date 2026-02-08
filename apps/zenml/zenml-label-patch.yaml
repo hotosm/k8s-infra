@@ -1,7 +1,0 @@
-# Custom labels for internal costing
-spec:
-  template:
-    metadata:
-      labels:
-        project: fair
-        tool: fair

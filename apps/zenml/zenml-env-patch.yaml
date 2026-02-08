@@ -1,9 +1,0 @@
-# Based on source: https://github.com/zenml-io/zenml/blob/main/helm/templates/server-deployment.yaml
-spec:
-  template:
-    spec:
-      containers:
-        - name: zenml
-          envFrom:
-            - secretRef:
-                name: zenml-extra-secret-env
