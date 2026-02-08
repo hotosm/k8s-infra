@@ -37,3 +37,12 @@ kubeseal -f secret.yaml -w sealed-extra-secrets.yaml
 > NOTE
 > Setting S3 credentials for an artifact store comes after install:
 > https://docs.zenml.io/stacks/stack-components/artifact-stores/s3
+
+## A Note On Sync Waves
+
+- I couldn't get the sync order to work here.
+- The db migration job from helm tries to run before
+  the sealed secret is applied.
+- SyncWave orders didn't seem to help.
+- As a temp workaround, simply apply the sealed secret
+  first, then deploy the app.
