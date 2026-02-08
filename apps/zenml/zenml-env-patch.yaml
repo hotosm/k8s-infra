@@ -1,0 +1,13 @@
+# Based on source: https://github.com/zenml-io/zenml/blob/main/helm/templates/server-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zenml
+spec:
+  template:
+    spec:
+      containers:
+        - name: zenml
+          envFrom:
+            - secretRef:
+                name: zenml-extra-secret-env

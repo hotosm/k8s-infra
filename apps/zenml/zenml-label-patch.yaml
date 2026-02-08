@@ -1,0 +1,11 @@
+# Custom labels for internal costing
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zenml
+spec:
+  template:
+    metadata:
+      labels:
+        project: fair
+        tool: fair

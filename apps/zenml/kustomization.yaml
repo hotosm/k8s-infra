@@ -1,0 +1,6 @@
+resources:
+  - sealed-extra-secrets.yaml
+
+patchesStrategicMerge:
+  - zenml-label-patch.yaml
+  - zenml-env-patch.yaml
