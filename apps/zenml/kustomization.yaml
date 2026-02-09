@@ -1,0 +1,28 @@
+resources:
+  - sealed-extra-secrets.yaml
+
+patches:
+  # Inject secret env vars into main zenml container
+  - target:
+      kind: Deployment
+      name: zenml
+      namespace: zenml
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/envFrom/-
+        value:
+          secretRef:
+            name: zenml-extra-secret-env
+
+  # Add custom labels
+  - target:
+      kind: Deployment
+      name: zenml
+      namespace: zenml
+    patch: |-
+      - op: add
+        path: /spec/template/metadata/labels/project
+        value: fair
+      - op: add
+        path: /spec/template/metadata/labels/tool
+        value: fair

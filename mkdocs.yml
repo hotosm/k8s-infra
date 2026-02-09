@@ -68,6 +68,7 @@ nav:
       - Certs & DNS: tutorial/certs-and-dns.md
       - GitOps With ArgoCD: tutorial/gitops-argocd.md
       - Managing Databases: tutorial/postgres.md
+      - Troubleshooting: tutorial/troubleshooting.md
   - Developer Guide:
       - Practices:
           - Dev Practices: https://docs.hotosm.org/dev-practices

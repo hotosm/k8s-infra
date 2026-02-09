@@ -1,0 +1,133 @@
+zenml:
+  # The number of ZenML server worker threads to use. This controls the number
+  # of concurrent requests that each ZenML server pod/replica can handle at a
+  # time. If not specified, the default value is 40.
+  #
+  # NOTE: this value should be coordinated with the `zenml.database.poolSize`
+  # and `zenml.database.maxOverflow` values to ensure that the ZenML server
+  # workers do not block on database connections (i.e. the sum of the pool size
+  # and max overflow should be greater than or equal to the thread pool size).
+  #
+  # threadPoolSize: 40
+
+  # The number of ZenML server threads that are dedicated to authentication.
+  # This controls the number of concurrent requests that can be verified
+  # concurrently. If not specified, the default value is 5.
+  #
+  # NOTE: this value should be coordinated with the `zenml.database.poolSize`
+  # and `zenml.database.maxOverflow` values to ensure that the ZenML server
+  # worker threads do not block on database connections (i.e. the sum of the
+  # pool size and max overflow should be greater than or equal to the main
+  # thread pool size plus the auth thread pool size).
+  #
+  # authThreadPoolSize: 5
+
+  # The timeout in seconds after which a request is considered timed out by the
+  # server if it takes too long to complete. After this time value, the server
+  # will preemptively return a 429 status code (rate limit exceeded) to the
+  # client to free up connections. If not specified, the default value is 30.
+  #
+  # NOTE: this values should be lower than the client's configured HTTP timeout
+  # (which defaults at 30 seconds) to avoid the client timing out before the
+  # server does. 
+  #
+  # requestTimeout: 20
+
+  image:
+    repository: ghcr.io/hotosm/zenml-postgres
+    pullPolicy: Always
+    # Overrides the image tag whose default is the chart appVersion.
+    tag:
+
+  pro:
+    enabled: false
+
+  # IMPORTANT: this value must be set for ZenML Pro servers.
+  serverURL: https://ml.ai.hotosm.org
+  debug: true
+  analyticsOptIn: false
+  deploymentType: kubernetes
+  auth:
+    # NO_AUTH - No authentication
+    # HTTP_BASIC - HTTP Basic authentication
+    # OAUTH2_PASSWORD_BEARER - OAuth2 password bearer
+    # EXTERNAL - External authentication (e.g. via a remote authenticator)
+    authType: OAUTH2_PASSWORD_BEARER
+    # If not explicitly set, a random key will be generated when the helm
+    # chart is installed and reused for all subsequent upgrades.
+    # NOTE: deploying again elsewhere would invalid all sessions
+    jwtSecretKey:
+    # HS256 / HS384 / HS512
+    jwtTokenAlgorithm: HS384
+    # Three days
+    jwtTokenExpireMinutes: 4320
+    # The origins allowed to make cross-origin requests to the ZenML server. If
+    # not specified, all origins are allowed. Set this when the ZenML dashboard
+    # is hosted on a different domain than the ZenML server.
+    #
+    # This value is overridden if the `zenml.pro.enabled` value is set.
+    corsAllowOrigins:
+      - "*"
+
+  defaultProject: "fAIr Tests"
+
+  database:
+    # E.g.: "mysql://admin:password@zenml-mysql:3306/database"
+    url: "postgresql://zenml@zenml-db-prod-rw.postgres.svc.cluster.local:5432/zenml"
+    # Must be set here in addition to sealed-extra-secrets as helm,
+    # will ensure the secret is present before the db migration job runs
+    passwordSecretRef:
+      name: zenml-extra-secret-env
+      key: ZENML_STORE_PASSWORD
+    ssl: false
+    backupStrategy: disabled
+
+  # Secrets for ML workflows (database credentials, model registry access, third-party credentials)
+  secretsStore:
+    enabled: true
+    # Secrets a store in the attached database
+    type: sql
+  # Backup secrets store settings. This is used as a backup to the primary
+  # secrets store. Secret values for newly created and updated secrets are also
+  # saved in the secondary secrets store and there are management commands to
+  # migrate secret values individually or in bulk from the primary to the
+  # secondary secrets store and vice versa.
+  # A backup secrets store is is useful for high availability and disaster
+  # recovery scenarios where the primary secrets store is unavailable. It is
+  # also useful as a temporary setup for migrating secrets from one secrets
+  # store to another.
+  backupSecretsStore:
+    enabled: false
+
+  environment: {}
+
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      external-dns.alpha.kubernetes.io/hostname: ml.ai.hotosm.org
+      external-dns.alpha.kubernetes.io/ttl: "300"
+    host: ml.ai.hotosm.org
+    path: /
+    tls:
+      enabled: true
+
+  proxy:
+    enabled: false
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

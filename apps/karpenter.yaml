@@ -1,19 +1,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: drone-tm
+  name: karpenter
   namespace: argocd
 spec:
   project: default
   sources:
     # Helm chart + values
-    - repoURL: oci://ghcr.io/hotosm/charts/drone-tm
-      chart: drone-tm
-      targetRevision: 0.1.5
+    - repoURL: oci://public.ecr.aws/karpenter/karpenter
+      chart: karpenter
+      targetRevision: 1.8.6
       helm:
-        releaseName: drone-tm-prod
+        releaseName: karpenter
         valueFiles:
-          - $k8s-infra/apps/drone-tm/helm/values.yaml
+          - $k8s-infra/apps/karpenter/helm/values.yaml
 
     # Git repo containing values.yaml
     - repoURL: https://github.com/hotosm/k8s-infra.git
@@ -23,10 +23,10 @@ spec:
     # Extra resources
     - repoURL: https://github.com/hotosm/k8s-infra.git
       targetRevision: HEAD
-      path: apps/drone-tm
+      path: apps/karpenter
   destination:
     server: https://kubernetes.default.svc
-    namespace: drone
+    namespace: kube-system
   syncPolicy:
     automated:
       selfHeal: true

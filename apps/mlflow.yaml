@@ -1,19 +1,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: drone-tm
+  name: mlflow
   namespace: argocd
 spec:
   project: default
   sources:
     # Helm chart + values
-    - repoURL: oci://ghcr.io/hotosm/charts/drone-tm
-      chart: drone-tm
-      targetRevision: 0.1.5
+    - repoURL: https://community-charts.github.io/helm-charts
+      chart: mlflow
+      targetRevision: 1.8.1
       helm:
-        releaseName: drone-tm-prod
+        releaseName: mlflow
         valueFiles:
-          - $k8s-infra/apps/drone-tm/helm/values.yaml
+          - $k8s-infra/apps/mlflow/helm/values.yaml
 
     # Git repo containing values.yaml
     - repoURL: https://github.com/hotosm/k8s-infra.git
@@ -23,11 +23,13 @@ spec:
     # Extra resources
     - repoURL: https://github.com/hotosm/k8s-infra.git
       targetRevision: HEAD
-      path: apps/drone-tm
+      path: apps/mlflow
   destination:
     server: https://kubernetes.default.svc
-    namespace: drone
+    namespace: mlflow
   syncPolicy:
     automated:
       selfHeal: true
       prune: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,3 +1,8 @@
+# Cost tracking
+podLabels:
+  project: dronetm
+  tool: dronetm
+
 # For default 8GB redis volume
 global:
   storageClass: "gp3"
@@ -14,12 +19,11 @@ env:
   S3_ENDPOINT_DOWNLOAD: "https://d2ymfcf63vwwpt.cloudfront.net"
   S3_ENDPOINT_UPLOAD: "https://s3-accelerate.amazonaws.com"
   S3_BUCKET_NAME: "dronetm-prod"
-  EXTRA_CORS_ORIGINS: '["https://drone-tm.example.com"]'
   MONITORING: "sentry"
-  SMTP_HOST: "email-smtp.ap-south-1.amazonaws.com"
+  SMTP_HOST: "email-smtp.us-east-1.amazonaws.com"
   SMTP_PORT: "587"
-  SMTP_USER: "AKIAZ7LFYEFS5XWF5LVV"
-  EMAILS_FROM_EMAIL: "noreply@drone.hotosm.org"
+  SMTP_USER: "AKIAZYDVV4ILPVD5CLBF"
+  EMAILS_FROM_EMAIL: "noreply@hotosm.org"
   EMAILS_FROM_NAME: "Drone Tasking Manager"
 
 ingress:
@@ -40,17 +44,23 @@ ingress:
           pathType: Prefix
         - path: /api
           pathType: Prefix
+  labels:
+    project: dronetm
+    tool: dronetm
 
 # FIXME temporary override until new release, then remove
 frontendAssets:
   image:
     tag: "dev"
+    pullPolicy: Always
 
 # Main application services
 backend:
   # FIXME temporary override until new release, then remove
   image:
     tag: "dev"
+    pullPolicy: Always
+
   replicaCount: 3
   resources:
     limits:
@@ -70,6 +80,8 @@ worker:
   # FIXME temporary override until new release, then remove
   image:
     tag: "dev"
+    pullPolicy: Always
+
   replicaCount: 2
   resources:
     limits:
@@ -84,3 +96,8 @@ worker:
     minReplicas: 1
     maxReplicas: 10
     targetCPUUtilizationPercentage: 80
+
+dragonfly:
+  commonLabels:
+    project: dronetm
+    tool: dronetm

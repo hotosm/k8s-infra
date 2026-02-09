@@ -20,6 +20,11 @@ permissions:
   checks: write
   pull-requests: write
 
+# Only allow one run at a time, to avoid corrupting state
+concurrency:
+  group: terraform-main
+  cancel-in-progress: false
+
 env:
   AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
   VAR_FILE: ${{ vars.VAR_FILE || 'vars/production.tfvars' }}
@@ -61,9 +66,9 @@ jobs:
           aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }}
       - name: Apply manifests
         run: |
-          kubectl apply -f kubernetes/manifests/ ${{ github.event_name == 'pull_request' && '--dry-run' || '' }}
+          kubectl apply -f kubernetes/manifests/ ${{ github.event_name == 'pull_request' && '--dry-run=client' || '' }}
       - name: Deploy eoAPI Chart
-        uses: helmfile/helmfile-action@v2.0.4
+        uses: helmfile/helmfile-action@v2.1.1
         with:
           helmfile-args: ${{ github.event_name == 'push' && 'apply' || 'diff' }}
           helmfile-workdirectory: kubernetes/helm

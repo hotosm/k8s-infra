@@ -1,0 +1,49 @@
+# Can autoscale to 0
+# Prefer spot instances if available
+
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: cpu-autoscale
+spec:
+  template:
+    metadata:
+      labels:
+        nodegroup: autoscale
+        node-type: cpu
+        capacity: spot
+    spec:
+      nodeClassRef:
+        name: autoscale
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+
+      taints:
+        - key: spot
+          value: "true"
+          effect: PreferNoSchedule
+
+      requirements:
+        - key: karpenter.k8s.aws/instance-category
+          operator: In
+          values: ["t", "m", "c"]
+
+        - key: karpenter.k8s.aws/instance-cpu
+          operator: In
+          values: ["4"]
+
+        - key: karpenter.k8s.aws/instance-generation
+          operator: Gt
+          values: ["5"]
+
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot", "on-demand"]
+
+        # If we can only use AMD64 machines
+        # - key: kubernetes.io/arch
+        #   operator: In
+        #   values: ["amd64"]
+
+  limits:
+    cpu: "300"
