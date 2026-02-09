@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: ghcr.io/hotosm/login-frontend:latest
+        image: ghcr.io/hotosm/login-frontend:main
         imagePullPolicy: Always
         ports:
         - containerPort: 80
