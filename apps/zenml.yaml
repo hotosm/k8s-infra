@@ -1,37 +1,37 @@
-# apiVersion: argoproj.io/v1alpha1
-# kind: Application
-# metadata:
-#   name: zenml
-#   namespace: argocd
-# spec:
-#   project: default
-#   sources:
-#     # Helm chart + values
-#     - repoURL: oci://public.ecr.aws/zenml/zenml
-#       chart: zenml
-#       targetRevision: 0.93.2
-#       helm:
-#         releaseName: zenml
-#         valueFiles:
-#           - $k8s-infra/apps/zenml/helm/values.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: zenml
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    # Helm chart + values
+    - repoURL: oci://public.ecr.aws/zenml/zenml
+      chart: zenml
+      targetRevision: 0.93.2
+      helm:
+        releaseName: zenml
+        valueFiles:
+          - $k8s-infra/apps/zenml/helm/values.yaml
 
-#     # Git repo containing values.yaml
-#     - repoURL: https://github.com/hotosm/k8s-infra.git
-#       targetRevision: HEAD
-#       ref: k8s-infra
+    # Git repo containing values.yaml
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
 
-#     # Instead of custom resources, we manage patches via kustomization.yaml
-#     - repoURL: https://github.com/hotosm/k8s-infra.git
-#       targetRevision: HEAD
-#       path: apps/zenml
-#       kustomize: {}
-#   destination:
-#     server: https://kubernetes.default.svc
-#     namespace: zenml
-#   syncPolicy:
-#     automated:
-#       selfHeal: true
-#       prune: true
-#     syncOptions:
-#       - CreateNamespace=true
-#       - ServerSideApply=true
+    # Instead of custom resources, we manage patches via kustomization.yaml
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/zenml
+      kustomize: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: zenml
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
