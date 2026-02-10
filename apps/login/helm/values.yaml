@@ -1,0 +1,63 @@
+# Production values for login.hotosm.org
+
+existingSecret:
+  name: "login-backend-secrets"
+
+env:
+  AUTH_PROVIDER: "hanko"
+  HANKO_API_URL: "https://login.hotosm.org"
+  JWT_ISSUER: "https://login.hotosm.org"
+  BACKEND_URL: "https://login.hotosm.org"
+  FRONTEND_URL: "https://login.hotosm.org"
+  COOKIE_DOMAIN: ".hotosm.org"
+  OSM_REDIRECT_URI: "https://login.hotosm.org/api/auth/osm/callback"
+  OSM_URL: "https://www.openstreetmap.org"
+  OSM_SCOPE: "read_prefs"
+  LOG_LEVEL: "INFO"
+  ADMIN_EMAILS: "hernangigena@gmail.com,justina@animus.com.ar,andreatchirillano@hotmail.com,emilio.mariscal@hotosm.org"
+  DRONETM_BACKEND_URL: "https://drone.hotosm.org"
+  FAIR_BACKEND_URL: "https://fair.hotosm.org"
+  PORTAL_BACKEND_URL: "https://portal.hotosm.org"
+  OAM_BACKEND_URL: "https://openaerialmap.org"
+  UMAP_BACKEND_URL: "https://umap.hotosm.org"
+  EXPORT_TOOL_BACKEND_URL: "https://export.hotosm.org"
+  CHATMAP_BACKEND_URL: "https://chatmap.hotosm.org"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  host: login.hotosm.org
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: login.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+
+backend:
+  image:
+    tag: "main"
+    pullPolicy: Always
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+frontend:
+  image:
+    tag: "main"
+    pullPolicy: Always
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+podLabels:
+  project: login
+  tool: login

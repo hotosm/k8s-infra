@@ -5,12 +5,25 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  source:
-    repoURL: 'https://github.com/hotosm/k8s-infra.git'
-    path: 'apps/login'
-    # targetRevision: HEAD
-    # FIXME temp until debugging complete
-    targetRevision: add-login-service
+  sources:
+    # Helm chart + values
+    - repoURL: oci://ghcr.io/hotosm/charts/login
+      chart: login
+      targetRevision: 0.1.0
+      helm:
+        releaseName: login-prod
+        valueFiles:
+          - $k8s-infra/apps/login/helm/values.yaml
+
+    # Git repo containing values.yaml
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+
+    # Extra resources (sealed secrets)
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/login
   destination:
     server: https://kubernetes.default.svc
     namespace: login
