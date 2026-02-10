@@ -69,7 +69,7 @@ zenml:
     corsAllowOrigins:
       - "*"
 
-  defaultProject: "fAIr Tests"
+  defaultProject: "fair-tests"
 
   database:
     # E.g.: "mysql://admin:password@zenml-mysql:3306/database"
