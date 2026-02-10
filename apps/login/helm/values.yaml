@@ -28,7 +28,7 @@ ingress:
   className: "nginx"
   host: login.hotosm.org
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
     external-dns.alpha.kubernetes.io/hostname: login.hotosm.org
     external-dns.alpha.kubernetes.io/ttl: "300"
 
