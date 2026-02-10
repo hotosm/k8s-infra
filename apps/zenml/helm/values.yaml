@@ -43,7 +43,7 @@ zenml:
     enabled: false
 
   # IMPORTANT: this value must be set for ZenML Pro servers.
-  serverURL: https://ml.ai.hotosm.org
+  serverURL: https://zenml.ai.hotosm.org
   debug: true
   analyticsOptIn: false
   deploymentType: kubernetes
@@ -106,9 +106,9 @@ zenml:
     className: "nginx"
     annotations:
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
-      external-dns.alpha.kubernetes.io/hostname: ml.ai.hotosm.org
+      external-dns.alpha.kubernetes.io/hostname: zenml.ai.hotosm.org
       external-dns.alpha.kubernetes.io/ttl: "300"
-    host: ml.ai.hotosm.org
+    host: zenml.ai.hotosm.org
     path: /
     tls:
       enabled: true
