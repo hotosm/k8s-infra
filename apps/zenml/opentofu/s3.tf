@@ -1,3 +1,5 @@
+# We want to create the hotosm-fair-models-prod bucket via this config
+
 resource "aws_s3_bucket" "data_stores" {
   for_each = toset(var.bucket_names)
   bucket   = each.key
