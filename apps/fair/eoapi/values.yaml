@@ -13,6 +13,8 @@ ingress:
     secretName: fair-eoapi-tls
 
 postgresql:
+  # As we don't use type: "postgrescluster", we must handle the pgstac db prep
+  # See postInitApplicationSQL in fair-stac.yaml db for details
   type: "external-secret"
   external:
     # Must all be defined in secret, else error / bug in chart

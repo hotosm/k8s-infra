@@ -4,12 +4,12 @@ metadata:
   name: fair-stac-db
   labels:
     app.kubernetes.io/component: database
-    app.kubernetes.io/version: 18-system-trixie
+    app.kubernetes.io/version: 18-3-system-trixie
 
 spec:
   instances: 1
   description: "fAIr eoAPI pgSTAC"
-  imageName: "ghcr.io/cloudnative-pg/postgresql:18-system-trixie"
+  imageName: "ghcr.io/cloudnative-pg/postgis:18-3-system-trixie"
 
   primaryUpdateStrategy: unsupervised
 
@@ -22,6 +22,23 @@ spec:
         # - username
         # - password
         name: fair-stac-db-creds
+      # Enable PostGIS and pgSTAC prerequisites
+      # https://github.com/stac-utils/pgstac/blob/main/docs/src/pypgstac.md
+      postInitApplicationSQL:
+        - CREATE EXTENSION IF NOT EXISTS postgis;
+        - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder CASCADE;
+        - CREATE EXTENSION IF NOT EXISTS postgis_topology CASCADE;
+        - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+        - CREATE EXTENSION IF NOT EXISTS btree_gist;
+        - CREATE EXTENSION IF NOT EXISTS unaccent;
+        - CREATE ROLE pgstac_admin;
+        - CREATE ROLE pgstac_read;
+        - CREATE ROLE pgstac_ingest;
+        - ALTER ROLE "fair-stac" WITH CREATEROLE;
+        - ALTER ROLE "fair-stac" SET search_path TO pgstac, public;
+        - GRANT pgstac_read TO "fair-stac" WITH ADMIN OPTION;
+        - GRANT pgstac_ingest TO "fair-stac" WITH ADMIN OPTION;
+        - GRANT pgstac_admin TO "fair-stac" WITH ADMIN OPTION;
 
   storage:
     storageClass: gp3
