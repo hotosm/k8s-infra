@@ -17,10 +17,12 @@ spec:
 
     # eoAPI Chart (STAC)
     - repoURL: https://devseed.com/eoapi-k8s
-      chart: eoapi/eoapi
+      chart: eoapi
       targetRevision: 0.11.1
       helm:
         releaseName: fair-eoapi
+        skipCrds: false
+        passCredentials: false
         valueFiles:
           - $k8s-infra/apps/fair/eoapi/values.yaml
 
@@ -42,3 +44,9 @@ spec:
       prune: true
     syncOptions:
       - CreateNamespace=true
+syncPolicy:
+  automated:
+    selfHeal: true
+    prune: true
+  syncOptions:
+    - CreateNamespace=true

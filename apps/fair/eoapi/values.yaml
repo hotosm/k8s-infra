@@ -28,8 +28,57 @@ postgrescluster:
   enabled: false
 
 pgstacBootstrap:
+  enabled: true
+  # IMPORTANT
+  # For configMaps and jobs here, we have replaced helm hooks with
+  # ArgoCD hooks - required for the jobs to run
+  configMaps:
+    pgstacSettings:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-7"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    initdbSql:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-7"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    initdbJson:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-7"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    pgstacQueryables:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-7"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    initdb:
+      annotations: {}
+  jobs:
+    pgstacSuperuserInitDb:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-6"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    pgstacMigrate:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-5"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    pgstacLoadSamples:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-4"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    pgstacLoadQueryables:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-3"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
   settings:
     loadSamples: false
+    queryables: []
     # TODO - in production update our queryables here
     # queryables:
     #   - name: "common-queryables.json"
@@ -49,7 +98,7 @@ pgstacBootstrap:
 stac:
   enabled: true
   ingress:
-    enabled: true  # Control ingress specifically for stac service
+    enabled: true
     path: "/stac"
   settings:
     labels: {}
@@ -69,8 +118,10 @@ stac:
 browser:
   enabled: true
   ingress:
-    enabled: true  # Control ingress specifically for browser service
+    enabled: true
     path: "/browser"
+# If the root doc server is disabled, I think there is a bug in the chart ingress config:
+# Ingress.networking.k8s.io "fair-eoapi-ingress" is invalid: spec.rules[0].http.paths: Required value
 docServer:
   enabled: true
 
