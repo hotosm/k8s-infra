@@ -105,7 +105,7 @@ stac:
   enabled: true
   ingress:
     enabled: true
-    path: "/stac"
+    path: "/"
   settings:
     labels: {}
     resources: {}
@@ -121,15 +121,6 @@ stac:
       DB_MAX_CONN_SIZE: "5" # Quite intensive (queries, transactions, searches)
       STAC_FASTAPI_TITLE: "fAIr STAC Catalog"
       STAC_FASTAPI_DESCRIPTION: "STAC FastAPI deployment for fAIr model metadata tracking."
-browser:
-  enabled: true
-  ingress:
-    enabled: true
-    path: "/browser"
-# If the root doc server is disabled, I think there is a bug in the chart ingress config:
-# Ingress.networking.k8s.io "fair-eoapi-ingress" is invalid: spec.rules[0].http.paths: Required value
-docServer:
-  enabled: true
 
 # Disabled services
 apiServices:
@@ -137,6 +128,10 @@ apiServices:
   # - multidim
   - stac
   # - vector
+browser:
+  enabled: false
+docServer:
+  enabled: false
 raster:
   enabled: false
 multidim:
