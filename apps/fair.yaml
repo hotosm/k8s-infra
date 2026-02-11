@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fair
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    # # Helm chart + values
+    # - repoURL: oci://ghcr.io/hotosm/charts/fair
+    #   chart: fair
+    #   targetRevision: 0.1.0
+    #   helm:
+    #     releaseName: fair
+    #     valueFiles:
+    #       - $k8s-infra/apps/fair/helm/values.yaml
+
+    # eoAPI Chart (STAC)
+    - repoURL: https://devseed.com/eoapi-k8s
+      chart: eoapi/eoapi
+      targetRevision: 0.11.1
+      helm:
+        releaseName: fair-eoapi
+        valueFiles:
+          - $k8s-infra/apps/fair/eoapi/values.yaml
+
+    # Git repo containing values.yaml
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+
+    # Extra resources
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/fair
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: fair
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,103 @@
+ingress:
+  annotations:
+    # increase the max body size to 100MB
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/enable-access-log: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: stac.ai.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+  host: "stac.ai.hotosm.org"
+  tls:
+    enabled: true
+    secretName: fair-eoapi-tls
+
+postgresql:
+  type: "external-secret"
+  external:
+    host: "fair-stac-db-rw.postgres.svc.cluster.local"
+    port: "5432"
+    database: "fair-stac"
+    existingSecret:
+      name: "fair-stac-db-creds"
+      keys:
+        username: "username"
+        password: "password"
+
+postgrescluster:
+  enabled: false
+
+pgstacBootstrap:
+  settings:
+    loadSamples: false
+    # TODO - in production update our queryables here
+    # queryables:
+    #   - name: "common-queryables.json"
+    #     file: "data/initdb/queryables/common-queryables.json"
+    #     indexFields: ["platform", "instruments"]
+    #     deleteMissing: true
+    #   - name: "collection-specific.json"
+    #     file: "data/initdb/queryables/collection-specific.json"
+    #     collections: ["my-collection-1", "my-collection-2"]
+    #     indexFields: ["custom:field1", "custom:field2"]
+    #     deleteMissing: true
+    ### Database connection settings TEMPORARY UNTIL WE HAVE A BETTER SOLUTION
+    ### FOR CONFIGURING THE DB CONNECTION
+    user: fair-stac
+    database: fair-stac
+
+stac:
+  enabled: true
+  ingress:
+    enabled: true  # Control ingress specifically for stac service
+    path: "/stac"
+  settings:
+    labels: {}
+    resources: {}
+    extraEnvFrom: []
+    extraVolumeMounts: []
+    extraVolumes: []
+    envVars:
+      HOST: "0.0.0.0"
+      PORT: "8080"
+      # https://www.uvicorn.org/settings/#production
+      WEB_CONCURRENCY: "10" # Handles many concurrent requests; reduce to 4-6 with autoscaling
+      DB_MIN_CONN_SIZE: "1"
+      DB_MAX_CONN_SIZE: "5" # Quite intensive (queries, transactions, searches)
+      STAC_FASTAPI_TITLE: "fAIr STAC Catalog"
+      STAC_FASTAPI_DESCRIPTION: "STAC FastAPI deployment for fAIr model metadata tracking."
+browser:
+  enabled: true
+  ingress:
+    enabled: true  # Control ingress specifically for browser service
+    path: "/browser"
+docServer:
+  enabled: true
+
+# Disabled services
+apiServices:
+  # - raster
+  # - multidim
+  - stac
+  # - vector
+raster:
+  enabled: false
+multidim:
+  enabled: false
+stac-auth-proxy:
+  enabled: false
+vector:
+  enabled: false
+eoapi-notifier:
+  enabled: false
+monitoring:
+  metricsServer:
+    enabled: false
+  prometheus:
+    enabled: false
+observability:
+  grafana:
+    enabled: false
+metrics-server:
+  apiService:
+    create: false
