@@ -15,14 +15,18 @@ ingress:
 postgresql:
   type: "external-secret"
   external:
-    host: "fair-stac-db-rw.postgres.svc.cluster.local"
-    port: "5432"
-    database: "fair-stac"
+    # Must all be defined in secret, else error / bug in chart
+    # host: "fair-stac-db-rw.postgres.svc.cluster.local"
+    # port: "5432"
+    # database: "fair-stac"
     existingSecret:
       name: "fair-stac-db-creds"
       keys:
         username: "username"
         password: "password"
+        host: "host"
+        port: "port"
+        database: "database"
 
 postgrescluster:
   enabled: false
