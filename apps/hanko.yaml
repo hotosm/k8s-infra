@@ -8,9 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/hotosm/k8s-infra.git'
     path: 'apps/hanko'
-    # targetRevision: HEAD
-    # FIXME temp until debugging complete
-    targetRevision: add-login-service
+    targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
     namespace: login
