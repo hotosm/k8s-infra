@@ -44,12 +44,3 @@ spec:
       prune: true
     syncOptions:
       - CreateNamespace=true
-
-  # Ignore the empty ingress resource until
-  # https://github.com/developmentseed/eoapi-k8s/issues/449
-  ignoreDifferences:
-    - group: networking.k8s.io
-      kind: Ingress
-      name: fair-eoapi-ingress
-      jsonPointers:
-        - /spec/rules/0/http/paths
