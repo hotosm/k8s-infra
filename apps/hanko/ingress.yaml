@@ -5,7 +5,7 @@ metadata:
   name: hanko
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "100m"
-    nginx.ingress.kubernetes.io/enable-cors: "true"
+    # CORS handled by Hanko (credentials require specific origins, not *)
     nginx.ingress.kubernetes.io/enable-access-log: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
