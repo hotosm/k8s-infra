@@ -49,8 +49,8 @@ db:
 
 dashboard:
   image:
-    name: naxa/osm-sandbox-dashboard
-    tag: eks
+    name: ghcr.io/hotosm/osm-sandbox-dashboard/dashboard
+    tag: 4847020a4abe95822645edabf8be0a6ad7572db3
   enabled: true
   ingressDomain: sandbox.hotosm.org
   persistenceDisk:
