@@ -21,7 +21,7 @@ db:
     name: postgres
     tag: 16
   nodeSelector:
-    enabled: true
+    enabled: false
     label_key: nodegroup_type
     label_value: tm-sandbox
   env:
@@ -108,6 +108,6 @@ dashboard:
       memory: "1536Mi"
       cpu: "1.5"
   nodeSelector:
-    enabled: true
+    enabled: false
     label_key: nodegroup_type
     label_value: tm-sandbox
