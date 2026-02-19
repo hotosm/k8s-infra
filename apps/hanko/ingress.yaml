@@ -9,7 +9,6 @@ metadata:
     nginx.ingress.kubernetes.io/enable-access-log: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/priority: "1"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     external-dns.alpha.kubernetes.io/hostname: login.hotosm.org
     external-dns.alpha.kubernetes.io/ttl: "300"
@@ -23,7 +22,92 @@ spec:
     - host: login.hotosm.org
       http:
         paths:
-          - path: /
+          # Hanko API endpoints (specific paths, matching docker-compose config)
+          - path: /.well-known
+            pathType: Prefix
+            backend:
+              service:
+                name: hanko-public
+                port:
+                  name: http
+          - path: /registration
+            pathType: Prefix
+            backend:
+              service:
+                name: hanko-public
+                port:
+                  name: http
+          - path: /logout
+            pathType: Prefix
+            backend:
+              service:
+                name: hanko-public
+                port:
+                  name: http
+          - path: /sessions
+            pathType: Prefix
+            backend:
+              service:
+                name: hanko-public
+                port:
+                  name: http
+          - path: /users
+            pathType: Prefix
+            backend:
+              service:
+                name: hanko-public
+                port:
+                  name: http
+          - path: /passcode
+            pathType: Prefix
+            backend:
+              service:
+                name: hanko-public
+                port:
+                  name: http
+          - path: /webauthn
+            pathType: Prefix
+            backend:
+              service:
+                name: hanko-public
+                port:
+                  name: http
+          - path: /token
+            pathType: Prefix
+            backend:
+              service:
+                name: hanko-public
+                port:
+                  name: http
+          - path: /thirdparty
+            pathType: Prefix
+            backend:
+              service:
+                name: hanko-public
+                port:
+                  name: http
+          - path: /profile
+            pathType: Prefix
+            backend:
+              service:
+                name: hanko-public
+                port:
+                  name: http
+          - path: /emails
+            pathType: Prefix
+            backend:
+              service:
+                name: hanko-public
+                port:
+                  name: http
+          - path: /password
+            pathType: Prefix
+            backend:
+              service:
+                name: hanko-public
+                port:
+                  name: http
+          - path: /flow
             pathType: Prefix
             backend:
               service:
