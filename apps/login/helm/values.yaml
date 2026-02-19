@@ -34,8 +34,8 @@ ingress:
 
 backend:
   image:
-    tag: "main"
-    pullPolicy: Always
+    tag: "v0.3.0"
+    pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
     limits:
@@ -47,8 +47,8 @@ backend:
 
 frontend:
   image:
-    tag: "main"
-    pullPolicy: Always
+    tag: "v0.3.0"
+    pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
     limits:
