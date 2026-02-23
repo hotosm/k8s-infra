@@ -24,7 +24,7 @@ spec:
         paths:
           # Hanko API endpoints (specific paths, matching docker-compose config)
           - path: /.well-known
-            pathType: Prefix
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: hanko-public
@@ -38,6 +38,13 @@ spec:
                 port:
                   name: http
           - path: /logout
+            pathType: Prefix
+            backend:
+              service:
+                name: hanko-public
+                port:
+                  name: http
+          - path: /login
             pathType: Prefix
             backend:
               service:
