@@ -121,12 +121,3 @@ spec:
                 name: hanko-public
                 port:
                   name: http
-          # Root redirect to /app (handled by frontend nginx)
-          # In Hanko ingress because it doesn't use rewrite-target (nginx-ingress bug #8208)
-          - path: /
-            pathType: Exact
-            backend:
-              service:
-                name: login-prod-frontend
-                port:
-                  number: 80
