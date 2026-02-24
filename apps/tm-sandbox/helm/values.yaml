@@ -16,7 +16,7 @@ extraEnvFrom:
       name: tm-sandbox-dashboard-secret
 
 db:
-  enabled: true
+  enabled: true # DEPRECATION: DISABLED AFTER SANDBOX SWITCH TO CNPG DB INSTANCE FOR SANDBOX
   image:
     name: postgres
     tag: 16
@@ -73,7 +73,12 @@ dashboard:
 
     ## Token
     ACCESS_TOKEN_EXPIRE_MINUTES:  1440
-    
+
+    ## Dashboard DB creds
+    POSTGRES_HOST: "tm-sandbox-db-prod-rw.postgres.svc.cluster.local"
+    POSTGRES_USER: tm_sandbox_rw
+    POSTGRES_DB: tm_sandbox
+
     #################### Sandbox env vars ####################
     OSM_SANDBOX_CHART: /osm-sandbox-deploy
 
