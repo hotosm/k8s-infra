@@ -52,6 +52,8 @@ spec:
           key: secret-access-key
       wal:
         compression: gzip # this saves a lot of storage
+        encryption: AES256 # AWS managed
       data:
         compression: gzip
+        encryption: AES256 # AWS managed
         jobs: 2
