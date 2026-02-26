@@ -16,7 +16,7 @@ extraEnvFrom:
       name: tm-sandbox-dashboard-secret
 
 db:
-  enabled: true # DEPRECATION: DISABLED AFTER SANDBOX SWITCH TO CNPG DB INSTANCE FOR SANDBOX
+  enabled: false # We are using CNPG now.
   image:
     name: postgres
     tag: 16
