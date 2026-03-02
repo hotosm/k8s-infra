@@ -58,7 +58,11 @@ artifactRoot:
       keyOfSecretAccessKey: "AWS_SECRET_ACCESS_KEY"
 
 auth:
-  enabled: false
+  enabled: true
+  adminUsername: admin
+  existingSecret:
+    name: "mlflow-admin-password"
+    keyOfAdminPassword: "adminPassword"
 ldapAuth:
   enabled: false
 ingress:
