@@ -60,7 +60,6 @@ artifactRoot:
 auth:
   enabled: true
   adminUsername: admin
-  adminPassword: S3cr3+lse
   existingSecret:
     name: "mlflow-admin-password"
     keyOfAdminPassword: "adminPassword"
