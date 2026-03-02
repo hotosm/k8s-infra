@@ -59,12 +59,10 @@ artifactRoot:
 
 auth:
   enabled: true
-  adminUsername: admin
-  adminPassword:
-    valueFrom:
-      secretKeyRef:
-        name: "mlflow-admin-password"
-        key: "adminPassword"
+  existingAdminSecret:
+    name: "mlflow-admin-password"
+    keyOfAdminUsername: "adminUsername"
+    keyOfAdminPassword: "adminPassword"
 ldapAuth:
   enabled: false
 ingress:
