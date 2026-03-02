@@ -61,8 +61,8 @@ auth:
   enabled: true
   existingAdminSecret:
     name: "mlflow-admin-password"
-    keyOfAdminUsername: "adminUsername"
-    keyOfAdminPassword: "adminPassword"
+    usernameKey: "adminUsername"
+    passwordKey: "adminPassword"
 ldapAuth:
   enabled: false
 ingress:
