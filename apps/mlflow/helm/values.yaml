@@ -7,13 +7,13 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/mlflow/mlflow
-  tag: "v3.9.0"
+  repository: ghcr.io/burakince/mlflow
+  tag: "3.7.0"
 
 initImages:
   mlflowDbMigration:
-    repository: ghcr.io/mlflow/mlflow
-    tag: "v3.9.0"
+    repository: ghcr.io/burakince/mlflow
+    tag: "3.7.0"
 
 log:
   enabled: true
@@ -58,7 +58,11 @@ artifactRoot:
       keyOfSecretAccessKey: "AWS_SECRET_ACCESS_KEY"
 
 auth:
-  enabled: false
+  enabled: true
+  existingAdminSecret:
+    name: "mlflow-admin-password"
+    usernameKey: "adminUsername"
+    passwordKey: "adminPassword"
 ldapAuth:
   enabled: false
 ingress:
