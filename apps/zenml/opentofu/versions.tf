@@ -3,7 +3,7 @@ terraform {
     region         = var.region
     bucket         = var.state_bucket
     key            = "${var.environment}/zenml/terraform.tfstate"
-    dynamodb_table = var.lock_table
+    use_lockfile   = true
   }
 
   required_providers {
