@@ -7,7 +7,7 @@ resource "aws_s3_bucket" "data_stores" {
 
 resource "aws_iam_policy" "eks_s3_access" {
   count = length(var.bucket_names) > 0 ? 1 : 0
-  name  = "EKSS3AccessPolicy"
+  name  = "EKSS3ZenMLAccessPolicy"
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -29,8 +29,21 @@ locals {
   s3_policy_arn = length(var.bucket_names) > 0 ? aws_iam_policy.eks_s3_access[0].arn : ""
 }
 
+data "aws_iam_policy_document" "assume_role_with_oidc" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Federated"
+      identifiers = [var.oidc_arn]
+    }
+
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+  }
+}
+
 resource "aws_iam_role" "bucket_access" {
-  name                 = "${local.cluster_prefix}-bucket-access"
+  name                 = "hotosm-fair-models-bucket-access"
   assume_role_policy   = data.aws_iam_policy_document.assume_role_with_oidc.json
   permissions_boundary = var.permissions_boundary
 }
