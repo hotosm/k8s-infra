@@ -1,0 +1,46 @@
+image:
+  # TODO remove this once we release 2026.1.0
+  pullPolicy: Always
+  tag: "dev"
+
+# Cost tracking
+podLabels:
+  project: fieldtm
+  tool: fieldtm
+
+replicaCount: 2
+
+existingSecret:
+  name: "field-tm-prod-secrets"
+env:
+  DEBUG: "False"
+  LOG_LEVEL: "INFO"
+  PYODK_LOG_LEVEL: "CRITICAL"
+  FTM_DB_HOST: "fieldtm-db-prod-rw.postgres.svc.cluster.local"
+  FTM_DB_NAME: "field_tm_prod"
+  FTM_DB_USER: "field_tm_prod_rw"
+  MONITORING: "sentry"
+  OSM_URL: "https://www.openstreetmap.org"
+  OSM_SCOPE: '["read_prefs","send_messages"]'
+  RAW_DATA_API_URL: "https://api-prod.raw-data.hotosm.org/v1"
+  ODK_CENTRAL_URL: "https://odk.hotosm.org"
+  QFIELDCLOUD_URL: "https://app.qfield.cloud"
+
+ingress:
+  enabled: true
+  className: nginx
+  host: field.hotosm.org
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: field.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+  tls:
+    enabled: true
+
+resources:
+  limits:
+    cpu: 900m
+    memory: 1.5Gi
+  requests:
+    cpu: 100m
+    memory: 256Mi
