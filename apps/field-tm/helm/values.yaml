@@ -13,6 +13,9 @@ replicaCount: 2
 existingSecret:
   name: "field-tm-prod-secrets"
 env:
+  # FIXME temp workaround until 
+  # https://github.com/hotosm/field-tm/pull/3028
+  DISABLE_LOGIN: "True"
   DEBUG: "False"
   LOG_LEVEL: "INFO"
   PYODK_LOG_LEVEL: "CRITICAL"
