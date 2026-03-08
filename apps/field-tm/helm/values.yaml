@@ -28,6 +28,7 @@ env:
   RAW_DATA_API_URL: "https://api-prod.raw-data.hotosm.org/v1"
   ODK_CENTRAL_URL: "https://odk.hotosm.org"
   QFIELDCLOUD_URL: "https://app.qfield.cloud"
+  QFIELDCLOUD_PROJECT_OWNER: "HOTOSM"
 
 ingress:
   enabled: true
