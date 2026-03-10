@@ -3,7 +3,11 @@ resources:
 
 patches:
   # Inject secret env vars into main zenml container
-  - path: deployment-secret-env-patch.yaml
+  - target:
+      kind: Deployment
+      name: zenml
+      namespace: zenml
+    path: deployment-secret-env-patch.yaml
 
   # Add custom labels
   - target:
