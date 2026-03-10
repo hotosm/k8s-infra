@@ -38,6 +38,14 @@ kubeseal -f secret.yaml -w sealed-extra-secrets.yaml
 > Setting S3 credentials for an artifact store comes after install:
 > https://docs.zenml.io/stacks/stack-components/artifact-stores/s3
 
+### The env var deployment patch
+
+- The official chart doesn't provide an easy way to add secret
+  env vars into the server container.
+- Inside `kustomization.yaml` we have a patch to ensure the server
+  deployment has the `ZENML_SECRETS_STORE_ENCRYPTION_KEY` secret
+  env var included.
+
 ## IMPORTANT: A Note On Sync Waves
 
 - I couldn't get the sync order to work here.
