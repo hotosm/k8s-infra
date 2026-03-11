@@ -50,7 +50,7 @@ db:
 dashboard:
   image:
     name: ghcr.io/hotosm/osm-sandbox-dashboard/dashboard
-    tag: 4847020a4abe95822645edabf8be0a6ad7572db3
+    tag: 999cf311af037047422cc139bde3c4839017d33b
   enabled: true
   ingressDomain: sandbox.hotosm.org
   persistenceDisk:
