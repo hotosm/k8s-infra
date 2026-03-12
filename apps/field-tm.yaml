@@ -9,7 +9,7 @@ spec:
     # Helm chart + values
     - repoURL: oci://ghcr.io/hotosm/charts/field-tm
       chart: field-tm
-      targetRevision: 0.1.6
+      targetRevision: 0.1.7
       helm:
         releaseName: field-tm-prod
         valueFiles:
