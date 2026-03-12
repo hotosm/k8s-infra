@@ -34,7 +34,7 @@ ingress:
 
 backend:
   image:
-    tag: "v0.3.4"
+    tag: "v0.3.5"
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -47,7 +47,7 @@ backend:
 
 frontend:
   image:
-    tag: "v0.3.4"
+    tag: "v0.3.5"
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
