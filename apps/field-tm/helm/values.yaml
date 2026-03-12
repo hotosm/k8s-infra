@@ -13,15 +13,13 @@ replicaCount: 2
 existingSecret:
   name: "field-tm-prod-secrets"
 env:
-  # FIXME temp workaround until 
-  # https://github.com/hotosm/field-tm/pull/3028
-  DISABLE_LOGIN: "True"
   DEBUG: "False"
   LOG_LEVEL: "INFO"
   PYODK_LOG_LEVEL: "CRITICAL"
   FTM_DB_HOST: "fieldtm-db-prod-rw.postgres.svc.cluster.local"
   FTM_DB_NAME: "field_tm_prod"
   FTM_DB_USER: "field_tm_prod_rw"
+  AUTH_PROVIDER: "hotosm"
   MONITORING: "sentry"
   OSM_URL: "https://www.openstreetmap.org"
   OSM_SCOPE: '["read_prefs","send_messages"]'
