@@ -19,7 +19,9 @@ env:
   FTM_DB_HOST: "fieldtm-db-prod-rw.postgres.svc.cluster.local"
   FTM_DB_NAME: "field_tm_prod"
   FTM_DB_USER: "field_tm_prod_rw"
-  AUTH_PROVIDER: "hotosm"
+  # FIXME enable auth
+  AUTH_PROVIDER: "disabled"
+  # AUTH_PROVIDER: "hotosm"
   MONITORING: "sentry"
   OSM_URL: "https://www.openstreetmap.org"
   OSM_SCOPE: '["read_prefs","send_messages"]'
