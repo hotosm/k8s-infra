@@ -3,6 +3,11 @@ image:
   pullPolicy: Always
   tag: "dev"
 
+qfieldQgis:
+  image:
+    # TODO remove this once we release 2026.1.0
+    pullPolicy: Always
+
 # Cost tracking
 podLabels:
   project: fieldtm
