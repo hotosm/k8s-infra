@@ -115,7 +115,8 @@ zenml:
   #       secretName: db-credentials
   #       secretKey: password
   environmentSecretKeyRefs: 
-    - secretName: zenml-extra-secret-env
+    - name: ZENML_SECRETS_STORE_ENCRYPTION_KEY
+      secretName: zenml-extra-secret-env
       secretKey: ZENML_SECRETS_STORE_ENCRYPTION_KEY
 
   ingress:
