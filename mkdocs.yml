@@ -60,6 +60,7 @@ nav:
   - Using The Cluster:
       - Connecting to the cluster: usage/connecting-to-cluster.md
       - Routing to the cluster: usage/routing-to-cluster-apps.md
+      - Cluster maintenance: usage/cluster-maintenance.md
   - Tutorials:
       - Intro to Kubernetes: tutorial/k8s-intro.md
       - Deploying Apps: tutorial/deploying-apps.md
