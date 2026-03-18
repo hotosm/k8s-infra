@@ -6,10 +6,17 @@ metadata:
 spec:
   project: default
   sources:
-    # Helm chart + values
-    - repoURL: oci://public.ecr.aws/zenml/zenml
-      chart: zenml
-      targetRevision: 0.93.2
+    # Helm chart + values: commented until release containing fixes goes out
+    # - repoURL: oci://public.ecr.aws/zenml/zenml
+    #   chart: zenml
+    #   targetRevision: 0.93.2
+    #   helm:
+    #     releaseName: zenml
+    #     valueFiles:
+    #       - $k8s-infra/apps/zenml/helm/values.yaml
+    - path: helm
+      repoURL: https://github.com/spwoodcock/zenml.git
+      targetRevision: build/helm-inject-secrets
       helm:
         releaseName: zenml
         valueFiles:
