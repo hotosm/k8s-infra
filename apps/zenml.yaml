@@ -16,8 +16,7 @@ spec:
     #       - $k8s-infra/apps/zenml/helm/values.yaml
     - path: zenml
       repoURL: https://github.com/spwoodcock/zenml.git
-      ref:
-        branch: build/helm-inject-secrets
+      targetRevision: build/helm-inject-secrets
       helm:
         releaseName: zenml
         valueFiles:
