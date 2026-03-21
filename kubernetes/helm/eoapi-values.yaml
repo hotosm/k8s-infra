@@ -21,7 +21,7 @@ raster:
   autoscaling:
     enabled: true
     minReplicas: 1
-    maxReplicas: 10
+    maxReplicas: 6
     # `type`: "cpu" || "requestRate" || "both"
     type: "cpu"
     behaviour: 
