@@ -70,6 +70,22 @@ resource "aws_iam_instance_profile" "karpenter_node" {
   role = aws_iam_role.karpenter_node.name
 }
 
+resource "aws_launch_template" "core_nodes" {
+  name_prefix = "${local.cluster_prefix}-core-"
+
+  block_device_mappings {
+    device_name = "/dev/xvda"
+    ebs {
+      volume_size = 80
+      volume_type = "gp3"
+    }
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 resource "aws_eks_node_group" "core_nodes" {
   cluster_name    = aws_eks_cluster.cluster.name
   node_group_name = "core"
@@ -80,6 +96,11 @@ resource "aws_eks_node_group" "core_nodes" {
   instance_types = [var.instance_type]
 
   capacity_type = var.capacity_type
+
+  launch_template {
+    id      = aws_launch_template.core_nodes.id
+    version = aws_launch_template.core_nodes.latest_version
+  }
 
   scaling_config {
     desired_size = 1
