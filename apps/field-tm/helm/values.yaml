@@ -5,6 +5,10 @@ podLabels:
 
 replicaCount: 2
 
+qfieldQgis:
+  image:
+    pullPolicy: Always
+
 existingSecret:
   name: "field-tm-prod-secrets"
 env:
