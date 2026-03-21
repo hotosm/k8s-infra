@@ -34,6 +34,12 @@ resource "aws_ec2_tag" "cluster_security_group_cluster_tag" {
   value       = "owned"
 }
 
+resource "aws_ec2_tag" "cluster_security_group_name_tag" {
+  resource_id = aws_eks_cluster.cluster.vpc_config[0].cluster_security_group_id
+  key         = "Name"
+  value       = "${aws_eks_cluster.cluster.name}-cluster-security-group"
+}
+
 data "aws_iam_policy_document" "assume_role" {
   statement {
     effect = "Allow"
