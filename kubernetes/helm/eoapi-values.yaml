@@ -37,7 +37,7 @@ raster:
     resources:
       requests:
         cpu: "1024m"
-        memory: "3Gi"
+        memory: "2Gi"
       limits:
         cpu: "2048m"
         memory: "4Gi"
