@@ -17,7 +17,7 @@
   sudo nerdctl image prune -a
   sudo nerdctl system prune
 
-  SRC_IMAGE=$(sudo ctr -n k8s.io images list -q | grep pause | grep -v '^localhost/' | head -n1)
+  SRC_IMAGE="ghcr.io/containerd/pause"
   echo "Using pause image: $SRC_IMAGE"
   sudo ctr -n k8s.io images tag "$SRC_IMAGE" localhost/kubernetes/pause:latest
   sudo systemctl restart containerd
