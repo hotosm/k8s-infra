@@ -47,3 +47,7 @@ spec:
 
   limits:
     cpu: "300"
+
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s
