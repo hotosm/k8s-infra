@@ -146,8 +146,11 @@ variable "nginx_ingress_version" {
 }
 
 variable "enable_support_helm_charts" {
-  default = false
-  type    = bool
+  default     = false
+  type        = bool
+  description = <<-EOT
+  Whether to install the optional support helm charts managed by this module.
+  EOT
 }
 
 variable "prometheus_version" {
