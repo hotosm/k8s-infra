@@ -48,19 +48,8 @@ ingress:
     project: dronetm
     tool: dronetm
 
-# FIXME temporary override until new release, then remove
-frontendAssets:
-  image:
-    tag: "dev"
-    pullPolicy: Always
-
 # Main application services
 backend:
-  # FIXME temporary override until new release, then remove
-  image:
-    tag: "dev"
-    pullPolicy: Always
-
   replicaCount: 3
   resources:
     limits:
@@ -72,16 +61,11 @@ backend:
   # FIXME enable autoscaling at some point
   autoscaling:
     enabled: false
-    minReplicas: 1
+    minReplicas: 2
     maxReplicas: 10
     targetCPUUtilizationPercentage: 80
 
 worker:
-  # FIXME temporary override until new release, then remove
-  image:
-    tag: "dev"
-    pullPolicy: Always
-
   replicaCount: 2
   resources:
     limits:
