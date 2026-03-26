@@ -3,6 +3,7 @@ set -euo pipefail
 
 # -------------------------------------------------------------
 # Add CloudFront in front of an existing S3 bucket
+# NOTE: Designed for data buckets, not static frontends!
 #
 # Usage:
 #   bash add-s3-cloudfront.sh <bucket-name> [profile-name]

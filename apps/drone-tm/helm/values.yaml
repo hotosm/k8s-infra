@@ -10,7 +10,8 @@ global:
 existingSecret:
   name: "drone-tm-prod-secrets"
 env:
-  DOMAIN: "drone.hotosm.org"
+  DOMAIN: "api.drone.hotosm.org"
+  API_PREFIX: ""
   DEBUG: "False"
   LOG_LEVEL: "INFO"
   POSTGRES_HOST: "dronetm-db-prod-rw.postgres.svc.cluster.local"
@@ -25,30 +26,42 @@ env:
   SMTP_USER: "AKIAZYDVV4ILPVD5CLBF"
   EMAILS_FROM_EMAIL: "noreply@hotosm.org"
   EMAILS_FROM_NAME: "Drone Tasking Manager"
+  EXTRA_CORS_ORIGINS: '["https://drone.hotosm.org"]'
 
 ingress:
   enabled: true
   className: "nginx"
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    external-dns.alpha.kubernetes.io/hostname: drone.hotosm.org
+    external-dns.alpha.kubernetes.io/hostname: api.drone.hotosm.org
     external-dns.alpha.kubernetes.io/ttl: "300"
   tls:
     - hosts:
-        - drone.hotosm.org
-      secretName: drone-tm-tls
+        - api.drone.hotosm.org
+      secretName: drone-tm-api-tls
   hosts:
-    - host: drone.hotosm.org
+    - host: api.drone.hotosm.org
       paths:
         - path: /
-          pathType: Prefix
-        - path: /api
           pathType: Prefix
   labels:
     project: dronetm
     tool: dronetm
 
 # Main application services
+frontend:
+  mode: cloudfront
+  runtimeEnv:
+    VITE_API_URL: 'https://api.drone.hotosm.org'
+  cloudfront:
+    roleArn: "arn:aws:iam::670261699094:role/dronetm-prod-frontend-cloudfront-deploy"
+    region: us-east-1
+    s3Bucket: dronetm-prod-frontend
+    aliases:
+      - drone.hotosm.org
+    acmCertificateArn: 'arn:aws:acm:us-east-1:670261699094:certificate/e6eaaa9c-0de8-4222-b8f9-0e8c3e56f813'
+    priceClass: PriceClass_All
+
 backend:
   replicaCount: 3
   resources:
