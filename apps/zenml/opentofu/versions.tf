@@ -1,9 +1,9 @@
 terraform {
   backend "s3" {
-    region         = var.region
-    bucket         = var.state_bucket
-    key            = "${var.environment}/zenml/terraform.tfstate"
-    use_lockfile   = true
+    region       = var.region
+    bucket       = var.state_bucket
+    key          = "${var.environment}/zenml/terraform.tfstate"
+    use_lockfile = true
   }
 
   required_providers {

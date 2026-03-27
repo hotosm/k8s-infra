@@ -8,3 +8,6 @@
 # Secret yamls (prior to sealing)
 **/**/secret.yaml
 **/**/config.yaml
+
+# Sensitive tfvars (credentials, API keys, etc.)
+*.auto.tfvars

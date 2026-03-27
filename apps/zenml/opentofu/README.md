@@ -10,7 +10,7 @@
 # We must run in our patched version of zenml for this to work
 docker run --rm -it --entrypoint=bash \
   -v $HOME/.config/zenml:/zenml/.zenconfig \
-  ghcr.io/hotosm/zenml-postgres:0.93.2
+  ghcr.io/hotosm/zenml-postgres:0.94.1
 
 zenml login https://zenml.ai.hotosm.org
 ```
@@ -19,36 +19,99 @@ While it's possible to configure everything manually via
 CLI, it's much cleaner to use OpenTofu by following
 [this guide](https://docs.zenml.io/stacks/deployment/deploy-a-cloud-stack-with-terraform)
 
-## ZenML OpenTofu
+## Prerequisites
+
+Before running OpenTofu, a few things need to be in place.
+
+### 1. AWS credentials
+
+You need an active AWS session with permissions to create IAM
+users/roles, S3 buckets, and IAM policies. OpenTofu creates:
+
+- An IAM user (`zenml-<env>`) with an `AssumeRole` policy
+- An IAM role (`zenml-<env>`) with S3 access, assumed by the IAM user
+- An S3 artifacts bucket (`<account-id>-zenml-artifacts-<env>`)
+
+Authenticate however you normally do (SSO, env vars, etc.):
 
 ```bash
+# Example with SSO
+aws sso login --profile admin
+export AWS_PROFILE=admin
+```
+
+### 2. ZenML API key
+
+The ZenML provider authenticates via API key. Create one from the
+ZenML server, then export it:
+
+```bash
+# Via the CLI (inside the zenml container)
+zenml api-key create opentofu --set-api-key
+
+# Or export directly
+export ZENML_API_KEY='xxx'
+```
+
+### 3. Pipeline namespace
+
+OpenTofu configures components to run pipelines in a dedicated
+namespace (`zenml-pipelines` by default, set via
+`zenml_pipeline_namespace` variable). Create it if it doesn't exist:
+
+```bash
+kubectl create namespace zenml-pipelines
+```
+
+### 4. Sensitive variables
+
+MLFlow and Sentry credentials are passed as OpenTofu variables.
+Either set them in a `*.auto.tfvars` file (git-ignored) or pass
+them at apply time:
+
+```bash
+export TF_VAR_mlflow_tracking_uri="http://mlflow.mlflow.svc.cluster.local:5000"
+export TF_VAR_mlflow_tracking_username="admin"
+export TF_VAR_mlflow_tracking_password="xxx"
+# Sentry OTLP endpoint (not the DSN). The public key is the hex string before @ in the DSN.
+export TF_VAR_sentry_endpoint="https://<org>.ingest.us.sentry.io/api/<project-id>/integration/otlp"
+export TF_VAR_sentry_public_key="<public-key-from-dsn>"
+```
+
+## Applying OpenTofu
+
+```bash
+cd apps/zenml/opentofu
+
 tofu init -var-file=vars/production.tfvars
 tofu validate -var-file=vars/production.tfvars
 tofu plan -var-file=vars/production.tfvars
-tofu apply -var-file=vars/production.tfvars --dry-run
+tofu apply -var-file=vars/production.tfvars
 ```
 
-### Credentials
+### Service Connectors
 
-- In order to configure components, we first need to configure secrets.
-- This allows the components to be accessed by ZenML.
+- **AWS** (`iam-role`): S3 artifact store access via IAM user + assume role
+
+Kubernetes components (orchestrator, step operator, image builder) use
+`incluster = true` in their own config - no service connector needed.
 
 ### Components
 
-Components we need:
+All components are configured in `main.tf`:
 
-- **Orchestrator**: Kubernetes (managing pipelines)
-- **Artifact Store**: S3 (final model artifacts)
-- **Deployer**: Kubernetes (to run inference jobs, note 'Model Deployer' is deprecated in favour of this)
-- **Container Registry**: Github (storing containers)
+- **Orchestrator**: Kubernetes, in-cluster (`zenml-pipelines` namespace)
+- **Artifact Store**: S3
+- **Container Registry**: GitHub (GHCR `ghcr.io/hotosm`)
 - **Step Operator**: Kubernetes (for specific GPU steps)
-- **Experiment Tracker**: MLFlow (already in cluster, for tracking experiments / how you got a model) +- WandB (Weights & Biases)
-- **Image Builder**: Kaniko via Kubernetes (for building container images as needed)
-- **Model Registry**: MLFlow (already in cluster, for versioning and lineage of prod models) +- WandB (Weights & Biases)
-- **Log Store**: OTEL (to store logs and traces for pipelines - connect Sentry for now)
+- **Image Builder**: Kaniko via Kubernetes (builds container images in-cluster).
+  Note: https://github.com/zenml-io/zenml/issues/4122
+- **Experiment Tracker**: MLFlow (in-cluster)
+- **Model Registry**: MLFlow (in-cluster)
+- **Log Store**: OTEL (connected to Sentry)
 
-We already have all the services we need running, but just need to
-configure them within ZenML via OpenTofu.
+> **Note**: A Deployer component (e.g. KServe, Seldon) is not yet
+> configured. For now inference jobs run via the orchestrator.
 
 ## Stacks
 

@@ -1,19 +1,6 @@
-# terraform {
-#     required_providers {
-#         aws = {
-#             source  = "hashicorp/aws"
-#         }
-#         zenml = {
-#             source = "zenml-io/zenml"
-#         }
-#     }
-# }
-
 provider "zenml" {
-    server_url = var.zenml_server
-    # For ZenML Pro users, this should be your Workspace URL from the dashboard
-    # api_key = <taken from the ZENML_API_KEY environment variable if not set here>
-    ## TODO sealed secret for API_KEY
+  server_url = var.zenml_server
+  # api_key = <taken from the ZENML_API_KEY environment variable if not set here>
 }
 
 provider "aws" {
@@ -41,8 +28,8 @@ resource "aws_iam_user_policy" "assume_role_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = "sts:AssumeRole"
+        Effect   = "Allow"
+        Action   = "sts:AssumeRole"
         Resource = "*"
       }
     ]
@@ -54,7 +41,7 @@ resource "aws_iam_access_key" "iam_user_access_key" {
 }
 
 resource "aws_iam_role" "zenml" {
-  name               = "zenml-${var.environment}"
+  name = "zenml-${var.environment}"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -64,18 +51,10 @@ resource "aws_iam_role" "zenml" {
           AWS = aws_iam_user.iam_user.arn
         }
         Action = "sts:AssumeRole"
-      },
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "sagemaker.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
       }
     ]
   })
 }
-
 
 resource "aws_iam_role_policy" "s3_policy" {
   name = "S3Policy"
@@ -102,16 +81,18 @@ resource "aws_iam_role_policy" "s3_policy" {
   })
 }
 
-# ZenML Service Connector for AWS
+# --- Service Connectors ---
+
+# AWS connector for S3 artifact store access
 resource "zenml_service_connector" "aws" {
-  name           = "aws-${var.environment}"
-  type           = "aws"
-  auth_method    = "iam-role"
+  name        = "aws-${var.environment}"
+  type        = "aws"
+  auth_method = "iam-role"
 
   configuration = {
-    region   = var.region
-    role_arn = aws_iam_role.zenml.arn
-    aws_access_key_id = aws_iam_access_key.iam_user_access_key.id
+    region                = var.region
+    role_arn              = aws_iam_role.zenml.arn
+    aws_access_key_id     = aws_iam_access_key.iam_user_access_key.id
     aws_secret_access_key = aws_iam_access_key.iam_user_access_key.secret
   }
 
@@ -121,135 +102,148 @@ resource "zenml_service_connector" "aws" {
   }
 }
 
-# Artifact Store Component
+# --- Stack Components ---
+
+# Artifact Store: S3
 resource "zenml_stack_component" "artifact_store" {
-  name      = "s3-${var.environment}"
-  type      = "artifact_store"
-  flavor    = "s3"
+  name   = "s3-${var.environment}"
+  type   = "artifact_store"
+  flavor = "s3"
 
   configuration = {
     path = "s3://${aws_s3_bucket.artifacts.bucket}/artifacts"
   }
 
-  connector_id = zenml_service_connector.aws.id
+  connector_id          = zenml_service_connector.aws.id
+  connector_resource_id = aws_s3_bucket.artifacts.bucket
 
   labels = {
     environment = var.environment
   }
 }
 
-# Container Registry Component
+# Container Registry: GitHub (GHCR)
 resource "zenml_stack_component" "container_registry" {
-  name      = "gcr-${var.environment}"
-  type      = "container_registry"
-  flavor    = "github"
+  name   = "ghcr-${var.environment}"
+  type   = "container_registry"
+  flavor = "github"
 
   configuration = {
     uri = "ghcr.io/hotosm"
-    default_repository = "fAIr-models" ## todo: parameterize
   }
-
-  connector_id = zenml_service_connector.aws.id
 
   labels = {
     environment = var.environment
   }
 }
 
-# custom k8s Orchestrator
+# Orchestrator: Kubernetes
 resource "zenml_stack_component" "orchestrator" {
-  name      = "kubernetes-${var.environment}"
-  type      = "orchestrator"
-  flavor    = "kubernetes"
+  name   = "kubernetes-orchestrator-${var.environment}"
+  type   = "orchestrator"
+  flavor = "kubernetes"
 
   configuration = {
-      region = data.aws_region.current.name
-      execution_role = aws_iam_role.zenml.arn
-      output_data_s3_uri = "s3://${aws_s3_bucket.artifacts.bucket}/kubernetes"
-      incluster = true
-
+    incluster            = "true"
+    kubernetes_namespace = var.zenml_pipeline_namespace
   }
-
-  connector_id = zenml_service_connector.aws.id
 
   labels = {
     environment = var.environment
   }
 }
 
-# Experiment Tracker: MLFlow (already in cluster, for tracking experiments / how you got a model)
+# Step Operator: Kubernetes (for specific GPU steps)
+resource "zenml_stack_component" "step_operator" {
+  name   = "kubernetes-step-operator-${var.environment}"
+  type   = "step_operator"
+  flavor = "kubernetes"
+
+  configuration = {
+    incluster            = "true"
+    kubernetes_namespace = var.zenml_pipeline_namespace
+  }
+
+  labels = {
+    environment = var.environment
+  }
+}
+
+# Image Builder: Kaniko (builds container images in-cluster)
+resource "zenml_stack_component" "image_builder" {
+  name   = "kaniko-${var.environment}"
+  type   = "image_builder"
+  flavor = "kaniko"
+
+  configuration = {
+    kubernetes_namespace = var.zenml_pipeline_namespace
+  }
+
+  labels = {
+    environment = var.environment
+  }
+}
+
+# Experiment Tracker: MLFlow
 resource "zenml_stack_component" "experiment_tracker" {
-  name      = "kubernetes-${var.environment}"
-  type      = "experiment_tracker"
-  flavor    = "mlflow"
+  name   = "mlflow-experiment-tracker-${var.environment}"
+  type   = "experiment_tracker"
+  flavor = "mlflow"
 
   configuration = {
-      region = data.aws_region.current.name
-      execution_role = aws_iam_role.zenml.arn
-      ## https://docs.zenml.io/stacks/stack-components/experiment-trackers/mlflow
-      tracking_uri = "${var.mlflow_tracking_uri}"
-      tracking_username = "${var.mlflow_tracking_username}"
-      tracking_password = "${var.mlflow_tracking_password}"
+    tracking_uri      = var.mlflow_tracking_uri
+    tracking_username = var.mlflow_tracking_username
+    tracking_password = var.mlflow_tracking_password
   }
-
-  connector_id = zenml_service_connector.aws.id
 
   labels = {
     environment = var.environment
   }
 }
 
-# Model Registry: MLFlow (already in cluster, for versioning and lineage of prod models) +- WandB (Weights & Biases)
+# Model Registry: MLFlow (inherits config from experiment tracker in same stack)
 resource "zenml_stack_component" "model_registry" {
-  name      = "kubernetes-${var.environment}"
-  type      = "model_registry"
-  flavor    = "mlflow"
+  name   = "mlflow-model-registry-${var.environment}"
+  type   = "model_registry"
+  flavor = "mlflow"
 
-  configuration = {
-      region = data.aws_region.current.name
-      execution_role = aws_iam_role.zenml.arn
-  }
-
-  connector_id = zenml_service_connector.aws.id
+  configuration = {}
 
   labels = {
     environment = var.environment
   }
 }
 
-# Log Store: OTEL (to store logs and traces for pipelines - connect Sentry for now)
+# Log Store: OTEL (connected to Sentry)
 resource "zenml_stack_component" "log_store" {
-  name      = "kubernetes-${var.environment}"
-  type      = "log_store"
-  flavor    = "otel"
+  name   = "otel-log-store-${var.environment}"
+  type   = "log_store"
+  flavor = "otel"
 
   configuration = {
-      region = data.aws_region.current.name
-      execution_role = aws_iam_role.zenml.arn
-      endpoint = "${var.sentry_endpoint}"
-      headers = "{'x-sentry-auth': 'sentry sentry_key=${var.sentry_key}'}"
-      ## https://docs.zenml.io/stacks/stack-components/log-stores/otel
+    endpoint = var.sentry_endpoint
+    headers  = "x-sentry-auth=sentry sentry_key=${var.sentry_public_key}"
   }
-
-  connector_id = zenml_service_connector.aws.id
 
   labels = {
     environment = var.environment
   }
 }
 
-# Complete Stack
+# --- Stack ---
+
 resource "zenml_stack" "aws_stack" {
-  name = "aws-${var.environment}"
+  name = "k8s-${var.environment}"
 
   components = {
-    artifact_store      = zenml_stack_component.artifact_store.id
-    container_registry  = zenml_stack_component.container_registry.id
-    orchestrator        = zenml_stack_component.orchestrator.id
-    experiment_tracker  = zenml_stack_component.experiment_tracker.id
-    model_registry      = zenml_stack_component.model_registry.id
-    log_store           = zenml_stack_component.log_store.id
-    ## add more as they get configured properly
+    artifact_store     = zenml_stack_component.artifact_store.id
+    container_registry = zenml_stack_component.container_registry.id
+    orchestrator       = zenml_stack_component.orchestrator.id
+    step_operator      = zenml_stack_component.step_operator.id
+    image_builder      = zenml_stack_component.image_builder.id
+    experiment_tracker = zenml_stack_component.experiment_tracker.id
+    model_registry     = zenml_stack_component.model_registry.id
+    log_store          = zenml_stack_component.log_store.id
   }
 
   labels = {
@@ -258,10 +252,10 @@ resource "zenml_stack" "aws_stack" {
   }
 }
 
+output "stack_id" {
+  value = zenml_stack.aws_stack.id
+}
 
-# output "zenml_stack_id" {
-#   value = aws_stack.zenml_stack_id
-# }
-# output "zenml_stack_name" {
-#   value = aws_stack.zenml_stack_name
-# }
+output "stack_name" {
+  value = zenml_stack.aws_stack.name
+}

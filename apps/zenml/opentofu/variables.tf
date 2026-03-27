@@ -21,13 +21,6 @@ variable "state_bucket" {
   EOT
 }
 
-variable "lock_table" {
-  type        = string
-  default     = ""
-  description = <<-EOT
-  Dynamo table to use for consistency checks (when using an s3 backend)
-  EOT
-}
 
 variable "tags" {
   type        = map(string)
@@ -71,20 +64,20 @@ variable "oidc_arn" {
   default     = "arn:aws:iam::670261699094:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/6C1C4902845266176B6D3D16899B4665"
 }
 
-variable "sentry_key" {
+variable "sentry_endpoint" {
   description = <<-EOT
-  Sentry API key for zenml project
+  Sentry OTEL ingest endpoint URL
   EOT
   type        = string
-  sensitive   = true
   default     = ""
 }
 
-variable "sentry_endpoint" {
+variable "sentry_public_key" {
   description = <<-EOT
-  URL for the sentry access
+  Sentry DSN public key (the hex string before @ in the DSN URL)
   EOT
   type        = string
+  sensitive   = true
   default     = ""
 }
 
@@ -111,4 +104,12 @@ variable "mlflow_tracking_password" {
   type        = string
   sensitive   = true
   default     = ""
+}
+
+variable "zenml_pipeline_namespace" {
+  description = <<-EOT
+  Kubernetes namespace where ZenML pipelines and jobs run
+  EOT
+  type        = string
+  default     = "zenml-pipelines"
 }
