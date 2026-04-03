@@ -84,9 +84,14 @@ worker:
     limits:
       cpu: 2000m
       memory: 2Gi
+      # Ephemeral storage required for ODM assets zip extraction
+      # 10GB zip + 10GB ortho pair + headroom
+      # Increase if we have larger than 10GB ODM total asset zips
+      ephemeral-storage: 25Gi
     requests:
       cpu: 500m
       memory: 512Mi
+      ephemeral-storage: 15Gi
   # FIXME enable autoscaling at some point
   autoscaling:
     enabled: false
