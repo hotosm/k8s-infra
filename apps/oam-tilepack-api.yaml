@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: oam-tilepack-api
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: oci://ghcr.io/hotosm/openaerialmap/tilepack-api
+      chart: tilepack-api
+      targetRevision: 0.3.0
+      helm:
+        releaseName: tilepack-api
+        # Use the default values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: eoapi
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
