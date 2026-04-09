@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: oci://ghcr.io/hotosm/openaerialmap/global-tms
+    - repoURL: oci://ghcr.io/hotosm/charts/openaerialmap/global-tms
       chart: global-tms
       targetRevision: 0.1.1
       helm:
