@@ -14,7 +14,7 @@ env:
   OSM_URL: "https://www.openstreetmap.org"
   OSM_SCOPE: "read_prefs"
   LOG_LEVEL: "INFO"
-  ADMIN_EMAILS: "hernangigena@gmail.com,justina@animus.com.ar,andreatchirillano@hotmail.com,emilio.mariscal@hotosm.org"
+  ADMIN_EMAILS: "hernangigena@gmail.com,justina@animus.com.ar,andreatchirillano@hotmail.com,emilio.mariscal@hotosm.org,dakota.benjamin@hotosm.org,sam.woodcock@hotosm.org"
   DRONETM_BACKEND_URL: "https://drone.hotosm.org"
   FAIR_BACKEND_URL: "https://fair.hotosm.org"
   PORTAL_BACKEND_URL: "https://portal.hotosm.org"
