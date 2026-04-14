@@ -8,7 +8,7 @@ spec:
   sources:
     - repoURL: oci://ghcr.io/hotosm/charts/openaerialmap/tilepack-api
       chart: tilepack-api
-      targetRevision: 0.4.1
+      targetRevision: 0.4.2
       helm:
         releaseName: tilepack-api
         # Use the default values
