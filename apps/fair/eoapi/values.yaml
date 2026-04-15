@@ -103,6 +103,7 @@ pgstacBootstrap:
 
 stac:
   enabled: true
+  overrideRootPath: ""
   ingress:
     enabled: true
     path: "/"
