@@ -4,10 +4,13 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-body-size: "100m"
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/enable-access-log: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: "/$2"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     external-dns.alpha.kubernetes.io/hostname: stac.ai.hotosm.org
     external-dns.alpha.kubernetes.io/ttl: "300"
   host: "stac.ai.hotosm.org"
+  rootPath: "/"
   tls:
     enabled: true
     secretName: fair-eoapi-tls
@@ -106,7 +109,7 @@ stac:
   overrideRootPath: ""
   ingress:
     enabled: true
-    path: "/"
+    # path: "/"
   settings:
     labels: {}
     resources: {}
