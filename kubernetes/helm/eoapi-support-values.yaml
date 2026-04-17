@@ -1,3 +1,7 @@
+# We install this cluster-wide instead via Argo
+metrics-server:
+  enabled: false
+
 prometheus-adapter:
   prometheus:
     url: http://eoapi-support-prometheus-server.eoapi-support.svc.cluster.local
