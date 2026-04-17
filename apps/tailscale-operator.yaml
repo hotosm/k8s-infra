@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tailscale-operator
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    # Helm chart + values
+    - repoURL: https://pkgs.tailscale.com/helmcharts
+      chart: tailscale-operator
+      targetRevision: 1.96.5
+      helm:
+        releaseName: tailscale-operator
+        valuesObject:
+          operatorConfig:
+            hostname: hotosm-k8s-operator
+          apiServerProxyConfig:
+            mode: "true" 
+
+    # Extra resources
+    - repoURL: 'https://github.com/hotosm/k8s-infra.git'
+      path: 'apps/tailscale-operator'
+      targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tailscale
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
