@@ -1,6 +1,10 @@
-# We install this cluster-wide instead via Argo
+# We install metrics-server cluster-wide via ArgoCD instead.
+# This chart doesn't support disabling it, so prevent conflicts
+# by stopping it from registering the API service and scale to 0.
 metrics-server:
-  enabled: false
+  apiService:
+    create: false
+  replicas: 0
 
 prometheus-adapter:
   prometheus:
