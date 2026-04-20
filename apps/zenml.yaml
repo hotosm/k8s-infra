@@ -9,7 +9,7 @@ spec:
     # Helm chart + values
     - repoURL: oci://public.ecr.aws/zenml/zenml
       chart: zenml
-      targetRevision: 0.94.1
+      targetRevision: 0.94.2
       helm:
         releaseName: zenml
         valueFiles:
