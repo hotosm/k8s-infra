@@ -114,7 +114,8 @@ resource "zenml_stack_component" "artifact_store" {
     path = "s3://${aws_s3_bucket.artifacts.bucket}/artifacts"
   }
 
-  connector_id          = zenml_service_connector.aws.id
+  # connector_id = zenml_service_connector.aws.id
+  connector_id = "ce2e1b32-1a76-4ee6-be06-6fc42e0ef5f6"
   connector_resource_id = aws_s3_bucket.artifacts.bucket
 
   labels = {
@@ -144,9 +145,12 @@ resource "zenml_stack_component" "orchestrator" {
   flavor = "kubernetes"
 
   configuration = {
-    incluster            = "true"
+    # incluster            = "true"
     kubernetes_namespace = var.zenml_pipeline_namespace
   }
+
+  # connector_id = zenml_service_connector.aws.id
+  connector_id = "ce2e1b32-1a76-4ee6-be06-6fc42e0ef5f6"
 
   labels = {
     environment = var.environment
@@ -169,20 +173,20 @@ resource "zenml_stack_component" "step_operator" {
   }
 }
 
-# Image Builder: Kaniko (builds container images in-cluster)
-resource "zenml_stack_component" "image_builder" {
-  name   = "kaniko-${var.environment}"
-  type   = "image_builder"
-  flavor = "kaniko"
+# # Image Builder: Kaniko (builds container images in-cluster)
+# resource "zenml_stack_component" "image_builder" {
+#   name   = "kaniko-${var.environment}"
+#   type   = "image_builder"
+#   flavor = "kaniko"
 
-  configuration = {
-    kubernetes_namespace = var.zenml_pipeline_namespace
-  }
+#   configuration = {
+#     kubernetes_namespace = var.zenml_pipeline_namespace
+#   }
 
-  labels = {
-    environment = var.environment
-  }
-}
+#   labels = {
+#     environment = var.environment
+#   }
+# }
 
 # Experiment Tracker: MLFlow
 resource "zenml_stack_component" "experiment_tracker" {
@@ -222,7 +226,7 @@ resource "zenml_stack_component" "log_store" {
 
   configuration = {
     endpoint = var.sentry_endpoint
-    headers  = "x-sentry-auth=sentry sentry_key=${var.sentry_public_key}"
+    headers  = "{\"x-sentry-auth\": \"sentry sentry_key=${var.sentry_public_key}\"}"
   }
 
   labels = {
@@ -240,7 +244,7 @@ resource "zenml_stack" "aws_stack" {
     container_registry = zenml_stack_component.container_registry.id
     orchestrator       = zenml_stack_component.orchestrator.id
     step_operator      = zenml_stack_component.step_operator.id
-    image_builder      = zenml_stack_component.image_builder.id
+    # image_builder      = zenml_stack_component.image_builder.id
     experiment_tracker = zenml_stack_component.experiment_tracker.id
     model_registry     = zenml_stack_component.model_registry.id
     log_store          = zenml_stack_component.log_store.id
