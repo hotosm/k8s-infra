@@ -14,6 +14,9 @@ env:
   API_PREFIX: ""
   DEBUG: "False"
   LOG_LEVEL: "INFO"
+  AUTH_PROVIDER: "hanko"
+  HANKO_API_URL: "https://login.hotosm.org"
+  COOKIE_DOMAIN: ".hotosm.org"
   POSTGRES_HOST: "dronetm-db-prod-rw.postgres.svc.cluster.local"
   POSTGRES_DB: "drone_tm_prod"
   POSTGRES_USER: "drone_tm_prod_rw"
@@ -53,6 +56,8 @@ frontend:
   mode: cloudfront
   runtimeEnv:
     VITE_API_URL: 'https://api.drone.hotosm.org'
+    VITE_AUTH_PROVIDER: 'hanko'
+    VITE_HANKO_URL: 'https://login.hotosm.org'
   cloudfront:
     roleArn: "arn:aws:iam::670261699094:role/dronetm-prod-frontend-cloudfront-deploy"
     region: us-east-1
