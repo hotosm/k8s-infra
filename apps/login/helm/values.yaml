@@ -33,9 +33,6 @@ ingress:
     external-dns.alpha.kubernetes.io/ttl: "300"
 
 backend:
-  image:
-    tag: "v0.3.5"
-    pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
     limits:
@@ -46,9 +43,6 @@ backend:
       memory: 128Mi
 
 frontend:
-  image:
-    tag: "v0.3.5"
-    pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
     limits:
