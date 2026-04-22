@@ -1,0 +1,4 @@
+apiVersion: v2
+name: cluster-rbac
+description: HOT cluster-wide RBAC roles and bindings
+version: 0.1.0
