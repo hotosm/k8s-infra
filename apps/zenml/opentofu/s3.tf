@@ -7,7 +7,7 @@ resource "aws_s3_bucket" "data_stores" {
 
 resource "aws_iam_policy" "eks_s3_access" {
   count = length(var.bucket_names) > 0 ? 1 : 0
-  name  = "EKSS3ZenMLAccessPolicy"
+  name  = "EKSS3ZenMLAccessPolicy-${var.environment}"
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -16,9 +16,12 @@ resource "aws_iam_policy" "eks_s3_access" {
           "s3:*"
         ]
         Effect = "Allow"
-        Resource = concat(
+        Resource = concat(concat(
           [for bucketname in var.bucket_names : "arn:aws:s3:::${bucketname}"],
           [for bucketname in var.bucket_names : "arn:aws:s3:::${bucketname}/*"]
+        ),
+        [aws_s3_bucket.artifacts.arn,
+        "${aws_s3_bucket.artifacts.arn}/*"]
         )
       }
     ]
@@ -43,7 +46,7 @@ data "aws_iam_policy_document" "assume_role_with_oidc" {
 }
 
 resource "aws_iam_role" "bucket_access" {
-  name                 = "hotosm-fair-models-bucket-access"
+  name                 = "hotosm-fair-models-bucket-access-${var.environment}"
   assume_role_policy   = data.aws_iam_policy_document.assume_role_with_oidc.json
   permissions_boundary = var.permissions_boundary
 }
