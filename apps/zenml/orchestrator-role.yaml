@@ -70,8 +70,8 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: zenml-pod-account
+  name: zenml-orchestrator-pod-role
 subjects:
   - kind: ServiceAccount
-    name: zenml-orchestrator-pod-role
+    name: zenml-pod-account
     namespace: zenml-pipelines
