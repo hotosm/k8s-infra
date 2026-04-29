@@ -1,0 +1,35 @@
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: odk-central
+#   namespace: argocd
+# spec:
+#   project: default
+#   sources:
+#     # Helm chart + values
+#     - repoURL: https://caktus.github.io/helm-charts
+#       chart: caktus/odk-central
+#       targetRevision: 0.4.4
+#       helm:
+#         releaseName: odk-central
+#         valueFiles:
+#           - $k8s-infra/apps/odk-central/helm/values.yaml
+
+#     # Git repo containing values.yaml
+#     - repoURL: https://github.com/hotosm/k8s-infra.git
+#       targetRevision: HEAD
+#       ref: k8s-infra
+
+#     # Extra resources
+#     - repoURL: https://github.com/hotosm/k8s-infra.git
+#       targetRevision: HEAD
+#       path: apps/odk-central
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: field
+#   syncPolicy:
+#     automated:
+#       selfHeal: true
+#       prune: true
+#     syncOptions:
+#       - CreateNamespace=true
