@@ -69,8 +69,6 @@ zenml:
     corsAllowOrigins:
       - "*"
 
-  defaultProject: "fair-tests"
-
   database:
     # E.g.: "mysql://admin:password@zenml-mysql:3306/database"
     url: "postgresql://zenml@zenml-db-prod-rw.postgres.svc.cluster.local:5432/zenml"

@@ -1,0 +1,77 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: zenml-service-connector
+  namespace: zenml-pipelines
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: zenml-pod-account
+  namespace: zenml-pipelines
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: zenml-pipelines
+  name: zenml-orchestrator-service-role
+rules:
+  # Core API Group: 
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list"]
+  
+  # Batch API Group: ZenML runs steps as Jobs and scheduled pipelines as CronJobs
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "create"]
+
+  - apiGroups: ["batch"]
+    resources: ["cronjobs"]
+    verbs: ["create", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: zenml-pipelines # Replace with your target namespace
+  name: zenml-orchestrator-pod-role
+rules:
+  # Core API Group: Manage Pods, read step logs, and use ServiceAccounts
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list"]
+  
+  # Batch API Group: ZenML runs steps as Jobs and scheduled pipelines as CronJobs
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "create", "patch", "delete"]
+    
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: zenml-service-binding
+  namespace: zenml-pipelines
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: zenml-orchestrator-service-role
+subjects:
+  - kind: ServiceAccount
+    name: zenml-service-connector
+    namespace: zenml-pipelines
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: zenml-pod-binding
+  namespace: zenml-pipelines
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: zenml-pod-account
+subjects:
+  - kind: ServiceAccount
+    name: zenml-orchestrator-pod-role
+    namespace: zenml-pipelines
