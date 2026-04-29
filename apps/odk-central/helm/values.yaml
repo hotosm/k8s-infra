@@ -1,0 +1,67 @@
+global:
+  centralDomain: odk.field.hotosm.org
+
+enketo:
+  enabled: false
+enketo-redis-main:
+  enabled: false
+enketo-redis-cache:
+  enabled: false
+
+# Frontend and backend MUST share the same domain. The frontend nginx proxies
+# all /v1/* API requests internally to the backend service - there is no CORS
+# support and no mechanism to configure a separate API base URL in the frontend.
+# Ref: https://github.com/getodk/central/blob/v2026.1.1/files/nginx/odk.conf.template
+# Hence, we don't add an ingress on the backend too.
+frontend:
+  enabled: true
+  environmentVariables:
+    DOMAIN: "odk.field.hotosm.org"
+    SENTRY_KEY: "3cf75f54983e473da6bd07daddf0d2ee"
+    SENTRY_ORG_SUBDOMAIN: "o130137"
+    SENTRY_PROJECT: "1298632"
+    SSL_TYPE: upstream
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      external-dns.alpha.kubernetes.io/hostname: odk.field.hotosm.org
+      external-dns.alpha.kubernetes.io/ttl: "300"
+    tls:
+      - hosts:
+          - odk.field.hotosm.org
+        secretName: odk-central-frontend-tls
+    hosts:
+      - host: odk.field.hotosm.org
+        paths:
+          - path: /
+            pathType: Prefix
+    labels:
+      project: fieldtm
+      tool: odk
+
+backend:
+  enabled: true
+  existingSecret: odk-central-vars
+  environmentVariables:
+    PGHOST: "central-db-rw.postgres.svc.cluster.local"
+    PGPORT: "5432"
+    PGDATABASE: "central"
+    PGUSER: "central"
+    DOMAIN: "odk.field.hotosm.org"
+    EMAIL_FROM: "no-reply@hotosm.org"
+    EMAIL_HOST: "email-smtp.us-east-1.amazonaws.com"
+    EMAIL_IGNORE_TLS: "true"
+    EMAIL_PORT: "587"
+    EMAIL_SECURE: "false"
+    HTTPS_PORT: "443"
+    SENTRY_KEY: "3cf75f54983e473da6bd07daddf0d2ee"
+    SENTRY_ORG_SUBDOMAIN: "o130137"
+    SENTRY_PROJECT: "1298632"
+    SYSADMIN_EMAIL: "sysadmin@hotosm.org"
+    S3_SERVER: "https://s3.amazonaws.com"
+    S3_BUCKET_NAME: "hotosm-odk-uploads"
+
+pyxform:
+  enabled: true

@@ -69,6 +69,9 @@ zenml:
     corsAllowOrigins:
       - "*"
 
+  # This is the default - do not change this or it causes hassle via ZenML CLI
+  defaultProject: "default"
+
   database:
     # E.g.: "mysql://admin:password@zenml-mysql:3306/database"
     url: "postgresql://zenml@zenml-db-prod-rw.postgres.svc.cluster.local:5432/zenml"

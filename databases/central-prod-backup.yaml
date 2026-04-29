@@ -1,0 +1,10 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: central-db-backup
+  namespace: postgres
+spec:
+  schedule: "0 0 5 * * 0"  # At 5am every Sunday
+  backupOwnerReference: self
+  cluster:
+    name: central-db

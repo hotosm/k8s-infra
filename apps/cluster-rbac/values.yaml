@@ -1,0 +1,6 @@
+# Add or remove namespaces in this file
+# to grant / revoke access to contractors.
+contractorNamespaces:
+  - login
+  - zenml
+  - fair
