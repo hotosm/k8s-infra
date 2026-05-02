@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: scaleodm
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    # Helm chart + values
+    - repoURL: oci://ghcr.io/hotosm/charts/scaleodm
+      chart: scaleodm
+      targetRevision: 0.3.1
+      helm:
+        releaseName: scaleodm
+        valueFiles:
+          - $k8s-infra/apps/scaleodm/helm/values.yaml
+
+    # Git repo containing values.yaml
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+
+    # Extra resources
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/scaleodm
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: scaleodm
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true

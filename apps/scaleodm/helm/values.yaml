@@ -1,0 +1,114 @@
+secrets:
+  runtime:
+    name: "scaleodm-secrets"
+    keys:
+      databaseUrl: "SCALEODM_DATABASE_URL"
+      s3Endpoint: "AWS_S3_ENDPOINT"
+      accessKey: "AWS_ACCESS_KEY_ID"
+      secretKey: "AWS_SECRET_ACCESS_KEY"
+      region: "AWS_DEFAULT_REGION"
+
+config:
+  observability:
+    enabled: false
+    serviceName: "scaleodm"
+    serviceVersion: "0.3.1"
+    otlpEndpoint: ""
+    otlpInsecure: false
+    metricsEnabled: true
+    tracesEnabled: true
+    traceSampleRatio: 0.1
+
+  # Defaults, except gp3 storageclass
+  workflow:
+    activeDeadlineSeconds: 21600
+    workspace:
+      mode: auto
+      size: "30Gi"
+      storageClass: "gp3"
+      accessMode: ReadWriteOnce
+      dynamicSize:
+        enabled: false
+        multiplier: 4
+        minGiB: 30
+        maxGiB: 1024
+        fallbackMBPerImage: 20
+    retryLimit: 1
+    retryBackoffDuration: "60s"
+    retryBackoffFactor: "2"
+    retryBackoffMaxDuration: "10m"
+    ttlSuccessSeconds: 86400
+    ttlFailureSeconds: 604800
+    podGCStrategy: "OnWorkflowSuccess"
+    podGCDeleteDelaySeconds: 300
+
+    resources:
+      download:
+        requests:
+          cpu: "500m"
+          memory: "1Gi"
+          ephemeralStorage: "2Gi"
+        limits:
+          cpu: "2"
+          memory: "2Gi"
+          ephemeralStorage: "6Gi"
+      process:
+        requests:
+          cpu: "2000m"
+          memory: "8Gi"
+          ephemeralStorage: "20Gi"
+        limits:
+          cpu: "4000m"
+          memory: "10Gi"
+          ephemeralStorage: "30Gi"
+      upload:
+        requests:
+          cpu: "500m"
+          memory: "1Gi"
+          ephemeralStorage: "4Gi"
+        limits:
+          cpu: "2"
+          memory: "2Gi"
+          ephemeralStorage: "8Gi"
+      cleanup:
+        requests:
+          cpu: "250m"
+          memory: "512Mi"
+          ephemeralStorage: "1Gi"
+        limits:
+          cpu: "1"
+          memory: "1Gi"
+          ephemeralStorage: "2Gi"
+
+  processSizing:
+    memoryLimitMarginPercent: 20
+    memoryMinGiB: 4
+    memoryMaxGiB: 256
+    cpuPerGiB: 0.25
+    cpuLimitMultiplier: 1.5
+    ephemeralGiBPerGiBRAM: 1
+    ephemeralLimitMultiplier: 1.2
+
+argo:
+  controller:
+    # Only allow 5 jobs to run at a time for now
+    parallelism: 5
+
+ingress:
+  # Enables ingress that exposes only /ui and /ui/... routes.
+  # This is safe with api.service.type=ClusterIP because browser requests hit
+  # /ui/api on the same ingress host, then the in-cluster UI handler fetches
+  # internal data server-side and returns JSON to the browser.
+  # Security guardrail: requires config.ui.enabled=true.
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: processing.drone.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+  hosts:
+    - host: processing.drone.hotosm.org
+  tls:
+    - hosts:
+        - processing.drone.hotosm.org
+      secretName: scaleodm-tls
