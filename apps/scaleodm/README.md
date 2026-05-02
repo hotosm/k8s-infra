@@ -7,6 +7,6 @@ kubectl create secret generic scaleodm-secrets \
   --from-literal=AWS_ACCESS_KEY_ID="xxx" \
   --from-literal=AWS_SECRET_ACCESS_KEY="xxx" \
   --from-literal=AWS_DEFAULT_REGION="us-east-1" \
-  --namespace=scaleodm \
+  --namespace=drone \
   --dry-run=client -o yaml > secret.yaml
 ```
