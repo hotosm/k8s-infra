@@ -9,7 +9,7 @@ spec:
     # Helm chart + values
     - repoURL: oci://ghcr.io/hotosm/charts/scaleodm
       chart: scaleodm
-      targetRevision: 0.4.0
+      targetRevision: 0.4.1
       helm:
         releaseName: scaleodm
         valueFiles:
