@@ -106,6 +106,8 @@ ingress:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     external-dns.alpha.kubernetes.io/hostname: processing.drone.hotosm.org
     external-dns.alpha.kubernetes.io/ttl: "300"
+    # Redirect to access /ui path by default
+    nginx.ingress.kubernetes.io/app-root: /ui
   hosts:
     - host: processing.drone.hotosm.org
   tls:
