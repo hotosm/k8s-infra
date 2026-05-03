@@ -26,7 +26,7 @@ spec:
       path: apps/scaleodm
   destination:
     server: https://kubernetes.default.svc
-    namespace: drone
+    namespace: odm
   syncPolicy:
     automated:
       selfHeal: true
