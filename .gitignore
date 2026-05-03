@@ -11,3 +11,9 @@
 
 # Sensitive tfvars (credentials, API keys, etc.)
 *.auto.tfvars
+
+# LLM tools
+.claude
+.codex
+plans
+checkpoints
