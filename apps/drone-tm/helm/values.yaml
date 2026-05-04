@@ -18,6 +18,7 @@ env:
   HANKO_API_URL: "https://login.hotosm.org"
   COOKIE_DOMAIN: ".hotosm.org"
   ADMIN_EMAILS: "hernangigena@gmail.com,justina@animus.com.ar,andreatchirillano@hotmail.com,emilio.mariscal@hotosm.org,dakota.benjamin@hotosm.org,sam.woodcock@hotosm.org"
+  ODM_ENDPOINT: "http://scaleodm.odm.svc.cluster.local:31100"
   POSTGRES_HOST: "dronetm-db-prod-rw.postgres.svc.cluster.local"
   POSTGRES_DB: "drone_tm_prod"
   POSTGRES_USER: "drone_tm_prod_rw"

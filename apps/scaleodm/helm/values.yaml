@@ -8,11 +8,15 @@ secrets:
       secretKey: "AWS_SECRET_ACCESS_KEY"
       region: "AWS_DEFAULT_REGION"
 
+# Deploys "scaleodm-workspace" used below
+workspaceStorageClass:
+  create: true
+
 config:
   observability:
     enabled: false
     serviceName: "scaleodm"
-    serviceVersion: "0.3.1"
+    serviceVersion: ""
     otlpEndpoint: ""
     otlpInsecure: false
     metricsEnabled: true
@@ -25,7 +29,9 @@ config:
     workspace:
       mode: auto
       size: "30Gi"
-      storageClass: "gp3"
+      # Can't use standard 'gp3' storageclass, as we have Retain on delete
+      # but the pv's here are temp and should be cleaned up automatically
+      storageClass: "scaleodm-workspace"
       accessMode: ReadWriteOnce
       dynamicSize:
         enabled: false
