@@ -48,44 +48,6 @@ config:
     podGCStrategy: "OnWorkflowSuccess"
     podGCDeleteDelaySeconds: 300
 
-    resources:
-      download:
-        requests:
-          cpu: "500m"
-          memory: "1Gi"
-          ephemeralStorage: "2Gi"
-        limits:
-          cpu: "2"
-          memory: "2Gi"
-          ephemeralStorage: "6Gi"
-      process:
-        requests:
-          cpu: "2000m"
-          memory: "8Gi"
-          ephemeralStorage: "20Gi"
-        limits:
-          cpu: "4000m"
-          memory: "10Gi"
-          ephemeralStorage: "30Gi"
-      upload:
-        requests:
-          cpu: "500m"
-          memory: "1Gi"
-          ephemeralStorage: "4Gi"
-        limits:
-          cpu: "2"
-          memory: "2Gi"
-          ephemeralStorage: "8Gi"
-      cleanup:
-        requests:
-          cpu: "250m"
-          memory: "512Mi"
-          ephemeralStorage: "1Gi"
-        limits:
-          cpu: "1"
-          memory: "1Gi"
-          ephemeralStorage: "2Gi"
-
   processSizing:
     memoryLimitMarginPercent: 20
     memoryMinGiB: 4
@@ -94,6 +56,8 @@ config:
     cpuLimitMultiplier: 1.5
     ephemeralGiBPerGiBRAM: 1
     ephemeralLimitMultiplier: 1.2
+    fastOrthoMemoryMultiplier: 0.5
+    dsmDtmMemoryMultiplier: 1.5
 
 argo:
   controller:
