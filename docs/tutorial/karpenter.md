@@ -8,7 +8,9 @@ on existing nodes, and removes them when they're no longer needed.
 We have two NodePools:
 
 - **cpu-autoscale** - general workloads, prefers spot instances
-  (`t`, `m`, `c` families, 4 vCPU, gen 6+)
+  (`c6a/c6i/c7a/c7i`, `m6a/m6i/m7a/m7i`,
+  `r6a/r6i/r7a/r7i` families, 4-48 vCPU, gen 6+,
+  48 vCPU / 256Gi aggregate cap)
 - **gpu-autoscale** - GPU workloads, on-demand only
   (`g5`, `g4dn` families)
 
