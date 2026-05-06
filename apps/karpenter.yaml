@@ -9,7 +9,7 @@ spec:
     # Helm chart + values
     - repoURL: oci://public.ecr.aws/karpenter/karpenter
       chart: karpenter
-      targetRevision: 1.8.6
+      targetRevision: 1.12.0
       helm:
         releaseName: karpenter
         valueFiles:
