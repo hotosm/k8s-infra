@@ -70,6 +70,12 @@ resource "aws_iam_instance_profile" "karpenter_node" {
   role = aws_iam_role.karpenter_node.name
 }
 
+resource "aws_eks_access_entry" "karpenter_node" {
+  cluster_name  = aws_eks_cluster.cluster.name
+  principal_arn = aws_iam_role.karpenter_node.arn
+  type          = "EC2_LINUX"
+}
+
 resource "aws_eks_node_group" "core_nodes" {
   cluster_name    = aws_eks_cluster.cluster.name
   node_group_name = "core"
