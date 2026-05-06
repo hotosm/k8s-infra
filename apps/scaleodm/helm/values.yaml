@@ -54,7 +54,7 @@ config:
     memoryMaxGiB: 256
     cpuPerGiB: 0.25
     cpuLimitMultiplier: 1.5
-    ephemeralGiBPerGiBRAM: 1
+    ephemeralGiBPerGiBRAM: 0.3
     ephemeralLimitMultiplier: 1.2
     fastOrthoMemoryMultiplier: 0.5
     dsmDtmMemoryMultiplier: 1.5
