@@ -18,7 +18,9 @@ spec:
   blockDeviceMappings:
     - deviceName: /dev/xvda
       ebs:
-        volumeSize: 50Gi
+        # Increased from 50Gi --> 200Gi to allow bigger ScaleODM jobs to run
+        # (they need a large amount of ephemeral storage)
+        volumeSize: 200Gi
         volumeType: gp3
         deleteOnTermination: true
 
