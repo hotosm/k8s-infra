@@ -25,7 +25,7 @@ rules:
   # Batch API Group: ZenML runs steps as Jobs and scheduled pipelines as CronJobs
   - apiGroups: ["batch"]
     resources: ["jobs"]
-    verbs: ["get", "create"]
+    verbs: ["get", "create", "patch"]
 
   - apiGroups: ["batch"]
     resources: ["cronjobs"]
