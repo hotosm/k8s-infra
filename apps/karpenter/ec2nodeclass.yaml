@@ -8,6 +8,7 @@ spec:
   subnetSelectorTerms:
     - tags:
         karpenter.sh/discovery: hotosm-production-cluster
+        kubernetes.io/role/internal-elb: "1"
 
   securityGroupSelectorTerms:
     - tags:
@@ -27,6 +28,10 @@ spec:
     Name: karpenter-autoscale
     karpenter.sh/discovery: hotosm-production-cluster
 
-  # Use an EKS-optimized AL2023 AMI matching the cluster Kubernetes version.
+  # Pin the EKS-optimized AL2023 AMI release for production instead of using
+  # @latest, which can drift nodes to untested AMIs during replacement.
+  # Amazon Linux 2023.10.20260216
+  # v1.33.8-eks-f69f56f
+  # Update this as we upgrade the cluster!
   amiSelectorTerms:
-    - alias: al2023@latest
+    - alias: al2023@v20260224
