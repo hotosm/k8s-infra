@@ -97,5 +97,5 @@ aws s3 ls \
   --recursive
 ```
 
-Verify the in-cluster port with `kubectl -n odm get svc scaleodm` — the
+Verify the in-cluster port with `kubectl -n odm get svc scaleodm` - the
 `Port:` field (currently `31100`) is what pods use, not `3000`.

@@ -3,6 +3,8 @@ kind: EC2NodeClass
 metadata:
   name: autoscale-gpu
 spec:
+  # Karpenter v1 no longer has a native Ubuntu AMI family. Use the AL2
+  # bootstrap path with the pinned Ubuntu GPU AMI.
   amiFamily: AL2
 
   role: KarpenterNodeRole-hotosm-production-cluster
@@ -16,7 +18,8 @@ spec:
         karpenter.sh/discovery: hotosm-production-cluster
 
   blockDeviceMappings:
-    - deviceName: /dev/xvda
+    - deviceName: /dev/sda1
+      rootVolume: true
       ebs:
         volumeSize: 50Gi
         volumeType: gp3
@@ -26,10 +29,6 @@ spec:
     Name: karpenter-autoscale-gpu
     karpenter.sh/discovery: hotosm-production-cluster
 
-  # The machine image used as the node base OS
+  # AMD64 Ubuntu Noble 1.34 GPU image for EKS (us-east-1).
   amiSelectorTerms:
-    - tags:
-        karpenter.sh/discovery: hotosm-production-cluster
-    # AMD64 Ubuntu Noble 1.34 for eks (us-east-1)
     - id: ami-0b80d15d9f1903b69
-    
