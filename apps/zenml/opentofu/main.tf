@@ -57,7 +57,7 @@ resource "aws_iam_role" "zenml" {
 }
 
 resource "aws_iam_role_policy" "s3_policy" {
-  name = "S3Policy"
+  name = "S3Policy-${var.environment}"
   role = aws_iam_role.zenml.id
 
   policy = jsonencode({
@@ -123,7 +123,6 @@ resource "zenml_service_connector" "aws-s3" {
     role_arn              = aws_iam_role.zenml.arn
     aws_access_key_id     = aws_iam_access_key.iam_user_access_key.id
     aws_secret_access_key = aws_iam_access_key.iam_user_access_key.secret
-    # resource_name         = "hotosm-production-cluster"
   }
 
   labels = {
@@ -167,8 +166,9 @@ resource "zenml_stack_component" "artifact_store" {
     path = "s3://${aws_s3_bucket.artifacts.bucket}/artifacts"
   }
 
-  connector_id = zenml_service_connector.aws-s3.id
-  # connector_id = var.connector_id
+  # see: https://github.com/zenml-io/terraform-provider-zenml/issues/25
+  # connector_id = zenml_service_connector.aws-s3.id
+  connector_id = var.connector_id
   connector_resource_id = aws_s3_bucket.artifacts.bucket
 
   labels = {
@@ -199,9 +199,10 @@ resource "zenml_stack_component" "orchestrator" {
 
   configuration = {
     kubernetes_namespace = var.zenml_pipeline_namespace
-    service_account_name = "zenml-pod-account"
+    service_account_name  = "zenml-service-connector"
   }
 
+  # currently broken, see: https://github.com/zenml-io/terraform-provider-zenml/issues/25
   # connector_id = zenml_service_connector.aws-k8s.id
   connector_id = "3dafd9d7-dd71-4c75-b272-0c9420375e40"
   connector_resource_id = "hotosm-production-cluster"
@@ -210,37 +211,6 @@ resource "zenml_stack_component" "orchestrator" {
     environment = var.environment
   }
 }
-
-# Step Operator: Kubernetes (for specific GPU steps)
-resource "zenml_stack_component" "step_operator" {
-  name   = "kubernetes-step-operator-${var.environment}"
-  type   = "step_operator"
-  flavor = "kubernetes"
-
-  configuration = {
-    incluster            = "true"
-    kubernetes_namespace = var.zenml_pipeline_namespace
-  }
-
-  labels = {
-    environment = var.environment
-  }
-}
-
-# # Image Builder: Kaniko (builds container images in-cluster)
-# resource "zenml_stack_component" "image_builder" {
-#   name   = "kaniko-${var.environment}"
-#   type   = "image_builder"
-#   flavor = "kaniko"
-
-#   configuration = {
-#     kubernetes_namespace = var.zenml_pipeline_namespace
-#   }
-
-#   labels = {
-#     environment = var.environment
-#   }
-# }
 
 # Experiment Tracker: MLFlow
 resource "zenml_stack_component" "experiment_tracker" {
@@ -253,19 +223,6 @@ resource "zenml_stack_component" "experiment_tracker" {
     tracking_username = var.mlflow_tracking_username
     tracking_password = var.mlflow_tracking_password
   }
-
-  labels = {
-    environment = var.environment
-  }
-}
-
-# Model Registry: MLFlow (inherits config from experiment tracker in same stack)
-resource "zenml_stack_component" "model_registry" {
-  name   = "mlflow-model-registry-${var.environment}"
-  type   = "model_registry"
-  flavor = "mlflow"
-
-  configuration = {}
 
   labels = {
     environment = var.environment
@@ -297,10 +254,7 @@ resource "zenml_stack" "aws_stack" {
     artifact_store     = zenml_stack_component.artifact_store.id
     container_registry = zenml_stack_component.container_registry.id
     orchestrator       = zenml_stack_component.orchestrator.id
-    step_operator      = zenml_stack_component.step_operator.id
-    # image_builder      = zenml_stack_component.image_builder.id
     experiment_tracker = zenml_stack_component.experiment_tracker.id
-    model_registry     = zenml_stack_component.model_registry.id
     log_store          = zenml_stack_component.log_store.id
   }
 
