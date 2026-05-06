@@ -47,6 +47,10 @@ config:
     ttlFailureSeconds: 604800
     podGCStrategy: "OnWorkflowSuccess"
     podGCDeleteDelaySeconds: 300
+    # Default Karpenter node pool for workflow pods.
+    # "spot" is cheapest; use "on-demand" for stable capacity.
+    # Individual submissions can override this via the capacityType API field.
+    capacityType: "spot"
 
   processSizing:
     memoryLimitMarginPercent: 20
