@@ -1,5 +1,5 @@
 # Can autoscale to 0
-# Prefer spot instances if available
+# GPU capacity is on-demand only.
 #
 # To use GPU, workloads must request:
 # resources:
