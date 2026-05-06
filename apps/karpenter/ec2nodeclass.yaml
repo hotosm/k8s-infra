@@ -20,6 +20,7 @@ spec:
       ebs:
         # Increased from 50Gi --> 250Gi to allow bigger ScaleODM jobs to run
         # (they need a large amount of ephemeral storage)
+        # 300Gi would cost approx $0.67/hr
         volumeSize: 250Gi
         volumeType: gp3
         deleteOnTermination: true
