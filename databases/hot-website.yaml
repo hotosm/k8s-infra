@@ -1,0 +1,59 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: hot-website-db
+  labels:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/version: 18-system-trixie
+
+spec:
+  instances: 1
+  description: "HOT Website Database"
+  imageName: "ghcr.io/cloudnative-pg/postgresql:18-system-trixie"
+
+  primaryUpdateStrategy: unsupervised
+
+  bootstrap:
+    initdb:
+      database: hotosm
+      owner: hotosm
+      secret:
+        # Kubernetes basic-auth convention has keys:
+        # - username
+        # - password
+        name: hot-website-db-creds
+
+  storage:
+    storageClass: gp3
+    size: 2Gi
+  walStorage:
+    storageClass: gp3
+    size: 2Gi
+
+  # prometheus
+  monitoring:
+    enablePodMonitor: false
+
+  # see https://cloudnative-pg.io/documentation/1.22/kubernetes_upgrade/
+  nodeMaintenanceWindow:
+    reusePVC: false # rebuild from other replica instead
+
+  backup:
+    retentionPolicy: "60d"
+    barmanObjectStore:
+      destinationPath: s3://hotosm-k8s-db-backup/hot-website
+      endpointURL: https://s3.amazonaws.com
+      s3Credentials:
+        accessKeyId:
+          name: s3-creds
+          key: access-key-id
+        secretAccessKey:
+          name: s3-creds
+          key: secret-access-key
+      wal:
+        compression: gzip # this saves a lot of storage
+        encryption: AES256 # AWS managed
+      data:
+        compression: gzip
+        encryption: AES256 # AWS managed
+        jobs: 2
