@@ -1,36 +1,36 @@
-# apiVersion: argoproj.io/v1alpha1
-# kind: Application
-# metadata:
-#   name: hot-website
-#   namespace: argocd
-# spec:
-#   project: default
-#   sources:
-#     # Helm chart + values
-#     - repoURL: oci://ghcr.io/hotosm/charts/hot-website
-#       chart: hot-website
-#       targetRevision: 1.0.1
-#       helm:
-#         releaseName: hot-website
-#         # We use the defaults for now
-#         # valueFiles:
-#           # - $k8s-infra/apps/hot-website/helm/values.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hot-website
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    # Helm chart + values
+    - repoURL: oci://ghcr.io/hotosm/charts/hot-website
+      chart: hot-website
+      targetRevision: 1.0.1
+      helm:
+        releaseName: hot-website
+        # We use the defaults for now
+        # valueFiles:
+          # - $k8s-infra/apps/hot-website/helm/values.yaml
 
-#     # Git repo containing values.yaml
-#     - repoURL: https://github.com/hotosm/k8s-infra.git
-#       targetRevision: HEAD
-#       ref: k8s-infra
+    # Git repo containing values.yaml
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
 
-#     # Extra resources
-#     - repoURL: https://github.com/hotosm/k8s-infra.git
-#       targetRevision: HEAD
-#       path: apps/hot-website
-#   destination:
-#     server: https://kubernetes.default.svc
-#     namespace: website
-#   syncPolicy:
-#     automated:
-#       selfHeal: true
-#       prune: true
-#     syncOptions:
-#       - CreateNamespace=true
+    # Extra resources
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/hot-website
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: website
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
