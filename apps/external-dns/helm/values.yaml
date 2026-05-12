@@ -17,6 +17,7 @@ domainFilters:
   - sandbox.hotosm.org
   - export.hotosm.org
   - ai.hotosm.org
+  - website.hotosm.org
 aws:
   zoneType: public
 env:
