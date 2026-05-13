@@ -13,6 +13,11 @@ spec:
 
   primaryUpdateStrategy: unsupervised
 
+  postgresql:
+    parameters:
+      # Kill idle-in-transaction sessions after 60s to release locks held by abandoned txns.
+      idle_in_transaction_session_timeout: "60s"
+
   bootstrap:
     initdb:
       database: tm_sandbox
