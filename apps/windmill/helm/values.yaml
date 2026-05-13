@@ -29,3 +29,8 @@ ingress:
     - hosts:
         - tasks.k8s-prod.hotosm.org
       secretName: windmill-tls
+
+# Chart bundles a demo Postgres (cloudnative-pg) plus a demo app; we use our
+# own CNPG cluster in the postgres namespace, so disable both.
+postgresql:
+  enabled: false
