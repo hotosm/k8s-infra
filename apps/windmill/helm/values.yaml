@@ -1,0 +1,31 @@
+windmill:
+  baseDomain: tasks.k8s-prod.hotosm.org
+
+  # Secret in the windmill namespace with the full Postgres URL under key `url`.
+  databaseUrlSecretName: windmill-db-url
+
+  # Disable LSP / Multiplayer / Debugger sidecar deployment.
+  extraReplicas: 0
+
+  # Single worker group, one replica. Jobs run inline in the worker pod
+  # (unshare + bubblewrap sandbox); workers do not spawn per-job pods.
+  # So essentially with relicas:1 we can run one job at a time, sequentially.
+  workerGroups:
+    - name: default
+      replicas: 1
+
+  # Full-text search indexer; off to save resources for now.
+  indexer:
+    enabled: false
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    external-dns.alpha.kubernetes.io/hostname: tasks.k8s-prod.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+  tls:
+    - hosts:
+        - tasks.k8s-prod.hotosm.org
+      secretName: windmill-tls
