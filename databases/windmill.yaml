@@ -27,6 +27,19 @@ spec:
         # - username
         # - password
         name: windmill-db-creds
+      # Windmill's migrations GRANT to roles windmill_admin / windmill_user
+      # and expect them to already exist (see init-db-as-superuser.sql in
+      # the windmill repo). Runs as superuser against the windmill db.
+      postInitApplicationSQL:
+        - CREATE ROLE windmill_user;
+        - CREATE ROLE windmill_admin WITH BYPASSRLS;
+        - GRANT windmill_user TO windmill_admin;
+        - GRANT ALL ON ALL TABLES IN SCHEMA public TO windmill_user;
+        - GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO windmill_user;
+        - ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO windmill_user;
+        - ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO windmill_user;
+        - GRANT windmill_admin TO windmill;
+        - GRANT windmill_user TO windmill;
 
   storage:
     storageClass: gp3
