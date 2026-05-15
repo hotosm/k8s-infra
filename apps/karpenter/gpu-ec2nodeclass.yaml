@@ -3,15 +3,14 @@ kind: EC2NodeClass
 metadata:
   name: autoscale-gpu
 spec:
-  # Karpenter v1 no longer has a native Ubuntu AMI family. Use the AL2
-  # bootstrap path with the pinned Ubuntu GPU AMI.
-  amiFamily: AL2
+  amiFamily: AL2023
 
   role: KarpenterNodeRole-hotosm-production-cluster
 
   subnetSelectorTerms:
     - tags:
         karpenter.sh/discovery: hotosm-production-cluster
+        kubernetes.io/role/internal-elb: "1"
 
   securityGroupSelectorTerms:
     - tags:
@@ -29,6 +28,12 @@ spec:
     Name: karpenter-autoscale-gpu
     karpenter.sh/discovery: hotosm-production-cluster
 
-  # AMD64 Ubuntu Noble 1.34 GPU image for EKS (us-east-1).
+  # Pin to the tested EKS-optimized AL2023 NVIDIA AMI release for Kubernetes
+  # 1.33. The AMI includes the host NVIDIA driver, CUDA user-mode driver, and
+  # NVIDIA Container Toolkit.
+  #
+  # The only missing piece is the Kubernetes device plugin, installed
+  # separately by the nvidia-device-plugin ArgoCD app.
   amiSelectorTerms:
-    - id: ami-0b80d15d9f1903b69
+    - name: amazon-eks-node-al2023-x86_64-nvidia-1.33-v20260129
+      owner: "602401143452"
