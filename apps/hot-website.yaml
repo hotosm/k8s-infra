@@ -13,8 +13,8 @@ spec:
       helm:
         releaseName: hot-website
         # We use the defaults for now
-        # valueFiles:
-          # - $k8s-infra/apps/hot-website/helm/values.yaml
+        valueFiles:
+          - $k8s-infra/apps/hot-website/helm/values.yaml
 
     # Git repo containing values.yaml
     - repoURL: https://github.com/hotosm/k8s-infra.git
