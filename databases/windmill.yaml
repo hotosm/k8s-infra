@@ -34,12 +34,18 @@ spec:
         - CREATE ROLE windmill_user;
         - CREATE ROLE windmill_admin WITH BYPASSRLS;
         - GRANT windmill_user TO windmill_admin;
-        - GRANT ALL ON ALL TABLES IN SCHEMA public TO windmill_user;
-        - GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO windmill_user;
-        - ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO windmill_user;
-        - ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO windmill_user;
         - GRANT windmill_admin TO windmill;
         - GRANT windmill_user TO windmill;
+        # Migrations run as the `windmill` user, so default privileges must
+        # be set FOR ROLE windmill - otherwise tables created during migration
+        # are owned by `windmill` and the SET ROLE windmill_admin/windmill_user
+        # that Windmill uses per-request (for RLS) has no access.
+        - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON TABLES TO windmill_admin;
+        - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON SEQUENCES TO windmill_admin;
+        - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON FUNCTIONS TO windmill_admin;
+        - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON TABLES TO windmill_user;
+        - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON SEQUENCES TO windmill_user;
+        - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON FUNCTIONS TO windmill_user;
 
   storage:
     storageClass: gp3
