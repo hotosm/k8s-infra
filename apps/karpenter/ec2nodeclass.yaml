@@ -8,7 +8,6 @@ spec:
   subnetSelectorTerms:
     - tags:
         karpenter.sh/discovery: hotosm-production-cluster
-        # Force to private subnets only
         kubernetes.io/role/internal-elb: "1"
 
   securityGroupSelectorTerms:

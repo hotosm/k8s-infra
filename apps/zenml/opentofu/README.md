@@ -47,7 +47,7 @@ ZenML server, then export it:
 
 ```bash
 # Via the CLI (inside the zenml container)
-zenm service-account create <service-account-name>
+zenml api-key create opentofu --set-api-key
 
 # Or export directly
 export ZENML_API_KEY='xxx'

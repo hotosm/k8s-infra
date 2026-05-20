@@ -113,19 +113,3 @@ variable "zenml_pipeline_namespace" {
   type        = string
   default     = "zenml-pipelines"
 }
-
-variable "connector_id" {
-  type        = string
-  default     = ""
-  description = <<-EOT
-  (Optional) connector if already setup manually.
-  EOT
-}
-
-variable "cluster_name" {
-  type        = string
-  default     = "hotosm-production-cluster"
-  description = <<-EOT
-  Kubernetes Cluster Name
-  EOT
-}

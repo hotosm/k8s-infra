@@ -13,9 +13,7 @@ Node Class (`ec2nodeclass.yaml`):
   which must match the IAM instance profile created by Terraform output
   `karpenter_node_instance_profile_name`.
 - It discovers subnets and security groups via the
-  `karpenter.sh/discovery: hotosm-production-cluster` tag. Subnet selectors
-  also require `kubernetes.io/role/internal-elb: "1"` so Karpenter nodes stay
-  in private subnets.
+  `karpenter.sh/discovery: hotosm-production-cluster` tag.
 
 To change the instance type / capacity / resources,
 update the `-nodepool.yaml` manifest here.
