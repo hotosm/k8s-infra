@@ -12,8 +12,8 @@ We have two NodePools:
   `r6a/r6i/r7a/r7i` families, 4-48 vCPU, gen 6+,
   48 vCPU / 256Gi aggregate cap)
 - **gpu-autoscale** - GPU workloads, on-demand only
-  (`g5`, `g4dn` families)
-
+  (`g5`, `g4dn` families). GPU nodes run the EKS-optimized AL2023 NVIDIA AMI
+  for Kubernetes 1.33.
 Config lives in `apps/karpenter/`.
 
 ## Scale to Zero

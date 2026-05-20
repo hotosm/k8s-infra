@@ -21,7 +21,7 @@ resource "aws_iam_user" "iam_user" {
 }
 
 resource "aws_iam_user_policy" "assume_role_policy" {
-  name = "AssumeRole"
+  name = "zenml-AssumeRole-${var.environment}"
   user = aws_iam_user.iam_user.name
 
   policy = jsonencode({
@@ -57,7 +57,7 @@ resource "aws_iam_role" "zenml" {
 }
 
 resource "aws_iam_role_policy" "s3_policy" {
-  name = "S3Policy"
+  name = "S3Policy-${var.environment}"
   role = aws_iam_role.zenml.id
 
   policy = jsonencode({
@@ -70,11 +70,39 @@ resource "aws_iam_role_policy" "s3_policy" {
           "s3:GetObject",
           "s3:PutObject",
           "s3:DeleteObject",
-          "s3:GetBucketVersioning"
+          "s3:GetBucketVersioning",
+          "s3:ListBucketVersions",
+          "s3:DeleteObjectVersion"
         ]
         Resource = [
           aws_s3_bucket.artifacts.arn,
           "${aws_s3_bucket.artifacts.arn}/*"
+        ]
+      },
+      {      
+        Effect = "Allow"
+        Resource = "*"
+        Action = "s3:ListAllMyBuckets"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "k8s-policy" {
+  name = "zenml-k8s-${var.environment}"
+  role = aws_iam_role.zenml.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "eks:ListClusters",
+          "eks:DescribeCluster"
+        ]
+        Resource = [
+          "*"
         ]
       }
     ]
@@ -84,16 +112,38 @@ resource "aws_iam_role_policy" "s3_policy" {
 # --- Service Connectors ---
 
 # AWS connector for S3 artifact store access
-resource "zenml_service_connector" "aws" {
-  name        = "aws-${var.environment}"
+resource "zenml_service_connector" "aws-s3" {
+  name        = "aws-s3-${var.environment}"
   type        = "aws"
   auth_method = "iam-role"
+  resource_type = "s3-bucket"
 
   configuration = {
     region                = var.region
     role_arn              = aws_iam_role.zenml.arn
     aws_access_key_id     = aws_iam_access_key.iam_user_access_key.id
     aws_secret_access_key = aws_iam_access_key.iam_user_access_key.secret
+  }
+
+  labels = {
+    environment = var.environment
+    managed_by  = "terraform"
+  }
+}
+
+# Connector for orchestrator
+resource "zenml_service_connector" "aws-k8s" {
+  name        = "aws-k8s-${var.environment}"
+  type        = "aws"
+  auth_method = "iam-role"
+  resource_type = "kubernetes-cluster"
+
+  configuration = {
+    region                = var.region
+    role_arn              = aws_iam_role.zenml.arn
+    aws_access_key_id     = aws_iam_access_key.iam_user_access_key.id
+    aws_secret_access_key = aws_iam_access_key.iam_user_access_key.secret
+    resource_name         = "hotosm-production-cluster"
   }
 
   labels = {
@@ -110,12 +160,15 @@ resource "zenml_stack_component" "artifact_store" {
   type   = "artifact_store"
   flavor = "s3"
 
+  depends_on = [zenml_service_connector.aws-s3]
+
   configuration = {
     path = "s3://${aws_s3_bucket.artifacts.bucket}/artifacts"
   }
 
-  # connector_id = zenml_service_connector.aws.id
-  connector_id = "ce2e1b32-1a76-4ee6-be06-6fc42e0ef5f6"
+  # see: https://github.com/zenml-io/terraform-provider-zenml/issues/25
+  # connector_id = zenml_service_connector.aws-s3.id
+  connector_id = var.connector_id
   connector_resource_id = aws_s3_bucket.artifacts.bucket
 
   labels = {
@@ -145,48 +198,19 @@ resource "zenml_stack_component" "orchestrator" {
   flavor = "kubernetes"
 
   configuration = {
-    # incluster            = "true"
     kubernetes_namespace = var.zenml_pipeline_namespace
+    service_account_name  = "zenml-service-connector"
   }
 
-  # connector_id = zenml_service_connector.aws.id
-  connector_id = "ce2e1b32-1a76-4ee6-be06-6fc42e0ef5f6"
+  # currently broken, see: https://github.com/zenml-io/terraform-provider-zenml/issues/25
+  # connector_id = zenml_service_connector.aws-k8s.id
+  connector_id = "3dafd9d7-dd71-4c75-b272-0c9420375e40"
+  connector_resource_id = "hotosm-production-cluster"
 
   labels = {
     environment = var.environment
   }
 }
-
-# Step Operator: Kubernetes (for specific GPU steps)
-resource "zenml_stack_component" "step_operator" {
-  name   = "kubernetes-step-operator-${var.environment}"
-  type   = "step_operator"
-  flavor = "kubernetes"
-
-  configuration = {
-    incluster            = "true"
-    kubernetes_namespace = var.zenml_pipeline_namespace
-  }
-
-  labels = {
-    environment = var.environment
-  }
-}
-
-# # Image Builder: Kaniko (builds container images in-cluster)
-# resource "zenml_stack_component" "image_builder" {
-#   name   = "kaniko-${var.environment}"
-#   type   = "image_builder"
-#   flavor = "kaniko"
-
-#   configuration = {
-#     kubernetes_namespace = var.zenml_pipeline_namespace
-#   }
-
-#   labels = {
-#     environment = var.environment
-#   }
-# }
 
 # Experiment Tracker: MLFlow
 resource "zenml_stack_component" "experiment_tracker" {
@@ -199,19 +223,6 @@ resource "zenml_stack_component" "experiment_tracker" {
     tracking_username = var.mlflow_tracking_username
     tracking_password = var.mlflow_tracking_password
   }
-
-  labels = {
-    environment = var.environment
-  }
-}
-
-# Model Registry: MLFlow (inherits config from experiment tracker in same stack)
-resource "zenml_stack_component" "model_registry" {
-  name   = "mlflow-model-registry-${var.environment}"
-  type   = "model_registry"
-  flavor = "mlflow"
-
-  configuration = {}
 
   labels = {
     environment = var.environment
@@ -243,10 +254,7 @@ resource "zenml_stack" "aws_stack" {
     artifact_store     = zenml_stack_component.artifact_store.id
     container_registry = zenml_stack_component.container_registry.id
     orchestrator       = zenml_stack_component.orchestrator.id
-    step_operator      = zenml_stack_component.step_operator.id
-    # image_builder      = zenml_stack_component.image_builder.id
     experiment_tracker = zenml_stack_component.experiment_tracker.id
-    model_registry     = zenml_stack_component.model_registry.id
     log_store          = zenml_stack_component.log_store.id
   }
 

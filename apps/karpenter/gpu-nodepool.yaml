@@ -1,5 +1,5 @@
 # Can autoscale to 0
-# Prefer spot instances if available
+# GPU capacity is on-demand only.
 #
 # To use GPU, workloads must request:
 # resources:
@@ -16,6 +16,7 @@ spec:
       labels:
         nodegroup: autoscale-gpu
         node-type: gpu
+        fair-k8s/training: "true"
     spec:
       nodeClassRef:
         name: autoscale-gpu
@@ -44,6 +45,10 @@ spec:
         - key: karpenter.k8s.aws/instance-cpu
           operator: Lt
           values: ["8"]
+
+        - key: fair-k8s/training
+          operator: In
+          values: ["true"]
 
   limits:
     cpu: "200"

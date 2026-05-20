@@ -13,7 +13,7 @@ terraform {
     }
     zenml = {
       source  = "zenml-io/zenml"
-      version = "~>3.0.4"
+      version = "~>3.0.5"
     }
   }
 }

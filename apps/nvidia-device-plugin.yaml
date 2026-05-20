@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nvidia-device-plugin
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://nvidia.github.io/k8s-device-plugin
+      chart: nvidia-device-plugin
+      targetRevision: 0.19.1
+      helm:
+        releaseName: nvidia-device-plugin
+        values: |
+          devicePlugin:
+            enabled: true
+          # CPU Feature Discovery allows specifying specific GPU types if needed
+          gfd:
+            enabled: true
+          # Node Feature Discovery so nodes advertise `nvidia.com/gpu`
+          nfd:
+            worker:
+              tolerations:
+                - key: nvidia.com/gpu
+                  operator: Exists
+                  effect: NoSchedule
+
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/nvidia-device-plugin
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
