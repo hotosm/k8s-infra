@@ -1,0 +1,2 @@
+env:
+  CACHE_LOCATION: "redis://hot-website-dragonfly.website.svc.cluster.local"

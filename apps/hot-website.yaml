@@ -9,12 +9,12 @@ spec:
     # Helm chart + values
     - repoURL: oci://ghcr.io/hotosm/charts/hot-website
       chart: hot-website
-      targetRevision: 1.0.4
+      targetRevision: 1.0.5
       helm:
         releaseName: hot-website
         # We use the defaults for now
-        # valueFiles:
-          # - $k8s-infra/apps/hot-website/helm/values.yaml
+        valueFiles:
+          - $k8s-infra/apps/hot-website/helm/values.yaml
 
     # Git repo containing values.yaml
     - repoURL: https://github.com/hotosm/k8s-infra.git
