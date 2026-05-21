@@ -4,3 +4,5 @@ contractorNamespaces:
   - login
   - zenml
   - fair
+  - zenml-pipelines
+  - mlflow
