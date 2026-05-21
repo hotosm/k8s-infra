@@ -13,6 +13,29 @@ windmill:
   workerGroups:
     - name: default
       replicas: 1
+      # TODO leave unbounded until we address:
+      # https://github.com/hotosm/k8s-infra/issues/4#issuecomment-4513081083
+      # and add the `highmem` group below
+      # resources:
+      #   requests:
+      #     cpu: "500m"
+      #     memory: "1Gi"
+      #   limits:
+      #     memory: "4Gi"
+    # For the windmill script / job, set worker group tag to `highmem`
+    # This should rely on KEDA to autoscale based on the Postgres queue.
+    # If `highmem` jobs are pending, KEDA will scale 0 --> 1 workers.
+    # - name: highmem
+    #   replicas: 0
+    #   resources:
+    #     requests:
+    #       cpu: "2000m"
+    #       memory: "8Gi"
+    #     limits:
+    #       memory: "10Gi"
+    #   extraEnv:
+    #     - name: WORKER_TAGS
+    #       value: "highmem"
 
   # Full-text search indexer; off to save resources for now.
   indexer:
