@@ -72,6 +72,21 @@ argo:
   controller:
     # Only allow 5 jobs to run at a time for now
     parallelism: 5
+  artifactRepository:
+    archiveLogs: true
+    s3:
+      bucket: hotosm-argo-logs
+      endpoint: s3.amazonaws.com
+      region: us-east-1
+      insecure: false
+      useSDKCreds: false
+      accessKeySecret:
+        name: argo-logs-s3-creds
+        key: AWS_ACCESS_KEY_ID
+      secretKeySecret:
+        name: argo-logs-s3-creds
+        key: AWS_SECRET_ACCESS_KEY
+      keyFormat: "{{workflow.namespace}}/{{workflow.name}}/{{pod.name}}"
 
 ingress:
   # Enables ingress that exposes only /ui and /ui/... routes.
