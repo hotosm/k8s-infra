@@ -37,13 +37,17 @@ config:
         enabled: true
         maxGiB: 1024
         fallbackMBPerImage: 20
-        # --fast-orthophoto skips dense reconstruction; everything else uses standard.
+        # Profile order: fastOrtho, then dsmDtm, then standard.
         fastOrtho:
           multiplier: 3
           minGiB: 30
         standard:
           multiplier: 8
           minGiB: 70
+        # DSM/DTM jobs need more space for DEM outputs and intermediates.
+        dsmDtm:
+          multiplier: 12
+          minGiB: 100
     retryLimit: 1
     retryBackoffDuration: "60s"
     retryBackoffFactor: "2"
