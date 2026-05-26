@@ -5,17 +5,19 @@
 # resources:
 #   limits:
 #     nvidia.com/gpu: 1
+#     fair-k8s/training: true
 
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
-  name: gpu-autoscale
+  name: gpu-autoscale-fair
 spec:
   template:
     metadata:
       labels:
         nodegroup: autoscale-gpu
         node-type: gpu
+        fair-k8s/training: "true"
     spec:
       nodeClassRef:
         name: autoscale-gpu
@@ -26,6 +28,10 @@ spec:
         - key: nvidia.com/gpu
           value: "true"
           effect: NoSchedule
+
+        - key: fair-k8s/training
+          operator: In
+          values: ["true"]
 
       requirements:
         - key: karpenter.k8s.aws/instance-family
@@ -44,6 +50,7 @@ spec:
         - key: karpenter.k8s.aws/instance-cpu
           operator: Lt
           values: ["8"]
+
 
   limits:
     cpu: "200"
