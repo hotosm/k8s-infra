@@ -1,0 +1,60 @@
+# Can autoscale to 0
+# GPU capacity is on-demand only.
+#
+# To use GPU, workloads must request:
+# resources:
+#   limits:
+#     nvidia.com/gpu: 1
+#     fair-k8s/training: true
+
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-autoscale-fair
+spec:
+  template:
+    metadata:
+      labels:
+        nodegroup: autoscale-gpu
+        node-type: gpu
+        fair-k8s/training: "true"
+    spec:
+      nodeClassRef:
+        name: autoscale-gpu
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+
+      taints:
+        - key: nvidia.com/gpu
+          value: "true"
+          effect: NoSchedule
+
+        - key: fair-k8s/training
+          operator: In
+          values: ["true"]
+
+      requirements:
+        - key: karpenter.k8s.aws/instance-family
+          operator: In
+          values: ["g5", "g4dn"]
+
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["on-demand"]
+
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64"]
+
+        # Prevent unexpectedly huge GPU nodes
+        - key: karpenter.k8s.aws/instance-cpu
+          operator: Lt
+          values: ["8"]
+
+
+  limits:
+    cpu: "200"
+
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 0s

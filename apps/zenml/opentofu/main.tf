@@ -226,13 +226,28 @@ resource "zenml_stack_component" "log_store" {
 
   configuration = {
     endpoint = var.sentry_endpoint
-    headers  = "{\"x-sentry-auth\": \"sentry sentry_key=${var.sentry_public_key}\"}"
+    headers  = jsonencode({"x-sentry-auth": "sentry sentry_key=${var.sentry_public_key}"})
   }
 
   labels = {
     environment = var.environment
   }
 }
+
+# resource "zenml_stack_component" "log_store" {
+#   name   = "otel-log-store-${var.environment}"
+#   type   = "log_store"
+#   flavor = "otel"
+
+#   configuration = {
+#     endpoint = var.sentry_endpoint
+#     headers  = "{\"Authorization\": \"Bearer ${var.sentry_public_key}\"}"
+#   }
+
+#   labels = {
+#     environment = var.environment
+#   }
+# }
 
 # --- Stack ---
 
