@@ -39,15 +39,18 @@ config:
         fallbackMBPerImage: 20
         # Profile order: fastOrtho, then dsmDtm, then standard.
         fastOrtho:
-          multiplier: 3
-          minGiB: 30
+          multiplier: 6
+          minGiB: 20
+          gibPerImage: 0.075
         standard:
           multiplier: 8
-          minGiB: 70
+          minGiB: 30
+          gibPerImage: 0.10
         # DSM/DTM jobs need more space for DEM outputs and intermediates.
         dsmDtm:
           multiplier: 12
           minGiB: 100
+          gibPerImage: 0.15
     retryLimit: 1
     retryBackoffDuration: "60s"
     retryBackoffFactor: "2"
