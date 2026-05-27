@@ -6,3 +6,4 @@ contractorNamespaces:
   - fair
   - zenml-pipelines
   - mlflow
+  - knative
