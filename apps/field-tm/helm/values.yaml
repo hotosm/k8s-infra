@@ -8,15 +8,12 @@ replicaCount: 2
 qfieldQgis:
   image:
     pullPolicy: Always
-  # Temp fix until 2026.4.1 release with chart fix
-  env:
-    LOG_LEVEL: ""
 
 existingSecret:
   name: "field-tm-prod-secrets"
 env:
   DEBUG: "False"
-  LOG_LEVEL: "DEBUG"
+  # LOG_LEVEL: "DEBUG"
   PYODK_LOG_LEVEL: "CRITICAL"
   FTM_DB_HOST: "fieldtm-db-prod-rw.postgres.svc.cluster.local"
   FTM_DB_NAME: "field_tm_prod"
