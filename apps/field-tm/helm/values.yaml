@@ -13,7 +13,7 @@ existingSecret:
   name: "field-tm-prod-secrets"
 env:
   DEBUG: "False"
-  # LOG_LEVEL: "DEBUG"
+  LOG_LEVEL: "INFO"
   PYODK_LOG_LEVEL: "CRITICAL"
   FTM_DB_HOST: "fieldtm-db-prod-rw.postgres.svc.cluster.local"
   FTM_DB_NAME: "field_tm_prod"
