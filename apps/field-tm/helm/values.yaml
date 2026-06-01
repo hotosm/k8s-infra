@@ -8,6 +8,9 @@ replicaCount: 2
 qfieldQgis:
   image:
     pullPolicy: Always
+  # Temp fix until 2026.4.1 release with chart fix
+  env:
+    LOG_LEVEL: ""
 
 existingSecret:
   name: "field-tm-prod-secrets"
