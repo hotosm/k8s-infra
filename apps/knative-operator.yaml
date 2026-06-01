@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/knative/operator'
+    repoURL: 'https://knative.github.io/operator'
     targetRevision: knative-v1.22.1 # Use the latest stable version
-    path: config
+
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: default
