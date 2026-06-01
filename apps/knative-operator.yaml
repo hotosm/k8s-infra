@@ -8,6 +8,7 @@ spec:
   source:
     repoURL: 'https://knative.github.io/operator'
     targetRevision: knative-v1.22.1 # Use the latest stable version
+    chart: knative-operator
 
   destination:
     server: 'https://kubernetes.default.svc'
