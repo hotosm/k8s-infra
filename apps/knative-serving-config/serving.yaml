@@ -1,0 +1,15 @@
+apiVersion: operator.knative.dev/v1beta1
+kind: KnativeServing
+metadata:
+  name: knative-serving
+  namespace: knative-serving
+spec:
+  ingress:
+    kourier:
+      enabled: true
+      service-type: ClusterIP
+  config:
+    network:
+      ingress-class: "kourier.ingress.networking.knative.dev"
+    domain:
+      "demo.fair.internal": ""
