@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: 'https://knative.github.io/operator'
-    targetRevision: knative-v1.22.1 # Use the latest stable version
+    targetRevision: 1.22.1 # The 'knative-v' prefix must be removed for Helm
     chart: knative-operator
 
   destination:
