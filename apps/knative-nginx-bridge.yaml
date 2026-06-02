@@ -8,13 +8,13 @@ spec:
   source:
     repoURL: 'https://github.com/hotosm/k8s-infra'
     targetRevision: main
-    # Pointing to a new subfolder
     path: apps/knative-nginx-bridge-config 
   destination:
     server: 'https://kubernetes.default.svc'
-    # Deploying into the namespace we created earlier
     namespace: knative-serving
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true # Added for safety against race conditions
