@@ -9,7 +9,6 @@ spec:
     repoURL: 'https://knative.github.io/operator'
     targetRevision: 1.22.1 # The 'knative-v' prefix must be removed for Helm
     chart: knative-operator
-
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: default
