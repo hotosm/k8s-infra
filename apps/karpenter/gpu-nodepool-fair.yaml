@@ -32,6 +32,7 @@ spec:
         - key: fair-k8s/training
           operator: In
           values: ["true"]
+          effect: NoSchedule
 
       requirements:
         - key: karpenter.k8s.aws/instance-family
