@@ -42,8 +42,6 @@ ingress:
     # Increase timeout for task splitting large areas
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
-    # In case of large data extract uploads                                                                                       
-    nginx.ingress.kubernetes.io/proxy-body-size: "30m"
   tls:
     enabled: true
 
