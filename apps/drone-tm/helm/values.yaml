@@ -107,6 +107,8 @@ worker:
     targetCPUUtilizationPercentage: 80
 
 qgis:
+  image:
+    pullPolicy: Always
   resources:
     requests:
       cpu: 250m
