@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: qfield-ws-livefield
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: oci://ghcr.io/spwoodcock/ws/ws-chart
+      chart: ws-chart
+      targetRevision: 0.1.0
+      helm:
+        releaseName: qfield-ws-livefield
+        values: |
+          image:
+            repository: ghcr.io/spwoodcock/ws
+            pullPolicy: Always
+          ingress:
+            enabled: true
+            className: "nginx"
+            annotations:
+              # For long-running ws connections
+              nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+              nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              external-dns.alpha.kubernetes.io/hostname: live.field.hotosm.org
+              external-dns.alpha.kubernetes.io/ttl: "300"
+            hosts:
+              - host: live.field.hotosm.org
+                paths:
+                  - path: /
+                    pathType: Prefix
+            tls:
+              - secretName: qfield-ws-livefield-tls
+                hosts:
+                  - live.field.hotosm.org
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: field
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
