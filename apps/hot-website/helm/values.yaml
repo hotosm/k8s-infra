@@ -1,2 +1,23 @@
 env:
   CACHE_LOCATION: "redis://hot-website-dragonfly.website.svc.cluster.local"
+
+ingress:
+    hosts:
+      - host: website.hotosm.org
+        paths:
+          - path: /
+            pathType: Prefix
+      - host: hotosm.org
+        paths:
+          - path: /
+            pathType: Prefix
+      - host: www.hotosm.org
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: hot-website-tls
+        hosts:
+          - website.hotosm.org
+          - hotosm.org
+          - www.hotosm.org
