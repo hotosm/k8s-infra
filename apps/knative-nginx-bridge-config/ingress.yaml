@@ -13,7 +13,7 @@ metadata:
 spec:
   rules:
   # Catch all traffic for the ML models
-  - host: "*.demo.fair.internal" 
+  - host: "*.predict.ai.hotosm.org" 
     http:
       paths:
       - path: /
