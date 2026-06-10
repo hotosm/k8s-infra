@@ -1,0 +1,133 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sandbox-osm-export
+  namespace: tm-sandbox
+  labels:
+    app: sandbox-osm-export
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: sandbox-osm-export
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: osm-export
+            image: andygol/osmosis:latest
+            imagePullPolicy: Always
+            resources:
+              requests:
+                cpu: "300m"
+                memory: "512Mi"
+              limits:
+                cpu: "800m"
+                memory: "1Gi"
+            env:
+            - name: SRC_PGHOST
+              valueFrom:
+                secretKeyRef:
+                  name: sandbox-osm-exporter-secrets
+                  key: SRC_PGHOST
+            - name: SRC_PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: sandbox-osm-exporter-secrets
+                  key: SRC_PGUSER
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sandbox-osm-exporter-secrets
+                  key: SRC_PGPASSWORD
+            - name: SRC_PGDATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: sandbox-osm-exporter-secrets
+                  key: SRC_PGDATABASE
+            command:
+              - "/bin/sh"
+              - "-c"
+            args:
+              - |
+                set -e
+                echo "Starting osmosis export..."
+                osmosis \
+                  --read-apidb \
+                    host=${SRC_PGHOST} \
+                    database=${SRC_PGDATABASE} \
+                    user=${SRC_PGUSER} \
+                    password=${PGPASSWORD} \
+                    validateSchemaVersion=no \
+                    allowIncorrectSchemaVersion=yes \
+                  --write-pbf file=/shared/export.pbf
+                echo "Osmosis export completed"
+                touch /shared/export.done
+            volumeMounts:
+              - name: shared-data
+                mountPath: /shared
+
+          - name: s3-uploader
+            image: amazon/aws-cli:2.15.17
+            imagePullPolicy: IfNotPresent
+            resources:
+              requests:
+                cpu: "100m"
+                memory: "128Mi"
+              limits:
+                cpu: "300m"
+                memory: "256Mi"
+            env:
+              - name: AWS_ACCESS_KEY_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: sandbox-osm-exporter-secrets
+                    key: S3_ACCESS_KEY
+              - name: AWS_SECRET_ACCESS_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: sandbox-osm-exporter-secrets
+                    key: S3_SECRET_KEY
+              - name: S3_BUCKET
+                valueFrom:
+                  secretKeyRef:
+                    name: sandbox-osm-exporter-secrets
+                    key: S3_BUCKET
+              - name: S3_REGION
+                valueFrom:
+                  secretKeyRef:
+                    name: sandbox-osm-exporter-secrets
+                    key: S3_REGION
+            command:
+              - "/bin/sh"
+              - "-c"
+            args:
+              - |
+                set -e
+
+                until [ -f /shared/export.done ]; do
+                  echo "Waiting for osmosis export..."
+                  sleep 5
+                done
+
+                DATESTAMP=$(date -u +%Y-%m-%d)
+                S3_KEY="exports/${DATESTAMP}/sandbox-export.pbf"
+
+                echo "Uploading to s3://${S3_BUCKET}/${S3_KEY}"
+                aws s3 cp /shared/export.pbf "s3://${S3_BUCKET}/${S3_KEY}" --region "${S3_REGION}"
+
+                echo "Upload completed"
+                echo "S3 URI: s3://${S3_BUCKET}/${S3_KEY}"
+            volumeMounts:
+              - name: shared-data
+                mountPath: /shared
+
+          volumes:
+            - name: shared-data
+              emptyDir: {}
