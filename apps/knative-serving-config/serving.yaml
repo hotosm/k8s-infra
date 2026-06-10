@@ -12,4 +12,4 @@ spec:
     network:
       ingress-class: "kourier.ingress.networking.knative.dev"
     domain:
-      "demo.fair.internal": ""
+      "predict.ai.hotosm.org": ""
