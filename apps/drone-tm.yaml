@@ -9,7 +9,7 @@ spec:
     # Helm chart + values
     - repoURL: oci://ghcr.io/hotosm/charts/drone-tm
       chart: drone-tm
-      targetRevision: 2026.6.7
+      targetRevision: 2026.6.8
       helm:
         releaseName: drone-tm-prod
         valueFiles:
