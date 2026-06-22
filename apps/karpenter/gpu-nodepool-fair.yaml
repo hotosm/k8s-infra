@@ -30,8 +30,7 @@ spec:
           effect: NoSchedule
 
         - key: fair-k8s/training
-          operator: In
-          values: ["true"]
+          value: "true"
           effect: NoSchedule
 
       requirements:
