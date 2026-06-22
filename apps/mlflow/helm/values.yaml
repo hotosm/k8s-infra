@@ -79,7 +79,8 @@ extraFlags: []
   # artifactsOnly
 
 # -- Extra environment variables
-extraEnvVars: {}
+extraEnvVars:
+  MLFLOW_SERVER_ALLOWED_HOSTS: "*"
   # MLFLOW_S3_IGNORE_TLS: true  # Skip TLS certificate verification for S3
   # MLFLOW_S3_UPLOAD_EXTRA_ARGS: '{"ServerSideEncryption": "aws:kms", "SSEKMSKeyId": "1234"}'  # Extra S3 upload arguments
   # AWS_DEFAULT_REGION: my_region  # AWS default region
