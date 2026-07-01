@@ -30,10 +30,10 @@ spec:
 
   storage:
     storageClass: gp3
-    size: 10Gi
+    size: 20Gi
   walStorage:
     storageClass: gp3
-    size: 20Gi
+    size: 40Gi
 
   # prometheus
   monitoring:

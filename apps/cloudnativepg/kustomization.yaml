@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: cloudnativepg
 resources:
   - https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/v1.28.0/releases/cnpg-1.28.0.yaml
+  # Barman plugin required for backups, since vnpg v1.26.0
   - https://github.com/cloudnative-pg/plugin-barman-cloud/releases/download/v0.13.0/manifest.yaml
   - storageclass.yaml
 commonAnnotations:
