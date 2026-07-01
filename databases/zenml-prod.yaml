@@ -33,7 +33,7 @@ spec:
     size: 20Gi
   walStorage:
     storageClass: gp3
-    size: 30Gi
+    size: 40Gi
 
   # prometheus
   monitoring:
@@ -43,22 +43,22 @@ spec:
   nodeMaintenanceWindow:
     reusePVC: false # rebuild from other replica instead
 
-  backup:
-    retentionPolicy: "60d"
-    barmanObjectStore:
-      destinationPath: s3://hotosm-k8s-db-backup/zenml-prod
-      endpointURL: https://s3.amazonaws.com
-      s3Credentials:
-        accessKeyId:
-          name: s3-creds
-          key: access-key-id
-        secretAccessKey:
-          name: s3-creds
-          key: secret-access-key
-      wal:
-        compression: gzip # this saves a lot of storage
-        encryption: AES256 # AWS managed
-      data:
-        compression: gzip
-        encryption: AES256 # AWS managed
-        jobs: 2
+  # backup:
+  #   retentionPolicy: "60d"
+  #   barmanObjectStore:
+  #     destinationPath: s3://hotosm-k8s-db-backup/zenml-prod
+  #     endpointURL: https://s3.amazonaws.com
+  #     s3Credentials:
+  #       accessKeyId:
+  #         name: s3-creds
+  #         key: access-key-id
+  #       secretAccessKey:
+  #         name: s3-creds
+  #         key: secret-access-key
+  #     wal:
+  #       compression: gzip # this saves a lot of storage
+  #       encryption: AES256 # AWS managed
+  #     data:
+  #       compression: gzip
+  #       encryption: AES256 # AWS managed
+  #       jobs: 2
