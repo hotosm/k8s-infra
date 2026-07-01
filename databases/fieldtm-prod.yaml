@@ -1,3 +1,29 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: fieldtm-db-prod-store
+  namespace: postgres
+spec:
+  retentionPolicy: "60d"
+  configuration:
+    destinationPath: s3://hotosm-k8s-db-backup/fieldtm-prod
+    endpointURL: https://s3.amazonaws.com
+    s3Credentials:
+      accessKeyId:
+        name: s3-creds
+        key: access-key-id
+      secretAccessKey:
+        name: s3-creds
+        key: secret-access-key
+    wal:
+      compression: gzip # this saves a lot of storage
+      encryption: AES256 # AWS managed
+    data:
+      compression: gzip
+      encryption: AES256 # AWS managed
+      jobs: 2
+
+---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -12,6 +38,7 @@ spec:
   imageName: "ghcr.io/cloudnative-pg/postgis:18-3-system-trixie"
 
   primaryUpdateStrategy: unsupervised
+  enablePDB: true
 
   postgresql:
     parameters:
@@ -46,26 +73,23 @@ spec:
   monitoring:
     enablePodMonitor: false
 
-  # see https://cloudnative-pg.io/documentation/1.22/kubernetes_upgrade/
-  nodeMaintenanceWindow:
-    reusePVC: false # rebuild from other replica instead
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: fieldtm-db-prod-store
 
-  backup:
-    retentionPolicy: "60d"
-    barmanObjectStore:
-      destinationPath: s3://hotosm-k8s-db-backup/fieldtm-prod
-      endpointURL: https://s3.amazonaws.com
-      s3Credentials:
-        accessKeyId:
-          name: s3-creds
-          key: access-key-id
-        secretAccessKey:
-          name: s3-creds
-          key: secret-access-key
-      wal:
-        compression: gzip # this saves a lot of storage
-        encryption: AES256 # AWS managed
-      data:
-        compression: gzip
-        encryption: AES256 # AWS managed
-        jobs: 2
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: fieldtm-db-prod-backup
+  namespace: postgres
+spec:
+  schedule: "0 0 3 * * 2"  # At 03:00 UTC every Tuesday
+  backupOwnerReference: self
+  cluster:
+    name: fieldtm-db-prod
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io

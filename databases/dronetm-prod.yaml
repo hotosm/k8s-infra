@@ -1,3 +1,29 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: dronetm-db-prod-store
+  namespace: postgres
+spec:
+  retentionPolicy: "60d"
+  configuration:
+    destinationPath: s3://hotosm-k8s-db-backup/dronetm-prod
+    endpointURL: https://s3.amazonaws.com
+    s3Credentials:
+      accessKeyId:
+        name: s3-creds
+        key: access-key-id
+      secretAccessKey:
+        name: s3-creds
+        key: secret-access-key
+    wal:
+      compression: gzip # this saves a lot of storage
+      encryption: AES256 # AWS managed
+    data:
+      compression: gzip
+      encryption: AES256 # AWS managed
+      jobs: 2
+
+---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -12,6 +38,7 @@ spec:
   imageName: "ghcr.io/cloudnative-pg/postgis:16-3-system-trixie"
 
   primaryUpdateStrategy: unsupervised
+  enablePDB: true
 
   postgresql:
     parameters:
@@ -45,32 +72,29 @@ spec:
   monitoring:
     enablePodMonitor: false
 
-  # see https://cloudnative-pg.io/documentation/1.22/kubernetes_upgrade/
-  nodeMaintenanceWindow:
-    reusePVC: false # rebuild from other replica instead
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: dronetm-db-prod-store
 
-  backup:
-    retentionPolicy: "60d"
-    barmanObjectStore:
-      destinationPath: s3://hotosm-k8s-db-backup/dronetm-prod
-      endpointURL: https://s3.amazonaws.com
-      s3Credentials:
-        accessKeyId:
-          name: s3-creds
-          key: access-key-id
-        secretAccessKey:
-          name: s3-creds
-          key: secret-access-key
-      wal:
-        compression: gzip # this saves a lot of storage
-        encryption: AES256 # AWS managed
-      data:
-        compression: gzip
-        encryption: AES256 # AWS managed
-        jobs: 2
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: dronetm-db-prod-backup
+  namespace: postgres
+spec:
+  schedule: "0 0 1 * * *"  # At 01:00 UTC every day
+  backupOwnerReference: self
+  cluster:
+    name: dronetm-db-prod
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
 
 # ---
-# 
+#
 # This is another approach, but we stick to the simpler
 # postInitSQL script above
 # apiVersion: postgresql.cnpg.io/v1

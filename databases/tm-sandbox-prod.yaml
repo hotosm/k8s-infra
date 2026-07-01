@@ -1,5 +1,31 @@
 # See https://github.com/hotosm/k8s-infra/issues/138
 #
+# apiVersion: barmancloud.cnpg.io/v1
+# kind: ObjectStore
+# metadata:
+#   name: tm-sandbox-db-prod-store
+#   namespace: postgres
+# spec:
+#   retentionPolicy: "60d"
+#   configuration:
+#     destinationPath: s3://hotosm-k8s-db-backup/tm-sandbox-prod
+#     endpointURL: https://s3.amazonaws.com
+#     s3Credentials:
+#       accessKeyId:
+#         name: s3-creds
+#         key: access-key-id
+#       secretAccessKey:
+#         name: s3-creds
+#         key: secret-access-key
+#     wal:
+#       compression: gzip # this saves a lot of storage
+#       encryption: AES256 # AWS managed
+#     data:
+#       compression: gzip
+#       encryption: AES256 # AWS managed
+#       jobs: 2
+#
+# ---
 # apiVersion: postgresql.cnpg.io/v1
 # kind: Cluster
 # metadata:
@@ -7,19 +33,20 @@
 #   labels:
 #     app.kubernetes.io/component: database
 #     app.kubernetes.io/version: 18-system-trixie
-
+#
 # spec:
 #   instances: 1
 #   description: "TM Sandbox Database"
 #   imageName: "ghcr.io/cloudnative-pg/postgresql:18-system-trixie"
-
+#
 #   primaryUpdateStrategy: unsupervised
-
+#   enablePDB: true
+#
 #   postgresql:
 #     parameters:
 #       # Kill idle-in-transaction sessions after 60s to release locks held by abandoned txns.
 #       idle_in_transaction_session_timeout: "60s"
-
+#
 #   bootstrap:
 #     initdb:
 #       database: tm_sandbox
@@ -29,39 +56,35 @@
 #         # - username
 #         # - password
 #         name: tm-sandbox-db-prod-creds
-
+#
 #   storage:
 #     storageClass: gp3
 #     size: 5Gi
 #   walStorage:
 #     storageClass: gp3
 #     size: 3Gi
-
+#
 #   # prometheus
 #   monitoring:
 #     enablePodMonitor: false
-
-#   # see https://cloudnative-pg.io/documentation/1.22/kubernetes_upgrade/
-#   nodeMaintenanceWindow:
-#     reusePVC: false # rebuild from other replica instead
-
-#   backup:
-#     retentionPolicy: "30d"
-#     barmanObjectStore:
-#       destinationPath: s3://hotosm-k8s-db-backup/tm-sandbox-prod
-#       endpointURL: https://s3.amazonaws.com
-#       s3Credentials:
-#         accessKeyId:
-#           name: s3-creds
-#           key: access-key-id
-#         secretAccessKey:
-#           name: s3-creds
-#           key: secret-access-key
-#       wal:
-#         compression: gzip # this saves a lot of storage
-#         encryption: AES256 # AWS managed
-#       data:
-#         compression: gzip
-#         encryption: AES256 # AWS managed
-#         jobs: 2
-
+#
+#   plugins:
+#     - name: barman-cloud.cloudnative-pg.io
+#       isWALArchiver: true
+#       parameters:
+#         barmanObjectName: tm-sandbox-db-prod-store
+#
+# ---
+# apiVersion: postgresql.cnpg.io/v1
+# kind: ScheduledBackup
+# metadata:
+#   name: tm-sandbox-db-prod-backup
+#   namespace: postgres
+# spec:
+#   schedule: "0 0 3 * * 4"  # At 03:00 UTC every Thursday
+#   backupOwnerReference: self
+#   cluster:
+#     name: tm-sandbox-db-prod
+#   method: plugin
+#   pluginConfiguration:
+#     name: barman-cloud.cloudnative-pg.io
