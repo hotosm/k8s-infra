@@ -25,13 +25,13 @@ spec:
               image: ghcr.io/hotosm/openaerialmap/global-mosaic:main
               imagePullPolicy: Always
               resources:
-                limits:
-                  # It's a more CPU-intensive job
-                  cpu: "2048m"
-                  memory: "2048Mi"
                 requests:
-                  cpu: "256m"
-                  memory: "1024Mi"
+                  # It's a more CPU-intensive job - tippecanoe uses concurrency
+                  cpu: "2000m"
+                  memory: "2Gi"
+                limits:
+                  cpu: "4000m"
+                  memory: "4Gi"
               env:
                 - name: PGUSER
                   valueFrom:
