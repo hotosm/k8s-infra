@@ -1,0 +1,10 @@
+# apiVersion: postgresql.cnpg.io/v1
+# kind: ScheduledBackup
+# metadata:
+#   name: tm-sandbox-db-prod-backup
+#   namespace: postgres
+# spec:
+#   schedule: "0 0 3 * * 4"  # At 03:00 UTC every Thursday
+#   backupOwnerReference: self
+#   cluster:
+#     name: tm-sandbox-db-prod

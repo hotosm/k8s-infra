@@ -1,65 +1,67 @@
-apiVersion: postgresql.cnpg.io/v1
-kind: Cluster
-metadata:
-  name: tm-sandbox-db-prod
-  labels:
-    app.kubernetes.io/component: database
-    app.kubernetes.io/version: 18-system-trixie
+# See https://github.com/hotosm/k8s-infra/issues/138
+#
+# apiVersion: postgresql.cnpg.io/v1
+# kind: Cluster
+# metadata:
+#   name: tm-sandbox-db-prod
+#   labels:
+#     app.kubernetes.io/component: database
+#     app.kubernetes.io/version: 18-system-trixie
 
-spec:
-  instances: 1
-  description: "TM Sandbox Database"
-  imageName: "ghcr.io/cloudnative-pg/postgresql:18-system-trixie"
+# spec:
+#   instances: 1
+#   description: "TM Sandbox Database"
+#   imageName: "ghcr.io/cloudnative-pg/postgresql:18-system-trixie"
 
-  primaryUpdateStrategy: unsupervised
+#   primaryUpdateStrategy: unsupervised
 
-  postgresql:
-    parameters:
-      # Kill idle-in-transaction sessions after 60s to release locks held by abandoned txns.
-      idle_in_transaction_session_timeout: "60s"
+#   postgresql:
+#     parameters:
+#       # Kill idle-in-transaction sessions after 60s to release locks held by abandoned txns.
+#       idle_in_transaction_session_timeout: "60s"
 
-  bootstrap:
-    initdb:
-      database: tm_sandbox
-      owner: tm_sandbox_rw
-      secret:
-        # Kubernetes basic-auth convention has keys:
-        # - username
-        # - password
-        name: tm-sandbox-db-prod-creds
+#   bootstrap:
+#     initdb:
+#       database: tm_sandbox
+#       owner: tm_sandbox_rw
+#       secret:
+#         # Kubernetes basic-auth convention has keys:
+#         # - username
+#         # - password
+#         name: tm-sandbox-db-prod-creds
 
-  storage:
-    storageClass: gp3
-    size: 5Gi
-  walStorage:
-    storageClass: gp3
-    size: 3Gi
+#   storage:
+#     storageClass: gp3
+#     size: 5Gi
+#   walStorage:
+#     storageClass: gp3
+#     size: 3Gi
 
-  # prometheus
-  monitoring:
-    enablePodMonitor: false
+#   # prometheus
+#   monitoring:
+#     enablePodMonitor: false
 
-  # see https://cloudnative-pg.io/documentation/1.22/kubernetes_upgrade/
-  nodeMaintenanceWindow:
-    reusePVC: false # rebuild from other replica instead
+#   # see https://cloudnative-pg.io/documentation/1.22/kubernetes_upgrade/
+#   nodeMaintenanceWindow:
+#     reusePVC: false # rebuild from other replica instead
 
-  backup:
-    retentionPolicy: "30d"
-    barmanObjectStore:
-      destinationPath: s3://hotosm-k8s-db-backup/tm-sandbox-prod
-      endpointURL: https://s3.amazonaws.com
-      s3Credentials:
-        accessKeyId:
-          name: s3-creds
-          key: access-key-id
-        secretAccessKey:
-          name: s3-creds
-          key: secret-access-key
-      wal:
-        compression: gzip # this saves a lot of storage
-        encryption: AES256 # AWS managed
-      data:
-        compression: gzip
-        encryption: AES256 # AWS managed
-        jobs: 2
+#   backup:
+#     retentionPolicy: "30d"
+#     barmanObjectStore:
+#       destinationPath: s3://hotosm-k8s-db-backup/tm-sandbox-prod
+#       endpointURL: https://s3.amazonaws.com
+#       s3Credentials:
+#         accessKeyId:
+#           name: s3-creds
+#           key: access-key-id
+#         secretAccessKey:
+#           name: s3-creds
+#           key: secret-access-key
+#       wal:
+#         compression: gzip # this saves a lot of storage
+#         encryption: AES256 # AWS managed
+#       data:
+#         compression: gzip
+#         encryption: AES256 # AWS managed
+#         jobs: 2
 
