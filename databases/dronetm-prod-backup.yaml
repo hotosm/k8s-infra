@@ -1,10 +1,10 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
 metadata:
-  name: dronetm-prod-db-backup
+  name: dronetm-db-prod-backup
   namespace: postgres
 spec:
-  schedule: "0 0 0 * * *"  # At midnight every day
+  schedule: "0 0 1 * * *"  # At 01:00 UTC every day
   backupOwnerReference: self
   cluster:
-    name: dronetm-prod-db
+    name: dronetm-db-prod

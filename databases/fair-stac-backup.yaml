@@ -1,10 +1,10 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
 metadata:
-  name: hanko-db-backup
+  name: fair-stac-db-backup
   namespace: postgres
 spec:
-  schedule: "0 0 0 * * *"  # At 00:00 UTC every day
+  schedule: "0 0 3 * * 1"  # At 03:00 UTC every Monday
   backupOwnerReference: self
   cluster:
-    name: hanko-db
+    name: fair-stac-db
