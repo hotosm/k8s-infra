@@ -15,7 +15,7 @@ data "aws_iam_policy_document" "karpenter_controller_assume_role" {
     condition {
       test     = "StringEquals"
       variable = "${replace(aws_iam_openid_connect_provider.cluster_oidc.url, "https://", "")}:sub"
-      values   = ["system:serviceaccount:kube-system:karpenter"]
+      values   = ["system:serviceaccount:karpenter:karpenter"]
     }
   }
 }
