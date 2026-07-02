@@ -8,7 +8,7 @@ spec:
   sources:
     - repoURL: oci://ghcr.io/hotosm/charts/openaerialmap/global-tms
       chart: global-tms
-      targetRevision: 0.2.4
+      targetRevision: 0.2.6
       helm:
         releaseName: global-tms
         # Use the default values
