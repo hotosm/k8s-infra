@@ -8,8 +8,8 @@ metadata:
   labels:
     app: oam-global-mosaic
 spec:
-  # Daily at 2:00am
-  schedule: "0 2 * * *"
+  # Every 12hrs
+  schedule: "0 */12 * * *"
   # Prevent running multiple jobs concurrently
   concurrencyPolicy: Forbid
   jobTemplate:
