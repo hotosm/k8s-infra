@@ -16,7 +16,8 @@ extraEnvFrom:
       name: tm-sandbox-dashboard-secret
 
 db:
-  enabled: false # We are using CNPG now.
+  # Dashboard app's own DB (separate from per-box DBs like osm-db/naxa-db).
+  enabled: true
   image:
     name: postgres
     tag: 16
@@ -25,8 +26,8 @@ db:
     label_key: nodegroup_type
     label_value: tm-sandbox
   env:
-    POSTGRES_DB: db_dashboard
-    POSTGRES_USER: postgres
+    POSTGRES_DB: tm_sandbox
+    POSTGRES_USER: tm_sandbox_rw
   persistenceDisk:
     enabled: true
     mountPath: /var/lib/postgresql/data
@@ -72,12 +73,7 @@ dashboard:
     OSM_INSTANCE_SCOPES: "read_prefs"
 
     ## Token
-    ACCESS_TOKEN_EXPIRE_MINUTES:  1440
-
-    ## Dashboard DB creds
-    POSTGRES_HOST: "tm-sandbox-db-prod-rw.postgres.svc.cluster.local"
-    POSTGRES_USER: tm_sandbox_rw
-    POSTGRES_DB: tm_sandbox
+    ACCESS_TOKEN_EXPIRE_MINUTES: 1440
 
     #################### Sandbox env vars ####################
     OSM_SANDBOX_CHART: /osm-sandbox-deploy
@@ -103,7 +99,7 @@ dashboard:
     SANDBOX_ORGANIZATION_NAME: OpenStreetMap-Sandbox
     SANDBOX_WEBSITE_STATUS: "online"
     SANDBOX_TM_OAUTH_CLIENT_ID: bd13001a-29ad-4ba0-bc76-ba3fcdb80cd0
-    
+
   resources:
     enabled: true
     requests:
