@@ -13,3 +13,4 @@ cluster_admin_access_role_arns = [
 ]
 cluster_ci_access_role_arn = "arn:aws:iam::670261699094:role/Github-AWS-OIDC"
 
+# Trigger S3 bucket apply
