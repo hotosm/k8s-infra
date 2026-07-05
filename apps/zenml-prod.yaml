@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: zenml-prod
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: oci://public.ecr.aws/zenml/zenml
+      chart: zenml
+      targetRevision: 0.94.2
+      helm:
+        releaseName: zenml-prod
+        valueFiles:
+          - $k8s-infra/apps/zenml-prod/helm/values.yaml
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/zenml-prod
+      kustomize: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: zenml-prod
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

@@ -1,0 +1,90 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  # Updated store name for production
+  name: zenml-db-production-store
+  namespace: postgres
+spec:
+  retentionPolicy: "60d"
+  configuration:
+    # Safely isolating production backups into a different S3 path
+    destinationPath: s3://hotosm-k8s-db-backup/zenml-production
+    endpointURL: https://s3.amazonaws.com
+    s3Credentials:
+      accessKeyId:
+        name: s3-creds
+        key: access-key-id
+      secretAccessKey:
+        name: s3-creds
+        key: secret-access-key
+    wal:
+      compression: gzip 
+      encryption: AES256 
+    data:
+      compression: gzip
+      encryption: AES256 
+      jobs: 2
+
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  # New, unique cluster name
+  name: zenml-db-production
+  labels:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/version: 18-system-trixie
+
+spec:
+  instances: 1
+  description: "ZenML Production Database"
+  imageName: "ghcr.io/cloudnative-pg/postgresql:18-system-trixie"
+
+  primaryUpdateStrategy: unsupervised
+  enablePDB: true
+
+  postgresql:
+    parameters:
+      idle_in_transaction_session_timeout: "60s"
+
+  bootstrap:
+    initdb:
+      database: zenml
+      owner: zenml
+      secret:
+        # Pointing to the NEW production credentials you sealed earlier
+        name: zenml-db-production-creds
+
+  storage:
+    storageClass: gp3
+    size: 20Gi
+  walStorage:
+    storageClass: gp3
+    size: 40Gi
+
+  monitoring:
+    enablePodMonitor: false
+
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        # Targeting the newly named store
+        barmanObjectName: zenml-db-production-store
+
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  # Updated backup job name
+  name: zenml-db-production-backup
+  namespace: postgres
+spec:
+  schedule: "0 0 3 * * 6"  
+  backupOwnerReference: self
+  cluster:
+    # Targeting the new production cluster
+    name: zenml-db-production
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io

@@ -1,0 +1,69 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: mlflow-prod-db-store
+  namespace: postgres
+spec:
+  retentionPolicy: "60d"
+  configuration:
+    destinationPath: s3://hotosm-k8s-db-backup/mlflow-prod # Updated path
+    endpointURL: https://s3.amazonaws.com
+    s3Credentials:
+      accessKeyId:
+        name: s3-creds # Assuming these AWS creds can access the prod path
+        key: access-key-id
+      secretAccessKey:
+        name: s3-creds
+        key: secret-access-key
+    wal:
+      compression: gzip
+      encryption: AES256
+    data:
+      compression: gzip
+      encryption: AES256
+      jobs: 2
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: mlflow-prod-db # New isolated cluster name
+  namespace: postgres
+  labels:
+    app.kubernetes.io/component: database
+spec:
+  instances: 2 # Recommended: Increase to 2 for High Availability in Production
+  description: "MLflow Production Database"
+  imageName: "ghcr.io/cloudnative-pg/postgresql:18-system-trixie"
+  primaryUpdateStrategy: unsupervised
+  enablePDB: true
+  bootstrap:
+    initdb:
+      database: mlflow
+      owner: mlflow
+      secret:
+        name: mlflow-prod-db-creds # New secret for prod DB
+  storage:
+    storageClass: gp3
+    size: 50Gi # Adjust for prod capacity
+  walStorage:
+    storageClass: gp3
+    size: 20Gi
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: mlflow-prod-db-store
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: mlflow-prod-db-backup
+  namespace: postgres
+spec:
+  schedule: "0 0 4 * * 0"
+  backupOwnerReference: self
+  cluster:
+    name: mlflow-prod-db
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io

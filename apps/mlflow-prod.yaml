@@ -1,0 +1,30 @@
+# apps/mlflow-prod.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mlflow-prod
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://community-charts.github.io/helm-charts
+      chart: mlflow
+      targetRevision: 1.8.1
+      helm:
+        releaseName: mlflow-prod
+        valueFiles:
+          - $k8s-infra/apps/mlflow-prod/helm/values.yaml
+
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mlflow-prod # Deploys to the new isolated namespace
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
