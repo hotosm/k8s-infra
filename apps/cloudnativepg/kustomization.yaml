@@ -1,10 +1,9 @@
-# IMPORTANT: must solve https://github.com/hotosm/k8s-infra/issues/57 before upgrade
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: cloudnativepg
 resources:
   - https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/v1.28.0/releases/cnpg-1.28.0.yaml
-  # Barman plugin required for backups, since vnpg v1.26.0
+  # Barman plugin required for backups since CNPG v1.26.0
   - https://github.com/cloudnative-pg/plugin-barman-cloud/releases/download/v0.13.0/manifest.yaml
   - storageclass.yaml
 commonAnnotations:
