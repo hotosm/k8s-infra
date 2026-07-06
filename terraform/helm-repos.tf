@@ -11,37 +11,6 @@ provider "helm" {
   }
 }
 
-resource "helm_release" "autoscaler" {
-  name             = "cluster-autoscaler"
-  repository       = "https://kubernetes.github.io/autoscaler"
-  chart            = "cluster-autoscaler"
-  version          = var.cluster_autoscaler_version
-  namespace        = "cluster-autoscaler"
-  create_namespace = true
-
-  set {
-    name  = "autoDiscovery.clusterName"
-    value = aws_eks_cluster.cluster.name
-  }
-
-  set {
-    name  = "awsRegion"
-    value = var.region
-  }
-
-  set {
-    # Double escaping needed as otherwise . is inteprerted as nesting
-    name  = "rbac.serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-    value = aws_iam_role.cluster_autoscaler.arn
-  }
-
-  wait = true
-
-  depends_on = [
-    aws_eks_cluster.cluster
-  ]
-}
-
 resource "helm_release" "ingress" {
   name             = "ingress"
   repository       = "https://kubernetes.github.io/ingress-nginx"

@@ -75,11 +75,13 @@ variable "capacity_type" {
   }
 }
 
-variable "max_instances" {
-  default     = 10
+variable "core_nodegroup_size" {
+  default     = 5
   type        = number
   description = <<-EOT
-  Maximum number of instances the autoscaler will scale the cluster up to.
+  Fixed size of the managed "core" nodegroup (min = max = desired).
+  Karpenter provisions any additional capacity above this baseline via
+  its own NodePools.
   EOT
 }
 
@@ -121,13 +123,6 @@ variable "ebs_driver_version" {
   description = <<-EOT
   EBS CSI Driver version
   cmd: aws eks describe-addon-versions --kubernetes-version <kubernetes-version>
-  EOT
-}
-
-variable "cluster_autoscaler_version" {
-  default     = "9.46.6"
-  description = <<-EOT
-  Version of cluster autoscaler helm chart to install.
   EOT
 }
 
