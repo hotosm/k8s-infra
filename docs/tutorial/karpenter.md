@@ -32,8 +32,9 @@ Karpenter will consolidate or terminate nodes that are empty or
 underutilized. No minimum node count is enforced - if no pods need
 Karpenter-managed nodes, all autoscaled nodes are removed.
 
-The **core** EKS managed node group (non-Karpenter) always runs at least
-one node for cluster-critical workloads.
+The **core** EKS managed node group (non-Karpenter) runs a fixed baseline
+of nodes (`var.core_nodegroup_size` in Terraform) for steady-state
+workloads. Karpenter handles all capacity above that baseline.
 
 ## Spot vs On-Demand
 
