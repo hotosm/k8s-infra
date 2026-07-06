@@ -61,6 +61,11 @@ resource "aws_iam_role" "vpc_cni" {
   name                 = "${local.cluster_prefix}-eks-vpc-cni"
   assume_role_policy   = data.aws_iam_policy_document.vpc_cni_assume_role.json
   permissions_boundary = var.permissions_boundary
+
+  # Required by the CI role's IAM policy (aws:RequestTag/project must be k8s-control)
+  tags = {
+    project = "k8s-control"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "vpc_cni" {
@@ -75,6 +80,11 @@ resource "aws_eks_addon" "vpc_cni" {
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
   service_account_role_arn    = aws_iam_role.vpc_cni.arn
+
+  tags = {
+    project = "k8s-control"
+  }
+
   depends_on = [
     aws_iam_role_policy_attachment.vpc_cni
   ]
@@ -87,6 +97,10 @@ resource "aws_eks_addon" "coredns" {
   addon_version               = var.coredns_version
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
+
+  tags = {
+    project = "k8s-control"
+  }
 }
 
 # kube-proxy managed add-on (per-node service proxy).
@@ -96,4 +110,8 @@ resource "aws_eks_addon" "kube_proxy" {
   addon_version               = var.kube_proxy_version
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
+
+  tags = {
+    project = "k8s-control"
+  }
 }
