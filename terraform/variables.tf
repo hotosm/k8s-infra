@@ -111,7 +111,7 @@ variable "prometheus_hostname" {
 
 variable "kubernetes_version" {
   type        = string
-  default     = "1.33"
+  default     = "1.34"
   description = <<-EOT
   A version string that we append to certain resources to make them unique
   EOT
@@ -119,7 +119,7 @@ variable "kubernetes_version" {
 
 variable "ebs_driver_version" {
   type        = string
-  default     = "v1.41.0-eksbuild.1"
+  default     = "v1.62.0-eksbuild.1"
   description = <<-EOT
   EBS CSI Driver version
   cmd: aws eks describe-addon-versions --kubernetes-version <kubernetes-version>
@@ -130,7 +130,7 @@ variable "vpc_cni_version" {
   type        = string
   default     = "v1.22.2-eksbuild.1"
   description = <<-EOT
-  Amazon VPC CNI add-on version. Default is compatible with Kubernetes 1.33.
+  Amazon VPC CNI add-on version. Compatible with Kubernetes 1.29-1.36.
   cmd: aws eks describe-addon-versions --addon-name vpc-cni --kubernetes-version <kubernetes-version>
   EOT
 }
@@ -139,16 +139,17 @@ variable "coredns_version" {
   type        = string
   default     = "v1.12.4-eksbuild.18"
   description = <<-EOT
-  CoreDNS add-on version. Default is compatible with Kubernetes 1.33.
+  CoreDNS add-on version. Compatible with Kubernetes 1.34.
   cmd: aws eks describe-addon-versions --addon-name coredns --kubernetes-version <kubernetes-version>
   EOT
 }
 
 variable "kube_proxy_version" {
   type        = string
-  default     = "v1.33.10-eksbuild.13"
+  default     = "v1.34.6-eksbuild.11"
   description = <<-EOT
-  kube-proxy add-on version. Default is compatible with Kubernetes 1.33.
+  kube-proxy add-on version. Must match the control plane's minor version
+  (or be at most 1 behind).
   cmd: aws eks describe-addon-versions --addon-name kube-proxy --kubernetes-version <kubernetes-version>
   EOT
 }
