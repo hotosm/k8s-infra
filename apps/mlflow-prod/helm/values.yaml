@@ -1,0 +1,51 @@
+# apps/mlflow-prod/helm/values.yaml
+replicaCount: 2 # Recommended: Increase for Production availability
+
+image:
+  repository: ghcr.io/burakince/mlflow
+  tag: "3.7.0"
+
+# Target the NEW CloudNativePG cluster created for mlflow-prod
+backendStore:
+  databaseMigration: true # Remember to set to true on first deployment
+  databaseConnectionCheck: true
+  postgres:
+    enabled: true
+    host: "mlflow-prod-db-rw.postgres.svc.cluster.local" # Points to the prod DB
+    port: 5432
+    database: "mlflow"
+    driver: "psycopg2"
+  existingDatabaseSecret:
+    name: "mlflow-prod-db-creds"
+    usernameKey: "username"
+    passwordKey: "password"
+
+# Use your Production S3 bucket
+artifactRoot:
+  proxiedArtifactStorage: false
+  defaultArtifactRoot: "./mlruns"
+  defaultArtifactsDestination: "./mlartifacts"
+  s3:
+    enabled: true
+    bucket: "hotosm-fair-mlflow-prod" # Isolated prod bucket
+    path: "" 
+    existingSecret:
+      name: "mlflow-prod-s3-creds"
+      keyOfAccessKeyId: "AWS_ACCESS_KEY_ID"
+      keyOfSecretAccessKey: "AWS_SECRET_ACCESS_KEY"
+
+auth:
+  enabled: true
+  existingAdminSecret:
+    name: "mlflow-prod-admin-password"
+    usernameKey: "adminUsername"
+    passwordKey: "adminPassword"
+
+# You may want to define production resource constraints for Karpenter to read
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi

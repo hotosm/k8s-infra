@@ -1,0 +1,93 @@
+zenml:
+  # The number of ZenML server worker threads to use. 
+  # threadPoolSize: 40
+
+  # The number of ZenML server threads that are dedicated to authentication.
+  # authThreadPoolSize: 5
+
+  # The timeout in seconds after which a request is considered timed out
+  # requestTimeout: 20
+
+  image:
+    repository: ghcr.io/hotosm/zenml-postgres
+    pullPolicy: Always
+    # Overrides the image tag whose default is the chart appVersion.
+    tag:
+
+  pro:
+    enabled: false
+
+  # IMPORTANT: Updated for Production
+  serverURL: https://zenml-production.ai.hotosm.org
+  debug: false  # Recommended to set to false for production
+  analyticsOptIn: false
+  deploymentType: kubernetes
+  auth:
+    authType: OAUTH2_PASSWORD_BEARER
+    jwtSecretKey:
+    jwtTokenAlgorithm: HS384
+    jwtTokenExpireMinutes: 4320
+    corsAllowOrigins:
+      - "*"
+
+  defaultProject: "default"
+
+  database:
+    # IMPORTANT: Updated to point to the new production database cluster service
+    url: "postgresql://zenml@zenml-db-production-rw.postgres.svc.cluster.local:5432/zenml"
+    
+    # Securely references the sealed secret you generated
+    passwordSecretRef:
+      name: zenml-extra-secret-env
+      key: ZENML_STORE_PASSWORD
+    ssl: false
+    backupStrategy: disabled
+
+  secretsStore:
+    enabled: true
+    type: sql
+    
+  backupSecretsStore:
+    enabled: false
+
+  environment: {}
+  
+  # Securely references the sealed encryption key you generated
+  environmentSecretKeyRefs: 
+    - name: ZENML_SECRETS_STORE_ENCRYPTION_KEY
+      secretName: zenml-extra-secret-env
+      secretKey: ZENML_SECRETS_STORE_ENCRYPTION_KEY
+
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      # IMPORTANT: Updated for Production DNS
+      external-dns.alpha.kubernetes.io/hostname: zenml-production.ai.hotosm.org
+      external-dns.alpha.kubernetes.io/ttl: "300"
+    # IMPORTANT: Updated for Production host
+    host: zenml-production.ai.hotosm.org
+    path: /
+    tls:
+      enabled: true
+
+  proxy:
+    enabled: false
+
+# Explicit compute boundaries for Karpenter node provisioning
+resources:
+  requests:
+    cpu: "2"
+    memory: "4Gi"
+  limits:
+    cpu: "4"
+    memory: "8Gi"
+
+autoscaling:
+  enabled: false
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

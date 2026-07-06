@@ -1,0 +1,16 @@
+resources:
+  - sealed-extra-secrets.yaml
+  - orchestrator-role.yaml
+
+patches:
+  - target:
+      kind: Deployment
+      name: zenml-prod
+      namespace: zenml-prod
+    patch: |-
+      - op: add
+        path: /spec/template/metadata/labels/project
+        value: fair
+      - op: add
+        path: /spec/template/metadata/labels/tool
+        value: fair
