@@ -35,7 +35,8 @@ spec:
   description: "MLflow Production Database"
   imageName: "ghcr.io/cloudnative-pg/postgresql:18-system-trixie"
   primaryUpdateStrategy: unsupervised
-  enablePDB: true
+  # PDB (voluntary-eviction guard) disabled - single replica would otherwise block node drains on cluster upgrade
+  enablePDB: false
   bootstrap:
     initdb:
       database: mlflow
