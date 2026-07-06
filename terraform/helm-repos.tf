@@ -78,25 +78,6 @@ resource "helm_release" "ingress" {
   ]
 }
 
-resource "helm_release" "cert_manager" {
-  name             = "cert-manager"
-  repository       = "https://charts.jetstack.io"
-  chart            = "cert-manager"
-  namespace        = "cert-manager"
-  create_namespace = true
-  version          = var.cert_manager_version
-
-  set {
-    # We can manage CRDs from inside Helm itself, no need for a separate kubectl apply
-    name  = "installCRDs"
-    value = true
-  }
-  wait = true
-  depends_on = [
-    aws_eks_cluster.cluster
-  ]
-}
-
 ##############################
 # SUPPORT OPTIONS
 ##############################
