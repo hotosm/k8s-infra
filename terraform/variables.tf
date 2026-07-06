@@ -126,6 +126,33 @@ variable "ebs_driver_version" {
   EOT
 }
 
+variable "vpc_cni_version" {
+  type        = string
+  default     = "v1.22.2-eksbuild.1"
+  description = <<-EOT
+  Amazon VPC CNI add-on version. Default is compatible with Kubernetes 1.33.
+  cmd: aws eks describe-addon-versions --addon-name vpc-cni --kubernetes-version <kubernetes-version>
+  EOT
+}
+
+variable "coredns_version" {
+  type        = string
+  default     = "v1.12.4-eksbuild.18"
+  description = <<-EOT
+  CoreDNS add-on version. Default is compatible with Kubernetes 1.33.
+  cmd: aws eks describe-addon-versions --addon-name coredns --kubernetes-version <kubernetes-version>
+  EOT
+}
+
+variable "kube_proxy_version" {
+  type        = string
+  default     = "v1.33.10-eksbuild.13"
+  description = <<-EOT
+  kube-proxy add-on version. Default is compatible with Kubernetes 1.33.
+  cmd: aws eks describe-addon-versions --addon-name kube-proxy --kubernetes-version <kubernetes-version>
+  EOT
+}
+
 variable "nginx_ingress_version" {
   default     = "4.12.1"
   description = <<-EOT
