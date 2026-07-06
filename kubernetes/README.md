@@ -6,18 +6,6 @@ Relevant Docs:
 - [kubectl]
 - [Helm]
 
-## Global
-
-### ClusterIssuer
-
-Issue TLS certificates for the cluster via [cert-manager]. See also [eoAPI TLS section](#transport-layer-security-tls).
-
-Install:
-```sh
-# ** See helm/eoapi-values.yaml for initial setup **
-$ kubectl apply -f kubernetes/manifests/cluster-issuer.yaml
-```
-
 ## eoAPI
 
 Open source Earth Observation (EO) backend supporting Open Aerial Map (OAM).

@@ -12,6 +12,10 @@ spec:
       helm:
         releaseName: global-tms
         # Use the default values
+    # global-mosaic CronJob generates the PMTiles layer that global-tms serves
+    - repoURL: 'https://github.com/hotosm/k8s-infra'
+      targetRevision: main
+      path: apps/oam-global-tms
   destination:
     server: https://kubernetes.default.svc
     namespace: eoapi
