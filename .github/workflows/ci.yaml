@@ -67,7 +67,7 @@ jobs:
           TF_VAR_cluster_ci_access_role_arn: ${{ secrets.AWS_OIDC_ROLE }}
           TF_VAR_cluster_admin_access_role_arns: ${{ secrets.CLUSTER_ADMIN_ACCESS_ROLE_ARNS }}
         run: |
-          tofu init
+          tofu init -var-file=${{ env.VAR_FILE }}
           tofu apply -auto-approve -var-file=${{ env.VAR_FILE }}
       - name: Get TF Outputs
         run: |
