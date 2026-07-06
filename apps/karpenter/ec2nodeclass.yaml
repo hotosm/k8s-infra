@@ -30,8 +30,7 @@ spec:
 
   # Pin the EKS-optimized AL2023 AMI release for production instead of using
   # @latest, which can drift nodes to untested AMIs during replacement.
-  # Amazon Linux 2023.10.20260216
-  # v1.33.8-eks-f69f56f
+  # AL2023 release_version: 1.34.9-20260625
   # Update this as we upgrade the cluster!
   amiSelectorTerms:
-    - alias: al2023@v20260224
+    - alias: al2023@v20260625

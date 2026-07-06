@@ -29,6 +29,6 @@ spec:
     Name: karpenter-autoscale-gpu
     karpenter.sh/discovery: hotosm-production-cluster
 
-  # AL2023 x86_64 NVIDIA GPU AMI for EKS 1.33 (us-east-1).
+  # AL2023 x86_64 NVIDIA GPU AMI for EKS 1.34 (us-east-1).
   amiSelectorTerms:
-    - id: ami-0b80d15d9f1903b69
+    - id: ami-0b53e88ade902e60c

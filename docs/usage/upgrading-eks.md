@@ -1,7 +1,7 @@
 # Upgrading EKS
 
 Runbook for a single-minor control-plane upgrade (e.g. `1.33` → `1.34`).
-EKS only supports one minor version per upgrade — **never skip versions**.
+EKS only supports one minor version per upgrade - **never skip versions**.
 
 Set the target version once, use it throughout:
 
@@ -20,7 +20,7 @@ aws eks list-insights --region $REGION --cluster-name $CLUSTER \
   --query 'insights[?insightStatus.status!=`PASSING`]'
 ```
 
-Investigate anything not PASSING. Insights refreshes on AWS's own schedule (~daily), so it can lag reality by up to a day — cross-check against actual cluster state before treating a warning as blocking.
+Investigate anything not PASSING. Insights refreshes on AWS's own schedule (~daily), so it can lag reality by up to a day - cross-check against actual cluster state before treating a warning as blocking.
 
 Check apps for removed APIs:
 
@@ -46,7 +46,7 @@ done
 aws ssm get-parameter --region $REGION \
   --name /aws/service/eks/optimized-ami/$TARGET/amazon-linux-2023/x86_64/standard/recommended/release_version \
   --query 'Parameter.Value' --output text
-# → e.g. 1.34.9-20260625 — use the date part (20260625) in the Karpenter alias
+# → e.g. 1.34.9-20260625 - use the date part (20260625) in the Karpenter alias
 
 # AL2023 x86_64 NVIDIA GPU AMI (Karpenter GPU nodes)
 aws ssm get-parameter --region $REGION \
@@ -54,7 +54,7 @@ aws ssm get-parameter --region $REGION \
   --query 'Parameter.Value' --output text
 ```
 
-Note: `describe-addon-versions` returns the "default" pinned version for the target Kubernetes minor. If the currently-installed version of vpc-cni or coredns is already ≥ the default and still marked compatible, keep it — no need to roll add-ons backwards. Only `kube-proxy` must be bumped to match the new control plane.
+Note: `describe-addon-versions` returns the "default" pinned version for the target Kubernetes minor. If the currently-installed version of vpc-cni or coredns is already ≥ the default and still marked compatible, keep it - no need to roll add-ons backwards. Only `kube-proxy` must be bumped to match the new control plane.
 
 ## 3. Update Terraform variables
 
@@ -68,18 +68,18 @@ coredns_version     = "..."
 kube_proxy_version  = "..."
 ```
 
-All must be bumped together in a single apply — EKS rejects add-on versions ahead of the control plane.
+All must be bumped together in a single apply - EKS rejects add-on versions ahead of the control plane.
 
 ## 4. Update Karpenter AMIs
 
-`apps/karpenter/ec2nodeclass.yaml` — CPU nodes:
+`apps/karpenter/ec2nodeclass.yaml` - CPU nodes:
 
 ```yaml
 amiSelectorTerms:
   - alias: al2023@vYYYYMMDD   # date from step 2 release_version
 ```
 
-`apps/karpenter/gpu-ec2nodeclass.yaml` — GPU nodes:
+`apps/karpenter/gpu-ec2nodeclass.yaml` - GPU nodes:
 
 ```yaml
 amiSelectorTerms:
@@ -97,7 +97,7 @@ Control plane goes to $TARGET first (~10-15 min), then add-ons roll.
 
 ## 6. Upgrade the managed core nodegroup
 
-**Important**: always pass `--kubernetes-version`. If you omit it, EKS defaults to the current cluster version and rolls nodes for no version change — wasted node churn.
+**Important**: always pass `--kubernetes-version`. If you omit it, EKS defaults to the current cluster version and rolls nodes for no version change.
 
 ```bash
 aws eks update-nodegroup-version --region $REGION \
@@ -143,6 +143,6 @@ All Argo apps should show `Synced/Healthy`. Insights warnings may take up to a d
 ## Notes
 
 - All four EKS add-ons (`aws-ebs-csi-driver`, `vpc-cni`, `coredns`, `kube-proxy`) are Terraform-managed. Version bumps are variable changes only.
-- New `aws_iam_role` or `aws_eks_addon` resources must carry `tags = { project = "k8s-control" }` — the CI role's IAM policy requires that tag on create actions. Copy the pattern from `terraform/addons.tf`.
+- New `aws_iam_role` or `aws_eks_addon` resources must carry `tags = { project = "k8s-control" }` - the CI role's IAM policy requires that tag on create actions. Copy the pattern from `terraform/addons.tf`.
 - Skew tolerance: `kube-proxy` must match the control plane's minor (or be at most 1 behind); `coredns` and `vpc-cni` tolerate wider skew.
 - Nodegroup version updates can't be cancelled once started. Double-check the command before hitting enter.
