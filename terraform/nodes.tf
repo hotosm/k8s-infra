@@ -94,15 +94,11 @@ resource "aws_eks_node_group" "core_nodes" {
   disk_size = 80
 
   scaling_config {
-    desired_size = 1
-    max_size     = var.max_instances
-    min_size     = 0
+    desired_size = var.core_nodegroup_size
+    max_size     = var.core_nodegroup_size
+    min_size     = var.core_nodegroup_size
   }
 
-  lifecycle {
-    # Allow cluster-autoscaler to change the size of nodepool without messing up terraform
-    ignore_changes = [scaling_config[0].desired_size]
-  }
   update_config {
     max_unavailable = 1
   }
