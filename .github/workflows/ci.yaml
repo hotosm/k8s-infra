@@ -45,18 +45,30 @@ jobs:
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
-      - name: Provision TF
+      - name: Plan TF (PR)
+        if: github.event_name == 'pull_request'
         uses: op5dev/tf-via-pr@v13
         env:
           TF_VAR_cluster_ci_access_role_arn: ${{ secrets.AWS_OIDC_ROLE }}
           TF_VAR_cluster_admin_access_role_arns: ${{ secrets.CLUSTER_ADMIN_ACCESS_ROLE_ARNS }}
         with:
-          command: ${{ github.event_name == 'push' && 'apply' || 'plan' }}
+          command: plan
           tool: tofu
           working-directory: terraform
           validate: true
           format: true
           arg-var-file: ${{ env.VAR_FILE }}
+      # Re-plan and apply on push so reruns after a partial failure pick up
+      # current state instead of a stale cached plan
+      - name: Apply TF (push)
+        if: github.event_name == 'push'
+        working-directory: terraform
+        env:
+          TF_VAR_cluster_ci_access_role_arn: ${{ secrets.AWS_OIDC_ROLE }}
+          TF_VAR_cluster_admin_access_role_arns: ${{ secrets.CLUSTER_ADMIN_ACCESS_ROLE_ARNS }}
+        run: |
+          tofu init
+          tofu apply -auto-approve -var-file=${{ env.VAR_FILE }}
       - name: Get TF Outputs
         run: |
           echo "S3_BACKUP_ROLE=$(tofu -chdir=terraform output -var-file=vars/production.tfvars s3_backup_role)" >> $GITHUB_ENV
