@@ -13,7 +13,8 @@ env:
   DOMAIN: "api.drone.hotosm.org"
   API_PREFIX: ""
   DEBUG: "False"
-  LOG_LEVEL: "DEBUG"
+  # See https://docs.drone.hotosm.org/dev/prod-debug/ for easy switch to DEBUG while running
+  LOG_LEVEL: "INFO"
   AUTH_PROVIDER: "hanko"
   HANKO_API_URL: "https://login.hotosm.org"
   COOKIE_DOMAIN: ".hotosm.org"
