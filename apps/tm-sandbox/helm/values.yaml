@@ -1,11 +1,9 @@
 environment: production
 serviceType: ClusterIP
 namespace: tm-sandbox
-createClusterIssuer: true
 adminEmail: admin@sandbox.hotosm.org
 
 ssl_certificate:
-  create_cluster_issuer: false
   create_cert: true
 
 service_account:
