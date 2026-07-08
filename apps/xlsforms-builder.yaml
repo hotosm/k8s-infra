@@ -9,7 +9,10 @@ spec:
     # Helm chart + values
     - repoURL: oci://ghcr.io/hotosm/charts/xlsform-builder
       chart: xlsforms-builder
-      targetRevision: 0.3.1
+      # Auto-track the highest published chart. Chart templates default
+      # image.tag to .Chart.AppVersion, so cutting a release in the app
+      # repo promotes the new image to prod. Pin here to freeze deploys.
+      targetRevision: "*"
       helm:
         releaseName: xlsforms-builder
         # valueFiles:

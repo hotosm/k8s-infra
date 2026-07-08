@@ -9,7 +9,12 @@ spec:
     # Helm chart + values
     - repoURL: oci://ghcr.io/hotosm/charts/drone-tm
       chart: drone-tm
-      targetRevision: 2026.6.11
+      # Auto-track the highest published chart. Chart templates default
+      # image.tag to .Chart.AppVersion, so cutting a release in the app
+      # repo (which bumps chart version + appVersion together) is what
+      # promotes the new image to prod. Pin an exact version here to
+      # freeze deploys.
+      targetRevision: "*"
       helm:
         releaseName: drone-tm-prod
         valueFiles:

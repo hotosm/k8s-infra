@@ -8,10 +8,10 @@ the PR tears the deploy down and the node scales to 0.
 
 ### Sealed secret
 
-Django needs a `SECRET_KEY` in `hot-website-secret-env` (chart default) or
-the web pod won't start. Bundled Postgres provides `DATABASE_URL`, so
-`SECRET_KEY` is the only required key; other prod integrations can be
-dummied.
+Required to update:
+- `SECRET_KEY`
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
 
 Write a plaintext `secret.yaml` (don't commit):
 
@@ -37,4 +37,13 @@ Seal and commit:
 
 ```bash
 kubeseal -f secret.yaml -w sealed-secret.yaml
+```
+
+### Copy production data
+
+1. Copy the production DB --> staging DB.
+2. Copy the S3 content prod --> staging:
+
+```bash
+aws s3 cp s3://hotosm-website s3://hotosm-website-staging --recursive --profile admin
 ```

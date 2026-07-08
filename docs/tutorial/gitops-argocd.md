@@ -8,35 +8,59 @@
   allowfullscreen
 ></iframe>
 
-## Staging deployments using ApplicationSet PR generator
+## Staging deployments
 
-An `ApplicationSet` with a `pullRequest` generator watches an app repo for PRs
-matching `head=staging → base=main` and spins up an on-demand deploy per PR.
+- Apps under `apps/staging/` are deployed automatically each time a PR
+is made `staging → main`. They are deleted when the PR closes.
+- The app repo must build an image on every **push** to `staging`, tagged with
+the long commit sha. Using `hotosm/gh-workflows` `image_build` workflow
+will handle this for you.
+- The generator polls GitHub every 300s and renders the template with
+`head_sha` (tip of `staging`) in two places:
+  - `sources[0].targetRevision: "{{ .head_sha }}"` - chart is fetched from
+    that commit, so chart changes in the PR are exercised too.
+  - `helm.parameters[image.tag]: "sha-{{ .head_sha }}"` - Deployment points
+    at the image CI built for that commit.
+- Each push to `staging` will deploy the latest changes for testing.
+- To sync production data to the database or staging S3 bucket, do a
+  manual sync.
 
-Flow:
+!!! warning
 
-1. **PR generator polls GitHub** every `requeueAfterSeconds` (300s) for PRs
-   matching the head/base filters.
-2. **On each poll** it returns `{ number, head_sha, ... }`. Pushing a new
-   commit to `staging` changes `head_sha`.
-3. **Template re-renders** the Application with the new `head_sha`:
-     - `sources[0].targetRevision: {{ .head_sha }}` - chart is re-fetched from
-       that exact commit, so chart changes in the PR get exercised too.
-     - `helm.parameters[image.tag]: sha-{{ .head_sha }}` - Deployment's
-       container image tag changes.
-4. **Argo diff** detects the Application spec changed → syncs → Deployment
-   PodSpec changes → k8s rolls the pod cleanly. No mutable tag race, no
-   annotation hack.
-5. **CI on the app repo** must push `…:sha-<long-sha>` on every commit to the
-   `staging` branch (via `docker/metadata-action` with
-   `type=sha,format=long`). Argo assumes the tag exists by the time it tries
-   to pull.
+        Only a single staging → main PR should be opened
+        at a time!
 
-Closing/merging the PR removes it from the generator's result set → Argo
-deletes the Application → `resources-finalizer.argoproj.io` prunes the
-namespace and everything in it.
+        Otherwise there will be conflict trying to deploy
+        the same app twice.
 
-See `apps/staging/hot-website.yaml` for a working example.
+See `apps/staging/hot-website.yaml` for an example.
 
-## Production deployments using Argo Image Updater
+## Production deployments
 
+We have an arbitrary distinction between stable apps, and apps
+still under development.
+
+Our most stable and widely used app is Tasking Manager, so we
+treat this differently to other applications in our stack.
+
+### Stable apps
+
+- A few apps under `apps/` require specific chart version pinning to
+  deploy.
+- The extra manual step helps to make new deployments a more slow
+  and considered process, reducing the chances of breaking prod.
+- The chart pinned specifies the `appVersion` to deploy (unless
+  overriden in values.yaml).
+
+### Apps under development
+
+- Most apps under `apps/` auto-deploy on **GitHub release** of the app
+  repo.
+- Chart `targetRevision` is set to `"*"`, so Argo picks the highest
+  published chart version on each sync.
+- Chart templates default `image.tag` to `.Chart.AppVersion`. Cutting a
+  release bumps `Chart.yaml`'s `version` + `appVersion` together, so the
+  new chart carries its own image tag - both are updated together.
+- Rollback: pin `targetRevision` to the previous chart version in a PR.
+
+See `apps/drone-tm.yaml` for an example.
