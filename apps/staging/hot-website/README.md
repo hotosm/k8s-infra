@@ -42,6 +42,13 @@ kubeseal -f secret.yaml -w sealed-secret.yaml
 ### Copy production data
 
 1. Copy the production DB --> staging DB.
+
+```bash
+# From the hotosm/website repo
+# IMPORTANT: Ensure you are connected to the prod k8s cluster
+just db-refresh-staging
+```
+
 2. Copy the S3 content prod --> staging:
 
 ```bash
