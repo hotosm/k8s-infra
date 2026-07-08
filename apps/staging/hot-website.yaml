@@ -1,0 +1,70 @@
+# On-demand staging deploys of hot-website driven by staging->main PRs.
+#
+# Behaviour:
+#   - PR opened with head=staging targeting base=main   -> Application created.
+#   - Workloads (namespace, sealed secret, chart) sync into staging-website.
+#   - Karpenter's cpu-autoscale NodePool spins a spot node from 0.
+#   - Each subsequent push to staging changes head_sha -> the sha-tagged image
+#     changes -> Deployment spec changes -> pod rolls cleanly.
+#   - PR merged/closed -> Application deleted, resources-finalizer prunes the
+#     namespace and everything in it, node scales back to 0.
+#
+# GitHub only allows one PR per head->base branch pair, so concurrent
+# staging->main PRs are impossible - no shared-namespace clobber to worry about.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: hot-website-staging
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - pullRequest:
+        github:
+          owner: hotosm
+          repo: website
+        # Public repo -> anonymous GitHub API. ~60 req/hr limit is fine with
+        # this cadence and a single ApplicationSet; add a token if we scale up.
+        requeueAfterSeconds: 300
+        filters:
+          - branchMatch: "^staging$"
+            targetBranchMatch: "^main$"
+  template:
+    metadata:
+      name: "hot-website-staging-pr-{{ .number }}"
+      finalizers:
+        - resources-finalizer.argoproj.io
+    spec:
+      project: default
+      sources:
+        # Chart pulled from the PR's own commit so chart changes in the PR
+        # get exercised too.
+        - repoURL: https://github.com/hotosm/website.git
+          targetRevision: "{{ .head_sha }}"
+          path: chart
+          helm:
+            releaseName: hot-website
+            valueFiles:
+              - $k8s-infra/apps/staging/hot-website/helm/values.yaml
+            parameters:
+              # Immutable per-commit tag from CI (docker/metadata-action
+              # type=sha,format=long). Changing tag on every push means the
+              # Deployment spec changes and the pod rolls cleanly - no mutable
+              # tag race, no annotation hack.
+              - name: image.tag
+                value: "sha-{{ .head_sha }}"
+        - repoURL: https://github.com/hotosm/k8s-infra.git
+          targetRevision: HEAD
+          ref: k8s-infra
+        # Extra resources for staging (namespace, sealed secret). Non-recursive
+        # by default, so helm/values.yaml one level down is not applied.
+        - repoURL: https://github.com/hotosm/k8s-infra.git
+          targetRevision: HEAD
+          path: apps/staging/hot-website
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: staging-website
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: true
