@@ -1,0 +1,63 @@
+externalDatabase:
+  host: "fair-db-staging-rw.postgres.svc.cluster.local"
+  database: ai
+  username: fair
+  existingSecret: fair-api-credentials
+  existingSecretKey: password
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: fair.hotosm.org
+      paths:
+        - path: /api
+          pathType: Prefix
+
+backend:
+  envFrom:
+    - secretRef:
+        name: fair-api-credentials
+
+env: 
+  DEBUG: "False"
+  AUTH_PROVIDER: "dev"
+  HOSTNAME: "fair.ai.hotosm.org"
+  API_BASE_URL: "https://api.ai.hotosm.org/api/v1"
+  FRONTEND_URL: "https://fair.ai.hotosm.org"
+  ALLOWED_HOSTS: "api.ai.hotosm.org"
+  CSRF_TRUSTED_ORIGINS: "https://api.ai.hotosm.org,https://fair.ai.hotosm.org,http://localhost:5173,http://localhost:3500,http://127.0.0.1:5173,http://127.0.0.1:3500"
+  CORS_ALLOWED_ORIGINS: "https://fair.ai.hotosm.org,http://localhost:5173,http://localhost:3500,http://127.0.0.1:5173,http://127.0.0.1:3500"
+  SECURE_SSL_REDIRECT: "True"
+  DATABASE_SSL_MODE: "disable"
+  FAIR_ZENML_STORE_URL: "https://zenml.ai.hotosm.org"
+  ZENML_STORE_URL: ""
+  ZENML_STORE_VERIFY_SSL: "false"
+  ZENML_CONFIG_PATH: "/tmp/zenml"
+  ZENML_ACTIVE_STACK_ID: "b9090be8-caf1-494e-8c45-cc636234d889"
+  HOME: "/tmp"
+  # fair.zenml.config._workload_selector reads this to build pipeline-pod
+  # nodeSelectors. Must match the live label-domain on the ml node-pool
+  # (see dok8s/main.tf labels)
+  FAIR_LABEL_DOMAIN: "fair-k8s"
+  FAIR_UPLOAD_ARTIFACTS: "true"
+  FAIR_STAC_API_URL: "https://stac.ai.hotosm.org/stac"
+  BUCKET_NAME: "hotosm-fair-models-staging"
+  PARENT_BUCKET_FOLDER: "backend"
+  AWS_REGION: "us-east-1"
+  AWS_ENDPOINT_URL: "https://s3.us-east-1.amazonaws.com"
+  FAIR_S3_UPLOAD_ACL: "public-read"
+  FAIR_DOMAIN: "ai.hotosm.org"
+  LOG_PATH: "/tmp/fair-logs"
+  RAW_DATA_API_URL: "https://api-prod.raw-data.hotosm.org/v1"
+
+## All Secrets 
+    SECRET_KEY               = random_password.fair_secret_key.result
+    FAIR_DEV_TOKEN           = random_password.fair_dev_token.result
+    FAIR_ZENML_STORE_API_KEY = var.zenml_store_api_key
+    ZENML_STORE_API_KEY      = var.zenml_store_api_key
+    AWS_ACCESS_KEY_ID        = "minioadmin"
+    AWS_SECRET_ACCESS_KEY    = "minioadmin"
+
+
+  

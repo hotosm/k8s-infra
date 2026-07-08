@@ -1,0 +1,92 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: fair-db-staging
+  namespace: postgres
+spec:
+  retentionPolicy: "60d"
+  configuration:
+    destinationPath: s3://hotosm-k8s-db-backup/fair-db-staging
+    endpointURL: https://s3.amazonaws.com
+    s3Credentials:
+      accessKeyId:
+        name: s3-creds
+        key: access-key-id
+      secretAccessKey:
+        name: s3-creds
+        key: secret-access-key
+    wal:
+      compression: gzip # this saves a lot of storage
+      encryption: AES256 # AWS managed
+    data:
+      compression: gzip
+      encryption: AES256 # AWS managed
+      jobs: 2
+
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: fair-db-staging
+  labels:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/version: 18-system-trixie
+
+spec:
+  instances: 1
+  description: "fair api staging Database"
+  imageName: "ghcr.io/cloudnative-pg/postgresql:18-system-trixie"
+
+  primaryUpdateStrategy: unsupervised
+  enablePDB: true
+
+  postgresql:
+    parameters:
+      # Kill idle-in-transaction sessions after 60s to release locks held by abandoned txns.
+      idle_in_transaction_session_timeout: "60s"
+
+  bootstrap:
+    initdb:
+      database: fair
+      owner: fair
+      secret:
+        # Kubernetes basic-auth convention has keys:
+        # - username
+        # - password
+        name: fair-db-creds
+      postInitApplicationSQL:
+        - CREATE DATABASE fair;
+        - CREATE EXTENSION IF NOT EXISTS postgis;
+        - CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+  storage:
+    storageClass: gp3
+    size: 20Gi
+  walStorage:
+    storageClass: gp3
+    size: 10Gi
+
+  # prometheus
+  monitoring:
+    enablePodMonitor: false
+
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: fair-db-staging-store
+
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: fair-db-staging-backup
+  namespace: postgres
+spec:
+  schedule: "0 0 4 * * 0"  # At 04:00 UTC every Sunday
+  backupOwnerReference: self
+  cluster:
+    name: fair-db-staging
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
