@@ -5,6 +5,9 @@
 env:
   DJANGO_SETTINGS_MODULE: hot_osm.settings.production
   ALLOWED_HOSTS: "staging.website.hotosm.org,localhost"
+  # We disabled dragonfly / redis below
+  CACHE_BACKEND: "django.core.cache.backends.filebased.FileBasedCache"
+  CACHE_LOCATION: "/tmp/django_cache"
 
 web:
   replicaCount: 1

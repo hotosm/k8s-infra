@@ -27,6 +27,10 @@ stringData:
   MAPBOX_ACCESS_TOKEN: "staging-placeholder"
   DEEPL_KEY: "staging-placeholder"
   SENTRY_DSN: ""
+  AWS_STORAGE_BUCKET_NAME: "hotosm-website-staging"
+  AWS_ACCESS_KEY_ID: "xxx"
+  AWS_SECRET_ACCESS_KEY: "xxx"
+  AWS_S3_REGION_NAME: "us-east-1"
 ```
 
 Seal and commit:
