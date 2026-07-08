@@ -1,11 +1,9 @@
 environment: production
 serviceType: ClusterIP
 namespace: tm-sandbox
-createClusterIssuer: true
 adminEmail: admin@sandbox.hotosm.org
 
 ssl_certificate:
-  create_cluster_issuer: false
   create_cert: true
 
 service_account:
@@ -51,7 +49,7 @@ db:
 dashboard:
   image:
     name: ghcr.io/hotosm/osm-sandbox-dashboard/dashboard
-    tag: e81440a1426a5b9c5173cddc9c57a6129f41bc45
+    tag: c53c30ab21e05f301d7b10186023efb7fd4d1b2c
   enabled: true
   ingressDomain: sandbox.hotosm.org
   persistenceDisk:
