@@ -1,0 +1,22 @@
+# App-of-apps for on-demand staging environments.
+# Scans apps/staging/ (non-recursive) and applies each top-level manifest:
+#   - staging namespaces (permanent, empty when no PRs open)
+#   - ApplicationSets that spin up staging deploys from staging->main PRs
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: staging
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/hotosm/k8s-infra.git
+    path: apps/staging
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true

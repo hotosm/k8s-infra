@@ -1,0 +1,56 @@
+# Staging overrides for hot-website. Applied on top of the chart's defaults
+# from the PR's headSha (see ../../hot-website.yaml).
+
+# Localhost must stay in ALLOWED_HOSTS - kubelet probes send Host: localhost.
+env:
+  DJANGO_SETTINGS_MODULE: hot_osm.settings.production
+  ALLOWED_HOSTS: "staging.website.hotosm.org,localhost"
+
+web:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+  budget:
+    minAvailable: 0
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      external-dns.alpha.kubernetes.io/hostname: staging.website.hotosm.org
+      external-dns.alpha.kubernetes.io/ttl: "300"
+    hosts:
+      - host: staging.website.hotosm.org
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: hot-website-staging-tls
+        hosts:
+          - staging.website.hotosm.org
+
+# Bundled single-pod Postgres. Injects DATABASE_URL into the web Deployment
+# and Jobs, overriding any value in `existingSecret`. Persistence off so PR
+# closure fully wipes state.
+postgres:
+  enabled: true
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Default Django LocMem cache is fine for staging - no dragonfly to spin up.
+dragonfly:
+  enabled: false
