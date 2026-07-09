@@ -14,7 +14,7 @@ spec:
       # repo (which bumps chart version + appVersion together) is what
       # promotes the new image to prod. Pin an exact version here to
       # freeze deploys.
-      targetRevision: "*"
+      targetRevision: "2026.6.11"
       helm:
         releaseName: drone-tm-prod
         valueFiles:
