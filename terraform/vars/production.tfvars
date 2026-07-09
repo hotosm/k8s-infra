@@ -12,5 +12,3 @@ cluster_admin_access_role_arns = [
   "arn:aws:iam::670261699094:role/NAXA_cross_account_role"
 ]
 cluster_ci_access_role_arn = "arn:aws:iam::670261699094:role/Github-AWS-OIDC"
-
-# Trigger S3 bucket apply
