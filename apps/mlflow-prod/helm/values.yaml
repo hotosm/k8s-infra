@@ -30,7 +30,7 @@ artifactRoot:
     bucket: "hotosm-fair-mlflow-prod" # Isolated prod bucket
     path: "" 
     existingSecret:
-      name: "mlflow-prod-s3-creds"
+      name: "mlflow-s3-creds"
       keyOfAccessKeyId: "AWS_ACCESS_KEY_ID"
       keyOfSecretAccessKey: "AWS_SECRET_ACCESS_KEY"
 
