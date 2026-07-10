@@ -19,7 +19,8 @@ spec:
     - repoURL: https://github.com/hotosm/k8s-infra.git
       targetRevision: HEAD
       path: apps/zenml-prod
-      kustomize: {}
+      kustomize: 
+        enableHelm: true
   destination:
     server: https://kubernetes.default.svc
     namespace: zenml-prod
