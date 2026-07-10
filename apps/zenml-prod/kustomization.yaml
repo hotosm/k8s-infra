@@ -27,6 +27,8 @@ patches:
 # pointed to the production release
 helmCharts:
   - name: zenml
-    releaseName: zenml
-    namespace: zenml-prod
+    repo: https://charts.zenml.io 
+    version: 0.94.2              
+    releaseName: zenml-prod
     valuesFile: helm/values.yaml
+    namespace: zenml-prod
