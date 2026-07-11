@@ -20,6 +20,8 @@ spec:
     - repoURL: https://github.com/hotosm/k8s-infra.git
       targetRevision: HEAD
       ref: k8s-infra
+      path: apps/kube-ops-view # Point to the directory containing your kustomization.yaml and secret
+      kustomize: {}
 
   destination:
     server: https://kubernetes.default.svc
