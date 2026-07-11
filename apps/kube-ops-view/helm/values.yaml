@@ -1,0 +1,39 @@
+# apps/kube-ops-view/helm/values.yaml
+
+# Enable RBAC so the tool has read-only permission to see nodes and pods
+rbac:
+  create: true
+
+serviceAccount:
+  create: true
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    # Automate SSL/TLS Certificate Generation
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # Automate DNS Record Creation
+    external-dns.alpha.kubernetes.io/hostname: "kube-ops-view.ai.hotosm.org"
+    external-dns.alpha.kubernetes.io/ttl: "300"
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: kube-ops-view-basic-auth
+    nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
+  hosts:
+    - host: kube-ops-view.ai.hotosm.org
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: kube-ops-view-tls
+      hosts:
+        - kube-ops-view.ai.hotosm.org
+
+# Set resource requests/limits for Karpenter efficiency 
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
