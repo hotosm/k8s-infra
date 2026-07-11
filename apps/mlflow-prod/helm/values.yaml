@@ -57,6 +57,7 @@ ingress:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     external-dns.alpha.kubernetes.io/hostname: mlflow-production.ai.hotosm.org
     external-dns.alpha.kubernetes.io/ttl: "300"
+    nginx.ingress.kubernetes.io/upstream-vhost: "localhost" 
   hosts:
     - host: mlflow-production.ai.hotosm.org
       paths:
