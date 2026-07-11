@@ -13,7 +13,6 @@ patches:
   - target:
       kind: Deployment
       name: zenml
-      # Target the production-specific instance
       namespace: zenml-prod
     patch: |-
       - op: add
@@ -22,13 +21,3 @@ patches:
       - op: add
         path: /spec/template/metadata/labels/tool
         value: fair
-
-# Aligning with your staging structure, ensure the helm chart is correctly 
-# pointed to the production release
-helmCharts:
-  - name: zenml
-    repo: https://charts.zenml.io 
-    version: 0.94.2              
-    releaseName: zenml-prod
-    valuesFile: helm/values.yaml
-    namespace: zenml-prod
