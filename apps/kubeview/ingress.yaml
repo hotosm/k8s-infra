@@ -1,15 +1,8 @@
-# apps/kubeview/helm/values.yaml
-
-rbac:
-  create: true
-
-serviceAccount:
-  create: true
-
-# KubeView specific configurations
-ingress:
-  enabled: false
-  className: "nginx"
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubeview
+  namespace: kubeview
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     external-dns.alpha.kubernetes.io/hostname: "kubeview.ai.hotosm.org"
@@ -19,20 +12,20 @@ ingress:
     nginx.ingress.kubernetes.io/auth-type: basic
     nginx.ingress.kubernetes.io/auth-secret: kubeview-basic-auth
     nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
-  hosts:
+spec:
+  ingressClassName: nginx
+  rules:
     - host: kubeview.ai.hotosm.org
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubeview
+                port:
+                  number: 8000
   tls:
-    - secretName: kubeview-tls
-      hosts:
+    - hosts:
         - kubeview.ai.hotosm.org
-
-resources:
-  requests:
-    cpu: 100m
-    memory: 128Mi
-  limits:
-    cpu: 250m
-    memory: 256Mi
+      secretName: kubeview-tls
