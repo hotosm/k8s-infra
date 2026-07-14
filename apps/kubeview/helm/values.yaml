@@ -6,28 +6,9 @@ rbac:
 serviceAccount:
   create: true
 
-# KubeView specific configurations
-ingress:
-  enabled: false
-  className: "nginx"
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    external-dns.alpha.kubernetes.io/hostname: "kubeview.ai.hotosm.org"
-    external-dns.alpha.kubernetes.io/ttl: "300"
-    
-    # Basic Authentication
-    nginx.ingress.kubernetes.io/auth-type: basic
-    nginx.ingress.kubernetes.io/auth-secret: kubeview-basic-auth
-    nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
-  hosts:
-    - host: kubeview.ai.hotosm.org
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
-  tls:
-    - secretName: kubeview-tls
-      hosts:
-        - kubeview.ai.hotosm.org
+service:
+  type: ClusterIP
+  port: 80
 
 resources:
   requests:
