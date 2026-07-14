@@ -2,8 +2,10 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: argocd-cm
+  namespace: argocd
 data:
   # Read-only local account for contractors to view deploy
   # status. Read README for setting password.
   accounts.contractor: login
   accounts.contractor.enabled: "true"
+  kustomize.buildOptions: --enable-helm

@@ -1,0 +1,193 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/tracking-id: root-app:argoproj.io/Application:argocd/zenml-prod
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"argoproj.io/v1alpha1","kind":"Application","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"root-app:argoproj.io/Application:argocd/zenml-prod"},"name":"zenml-prod","namespace":"argocd"},"spec":{"destination":{"namespace":"zenml-prod","server":"https://kubernetes.default.svc"},"project":"default","sources":[{"chart":"zenml","helm":{"releaseName":"zenml-prod","valueFiles":["$k8s-infra/apps/zenml-prod/helm/values.yaml"]},"repoURL":"oci://public.ecr.aws/zenml/zenml","targetRevision":"0.94.2"},{"ref":"k8s-infra","repoURL":"https://github.com/hotosm/k8s-infra.git","targetRevision":"HEAD"},{"kustomize":{"enableHelm":true},"path":"apps/zenml-prod","repoURL":"https://github.com/hotosm/k8s-infra.git","targetRevision":"HEAD"}],"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true","ServerSideApply=true"]}}}
+  creationTimestamp: "2026-07-06T00:05:50Z"
+  generation: 2711
+  name: zenml-prod
+  namespace: argocd
+  resourceVersion: "210719674"
+  uid: a4289b1d-5f3c-4bd2-bcb1-b2202a3b45e1
+operation:
+  initiatedBy:
+    automated: true
+  retry:
+    limit: 5
+  sync:
+    prune: true
+    revisions:
+    - sha256:8fee854d3b55ad097c3ddd25663c8fc41e9fe99eddf95719a5c8110f20f4f60a
+    - 4e26c40998d7de8cf9480691a41be6690677af94
+    - 4e26c40998d7de8cf9480691a41be6690677af94
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+spec:
+  destination:
+    namespace: zenml-prod
+    server: https://kubernetes.default.svc
+  project: default
+  sources:
+  - chart: zenml
+    helm:
+      releaseName: zenml-prod
+      valueFiles:
+      - $k8s-infra/apps/zenml-prod/helm/values.yaml
+    repoURL: oci://public.ecr.aws/zenml/zenml
+    targetRevision: 0.94.2
+  - ref: k8s-infra
+    repoURL: https://github.com/hotosm/k8s-infra.git
+    targetRevision: HEAD
+  - kustomize: {}
+    path: apps/zenml-prod
+    repoURL: https://github.com/hotosm/k8s-infra.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+status:
+  conditions:
+  - lastTransitionTime: "2026-07-10T10:23:23Z"
+    message: |-
+      Failed to load target state: failed to generate manifest for source 3 of 3: rpc error: code = Unknown desc = Manifest generation error (cached): `kustomize build <path to cached source>/apps/zenml-prod` failed exit status 1: Error: trouble configuring builtin HelmChartInflationGenerator with config: `
+      name: zenml
+      namespace: zenml-prod
+      releaseName: zenml
+      valuesFile: helm/values.yaml
+      `: must specify --enable-helm
+    type: ComparisonError
+  controllerNamespace: argocd
+  health:
+    lastTransitionTime: "2026-07-10T10:15:34Z"
+    status: Healthy
+  operationState:
+    message: waiting for completion of hook batch/Job/zenml-prod-db-migration
+    operation:
+      initiatedBy:
+        automated: true
+      retry:
+        limit: 5
+      sync:
+        prune: true
+        revisions:
+        - sha256:8fee854d3b55ad097c3ddd25663c8fc41e9fe99eddf95719a5c8110f20f4f60a
+        - 4e26c40998d7de8cf9480691a41be6690677af94
+        - 4e26c40998d7de8cf9480691a41be6690677af94
+        syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
+    phase: Running
+    retryCount: 4
+    startedAt: "2026-07-09T10:19:09Z"
+    syncResult:
+      resources:
+      - group: ""
+        hookPhase: Succeeded
+        hookType: PreSync
+        kind: Secret
+        message: zenml-prod-db-migration created
+        name: zenml-prod-db-migration
+        namespace: zenml-prod
+        syncPhase: PreSync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        hookType: PreSync
+        kind: ServiceAccount
+        message: zenml-db-migration created
+        name: zenml-db-migration
+        namespace: zenml-prod
+        syncPhase: PreSync
+        version: v1
+      - group: batch
+        hookPhase: Running
+        hookType: PreSync
+        images:
+        - ghcr.io/hotosm/zenml-postgres:0.94.2
+        kind: Job
+        message: job.batch/zenml-prod-db-migration serverside-applied
+        name: zenml-prod-db-migration
+        namespace: zenml-prod
+        syncPhase: PreSync
+        version: v1
+      revision: ""
+      revisions:
+      - sha256:8fee854d3b55ad097c3ddd25663c8fc41e9fe99eddf95719a5c8110f20f4f60a
+      - 4e26c40998d7de8cf9480691a41be6690677af94
+      - 4e26c40998d7de8cf9480691a41be6690677af94
+      source:
+        repoURL: ""
+      sources:
+      - chart: zenml
+        helm:
+          releaseName: zenml-prod
+          valueFiles:
+          - $k8s-infra/apps/zenml-prod/helm/values.yaml
+        repoURL: oci://public.ecr.aws/zenml/zenml
+        targetRevision: 0.94.2
+      - ref: k8s-infra
+        repoURL: https://github.com/hotosm/k8s-infra.git
+        targetRevision: HEAD
+      - kustomize: {}
+        path: apps/zenml-prod
+        repoURL: https://github.com/hotosm/k8s-infra.git
+        targetRevision: HEAD
+  reconciledAt: "2026-07-10T10:23:23Z"
+  resourceHealthSource: appTree
+  resources:
+  - hook: true
+    kind: Secret
+    name: zenml-prod-db-migration
+    namespace: zenml-prod
+    requiresPruning: true
+    status: Unknown
+    version: v1
+  - hook: true
+    kind: ServiceAccount
+    name: zenml-db-migration
+    namespace: zenml-prod
+    requiresPruning: true
+    status: Unknown
+    version: v1
+  - group: batch
+    hook: true
+    kind: Job
+    name: zenml-prod-db-migration
+    namespace: zenml-prod
+    requiresPruning: true
+    status: Unknown
+    version: v1
+  sourceHydrator: {}
+  summary:
+    images:
+    - ghcr.io/hotosm/zenml-postgres:0.94.2
+  sync:
+    comparedTo:
+      destination:
+        namespace: zenml-prod
+        server: https://kubernetes.default.svc
+      source:
+        repoURL: ""
+      sources:
+      - chart: zenml
+        helm:
+          releaseName: zenml-prod
+          valueFiles:
+          - $k8s-infra/apps/zenml-prod/helm/values.yaml
+        repoURL: oci://public.ecr.aws/zenml/zenml
+        targetRevision: 0.94.2
+      - ref: k8s-infra
+        repoURL: https://github.com/hotosm/k8s-infra.git
+        targetRevision: HEAD
+      - kustomize: {}
+        path: apps/zenml-prod
+        repoURL: https://github.com/hotosm/k8s-infra.git
+        targetRevision: HEAD
+    status: Unknown

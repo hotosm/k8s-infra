@@ -30,7 +30,7 @@ artifactRoot:
     bucket: "hotosm-fair-mlflow-prod" # Isolated prod bucket
     path: "" 
     existingSecret:
-      name: "mlflow-prod-s3-creds"
+      name: "mlflow-s3-creds"
       keyOfAccessKeyId: "AWS_ACCESS_KEY_ID"
       keyOfSecretAccessKey: "AWS_SECRET_ACCESS_KEY"
 
@@ -49,3 +49,21 @@ resources:
   requests:
     cpu: 500m
     memory: 1Gi
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: mlflow-production.ai.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+    nginx.ingress.kubernetes.io/upstream-vhost: "localhost" 
+  hosts:
+    - host: mlflow-production.ai.hotosm.org
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - mlflow-production.ai.hotosm.org
+      secretName: mlflow-production-tls

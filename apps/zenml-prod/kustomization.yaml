@@ -1,11 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Explicitly scope all resources to the production namespace
+namespace: zenml-prod
+
 resources:
   - sealed-extra-secrets.yaml
   - orchestrator-role.yaml
 
 patches:
+  # Apply the same labeling structure as staging, but specifically for production
   - target:
       kind: Deployment
-      name: zenml-prod
+      name: zenml
       namespace: zenml-prod
     patch: |-
       - op: add

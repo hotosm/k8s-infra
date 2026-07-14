@@ -1,0 +1,35 @@
+# apps/kubeview.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubeview
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    # Source 1: The official upstream KubeView Helm Chart
+    - repoURL: https://code.benco.io/kubeview/deploy/helm
+      chart: kubeview
+      targetRevision: '*' # Pulls the latest version
+      helm:
+        releaseName: kubeview
+        valueFiles:
+          - $k8s-infra/apps/kubeview/helm/values.yaml
+
+    # Source 2: Your k8s-infra repository (pulls the Sealed Secret)
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+      path: apps/kubeview
+      kustomize: {}
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kubeview
+  
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
