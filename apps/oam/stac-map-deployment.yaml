@@ -1,0 +1,107 @@
+# stac-map static UI, served at https://api.imagery.hotosm.org/map/.
+#
+# Image is built by .github/workflows/frontend-stac-map-build.yml in the
+# hotosm/openaerialmap monorepo The tag below
+# must match the upstream ref pinned in stac-map/Dockerfile (STAC_MAP_REF)
+# and the workflow's `image_tags` - bump all three together.
+#
+# Runs in the `eoapi` namespace alongside the STAC API so it sits behind
+# the same Ingress host as `/browser` and `/stac`.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stac-map
+  namespace: eoapi
+  labels:
+    app: stac-map
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stac-map
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: stac-map
+    spec:
+      containers:
+        - name: stac-map
+          image: ghcr.io/hotosm/openaerialmap/stac-map:2.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /map/
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /map/
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "32Mi"
+            limits:
+              cpu: "100m"
+              memory: "64Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stac-map
+  namespace: eoapi
+  labels:
+    app: stac-map
+spec:
+  selector:
+    app: stac-map
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+---
+# Separate Ingress on the same host as the eoapi chart's Ingress. nginx
+# ingress-controller merges path rules across Ingresses that share a
+# host, so this adds `/map` alongside `/browser`, `/stac`, and `/raster`
+# without touching the eoapi chart. TLS + external-dns are already
+# owned by the eoapi Ingress for this host - we just reference the same
+# TLS secret so the controller serves us over HTTPS too.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: stac-map
+  namespace: eoapi
+  annotations:
+    nginx.ingress.kubernetes.io/enable-access-log: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - api.imagery.hotosm.org
+      secretName: eoapi-tls
+  rules:
+    - host: api.imagery.hotosm.org
+      http:
+        paths:
+          - path: /map
+            pathType: Prefix
+            backend:
+              service:
+                name: stac-map
+                port:
+                  name: http
