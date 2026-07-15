@@ -2,13 +2,21 @@
 #
 # Behaviour:
 #   - PR opened with head=staging targeting base=main   -> Application created.
-#   - Workloads (namespace, sealed secret, chart) sync into staging-website.
+#   - Namespace auto-created via CreateNamespace=true (not managed by the
+#     Application, so it survives teardown).
+#   - Workloads (sealed secret, quota/limits, chart) sync into staging-website.
+#     Quota/limits/sealed-secret carry Delete=false so the resources-finalizer
+#     leaves them behind when the Application is deleted.
 #   - Karpenter's cpu-autoscale NodePool spins a spot node from 0.
 #   - Each subsequent push to staging changes head_sha -> the sha-tagged image
 #     changes -> Deployment spec changes -> pod rolls cleanly.
-#   - PR merged/closed -> Application deleted, resources-finalizer prunes the
-#     namespace and everything in it, node scales back to 0.
+#   - PR merged/closed -> Application deleted, resources-finalizer prunes only
+#     the Helm-managed workload (Deployment, Service, StatefulSet, Ingress,
+#     Job, chart Secrets). Namespace + bootstrap resources persist so the next
+#     PR lands cleanly. Node scales back to 0.
 #
+# Keeping the namespace across PRs avoids the classic stuck-Terminating wedge
+# (cert-manager Certificate/Order finalizers, ingress webhook flakes, etc).
 # GitHub only allows one PR per head->base branch pair, so concurrent
 # staging->main PRs are impossible - no shared-namespace clobber to worry about.
 apiVersion: argoproj.io/v1alpha1
@@ -68,3 +76,9 @@ spec:
         automated:
           selfHeal: true
           prune: true
+        syncOptions:
+          - CreateNamespace=true
+        managedNamespaceMetadata:
+          labels:
+            environment: staging
+            app: hot-website

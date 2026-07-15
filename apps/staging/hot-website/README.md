@@ -4,7 +4,9 @@ A PR opened on [hotosm/website](https://github.com/hotosm/website) with head
 `staging` targeting `main` triggers the `hot-website-staging` ApplicationSet
 (see `../hot-website.yaml`). Workloads land in the `staging-website`
 namespace, reachable at `https://staging.website.hotosm.org`. Closing/merging
-the PR tears the deploy down and the node scales to 0.
+the PR tears the Helm-managed workload down and the node scales to 0; the
+namespace, quota/limits, and sealed secret persist so the next PR lands
+cleanly without re-creating them.
 
 ### Sealed secret
 
