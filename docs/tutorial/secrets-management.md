@@ -150,6 +150,16 @@ git add sealed-secret.yaml
 git commit -m "Update sealed secret"
 ```
 
+## Migrating a Sealed Secret to a New Namespace
+
+Sealed secrets are bound to `namespace + name` by default (strict scope),
+so you can't just edit the `metadata.namespace` field - the controller
+will refuse to decrypt. The move requires:
+
+1. Unseal the existing secret to plaintext with the recovery key.
+2. Edit the namespace (and anything else) in the plaintext.
+3. Reseal with `kubeseal` targeting the new namespace.
+
 ## Emergency Recovery
 
 To retrieve a secret from a sealed secret file (offline):
