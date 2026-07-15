@@ -2,7 +2,7 @@ externalDatabase:
   host: "fair-db-staging-rw.postgres.svc.cluster.local"
   database: ai
   username: fair
-  existingSecret: fair-db-creds
+  existingSecret: fair-db-credentials
   existingSecretKey: password
 
 ingress:
