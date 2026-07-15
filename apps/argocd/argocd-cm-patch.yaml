@@ -8,4 +8,4 @@ data:
   # status. Read README for setting password.
   accounts.contractor: login
   accounts.contractor.enabled: "true"
-  kustomize.buildOptions: --enable-helm
+
