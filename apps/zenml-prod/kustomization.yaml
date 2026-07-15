@@ -7,6 +7,7 @@ namespace: zenml-prod
 resources:
   - sealed-extra-secrets.yaml
   - orchestrator-role.yaml
+  - pipeline-namespace.yaml
 
 patches:
   # Apply the same labeling structure as staging, but specifically for production

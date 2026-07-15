@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zenml-pipelines-prod
+  labels:
+    # Add standard labels if your cluster requires them for networking/security
+    name: zenml-pipelines-prod
+    environment: production
