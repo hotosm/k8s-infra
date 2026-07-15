@@ -2,7 +2,7 @@ externalDatabase:
   host: "fair-db-staging-rw.postgres.svc.cluster.local"
   database: ai
   username: fair
-  existingSecret: fair-api-credentials
+  existingSecret: fair-db-creds
   existingSecretKey: password
 
 ingress:
@@ -18,6 +18,22 @@ backend:
   envFrom:
     - secretRef:
         name: fair-api-credentials
+
+frontend:
+  mode: cloudfront
+  runtimeEnv:
+    VITE_API_URL: 'https://stage.api.ai.hotosm.org'
+    VITE_AUTH_PROVIDER: 'hanko'
+    VITE_HANKO_URL: 'https://dev.login.hotosm.org'
+  cloudfront:
+    roleArn: "arn:aws:iam::670261699094:role/dronetm-prod-frontend-cloudfront-deploy"
+    region: us-east-1
+    s3Bucket: hotosm-fair-staging-frontend
+    aliases:
+      - stage.ai.hotosm.org
+    acmCertificateArn: 'arn:aws:acm:us-east-1:670261699094:certificate/e6eaaa9c-0de8-4222-b8f9-0e8c3e56f813'
+    priceClass: PriceClass_All
+
 
 env: 
   DEBUG: "false"
