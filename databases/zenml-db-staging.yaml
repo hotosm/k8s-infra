@@ -26,16 +26,16 @@ spec:
   walStorage: { storageClass: gp3, size: 40Gi }
   bootstrap:
     recovery:
-      source: zenml-db-prod-source
+      source: zenml-db-prod
   externalClusters:
-    - name: zenml-db-prod-source
+    - name: zenml-db-prod
       plugin:
         name: barman-cloud.cloudnative-pg.io
         parameters:
-          barmanObjectName: zenml-db-staging-store
+          barmanObjectName: zenml-db-staging
           serverName: zenml-db-staging    # matches renamed prefix from step 2
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
       parameters:
-        barmanObjectName: zenml-db-staging-store
+        barmanObjectName: zenml-db-staging
