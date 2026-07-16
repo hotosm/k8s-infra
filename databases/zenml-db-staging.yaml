@@ -6,7 +6,7 @@ metadata:
 spec:
   retentionPolicy: "60d"
   configuration:
-    destinationPath: s3://hotosm-k8s-db-backup/zenml-db-staging
+    destinationPath: s3://hotosm-k8s-db-backup/zenml-staging
     endpointURL: https://s3.amazonaws.com
     s3Credentials:
       accessKeyId:     { name: s3-creds, key: access-key-id }
