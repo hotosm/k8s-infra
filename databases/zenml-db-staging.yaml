@@ -38,4 +38,4 @@ spec:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
       parameters:
-        barmanObjectName: zenml-db-staging
+        barmanObjectName: zenml-db-staging-store
