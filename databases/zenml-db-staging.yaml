@@ -32,7 +32,7 @@ spec:
       plugin:
         name: barman-cloud.cloudnative-pg.io
         parameters:
-          barmanObjectName: zenml-db-staging
+          barmanObjectName: zenml-db-staging-store
           serverName: zenml-db-staging    # matches renamed prefix from step 2
   plugins:
     - name: barman-cloud.cloudnative-pg.io
