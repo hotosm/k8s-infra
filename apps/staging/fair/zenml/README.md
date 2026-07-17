@@ -33,6 +33,8 @@ kubeseal -f secret.yaml -w ../zenml-extra-secret-env.yaml
 Sync-wave `-5` on the sealed secret ensures it's applied before the
 chart's db migration job.
 
+!! Make sure this is applied if regenerating the secret !!
+
 ## Configuration
 
 See [`opentofu/README.md`](./opentofu/README.md).
