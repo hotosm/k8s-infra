@@ -1,12 +1,12 @@
 apiVersion: barmancloud.cnpg.io/v1
 kind: ObjectStore
 metadata:
-  name: fair-db-staging
+  name: zenml-db-staging-store
   namespace: postgres
 spec:
   retentionPolicy: "60d"
   configuration:
-    destinationPath: s3://hotosm-k8s-db-backup/fair-db-staging
+    destinationPath: s3://hotosm-k8s-db-backup/zenml-staging
     endpointURL: https://s3.amazonaws.com
     s3Credentials:
       accessKeyId:
@@ -16,57 +16,58 @@ spec:
         name: s3-creds
         key: secret-access-key
     wal:
-      compression: gzip # this saves a lot of storage
-      encryption: AES256 # AWS managed
+      compression: gzip
+      encryption: AES256
     data:
       compression: gzip
-      encryption: AES256 # AWS managed
+      encryption: AES256
       jobs: 2
 
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: fair-db-staging
+  name: zenml-db-staging
   labels:
     app.kubernetes.io/component: database
     app.kubernetes.io/version: 18-system-trixie
 
 spec:
   instances: 1
-  description: "fair api staging Database"
+  description: "ZenML Staging Database (recovered from zenml-db-prod)"
   imageName: "ghcr.io/cloudnative-pg/postgresql:18-system-trixie"
 
   primaryUpdateStrategy: unsupervised
-  enablePDB: true
+  # PDB (voluntary-eviction guard) disabled - single replica would otherwise block node drains on cluster upgrade
+  enablePDB: false
 
   postgresql:
     parameters:
-      # Kill idle-in-transaction sessions after 60s to release locks held by abandoned txns.
       idle_in_transaction_session_timeout: "60s"
 
   bootstrap:
-    initdb:
-      database: fair
-      owner: fair
+    recovery:
+      source: zenml-db-prod
+      database: zenml
+      owner: zenml
       secret:
-        # Kubernetes basic-auth convention has keys:
-        # - username
-        # - password
-        name: fair-db-creds
-      postInitApplicationSQL:
-        - CREATE DATABASE fair;
-        - CREATE EXTENSION IF NOT EXISTS postgis;
-        - CREATE EXTENSION IF NOT EXISTS btree_gist;
+        name: zenml-db-staging-creds
+
+  externalClusters:
+    - name: zenml-db-prod
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: zenml-db-prod-store
+          serverName: zenml-db-prod
 
   storage:
     storageClass: gp3
     size: 20Gi
   walStorage:
     storageClass: gp3
-    size: 10Gi
+    size: 40Gi
 
-  # prometheus
   monitoring:
     enablePodMonitor: false
 
@@ -74,19 +75,19 @@ spec:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
       parameters:
-        barmanObjectName: fair-db-staging-store
+        barmanObjectName: zenml-db-staging-store
 
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
 metadata:
-  name: fair-db-staging-backup
+  name: zenml-db-staging-backup
   namespace: postgres
 spec:
-  schedule: "0 0 4 * * 0"  # At 04:00 UTC every Sunday
+  schedule: "0 0 3 * * 6"  # At 03:00 UTC every Saturday
   backupOwnerReference: self
   cluster:
-    name: fair-db-staging
+    name: zenml-db-staging
   method: plugin
   pluginConfiguration:
     name: barman-cloud.cloudnative-pg.io

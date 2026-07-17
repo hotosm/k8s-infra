@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: fair-staging-quota
+  namespace: fair-staging
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  # Sized for 4 charts + ZenML pipeline pods. Bump if syncs go pending.
+  hard:
+    requests.cpu: "8"
+    requests.memory: 16Gi
+    limits.cpu: "16"
+    limits.memory: 32Gi
+    pods: "60"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: fair-staging-limits
+  namespace: fair-staging
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: 500m
+        memory: 512Mi
+      defaultRequest:
+        cpu: 100m
+        memory: 128Mi
