@@ -45,14 +45,6 @@ spec:
     parameters:
       idle_in_transaction_session_timeout: "60s"
 
-  bootstrap:
-    recovery:
-      source: zenml-db-prod
-      database: zenml
-      owner: zenml
-      secret:
-        name: zenml-db-staging-creds
-
   externalClusters:
     - name: zenml-db-prod
       plugin:
