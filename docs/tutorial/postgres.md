@@ -11,9 +11,26 @@ Renames `zenml-db-prod` → `zenml-db-staging`, archive prefix
 
 ### 1. Backup prod
 
+The cluster backs up via the barman-cloud plugin, so `kubectl cnpg backup`
+fails (`cluster has no backup section`). Apply a plugin-method `Backup`
+instead:
+
 ```bash
-kubectl cnpg backup zenml-db-prod -n postgres
-kubectl get backup -n postgres -w         # wait: Completed
+kubectl apply -f - <<'EOF'
+apiVersion: postgresql.cnpg.io/v1
+kind: Backup
+metadata:
+  name: zenml-db-prod-manual-preflip
+  namespace: postgres
+spec:
+  cluster:
+    name: zenml-db-prod
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+EOF
+
+kubectl get backup zenml-db-prod-manual-preflip -n postgres -w   # wait: Completed
 ```
 
 ### 2. Provision the new cluster
@@ -82,7 +99,7 @@ kubectl exec -n postgres zenml-db-staging-1 -- \
 
 ### 4. Cutover
 
-Writes to prod between step 1 and now won't reach the new cluster —
+Writes to prod between step 1 and now won't reach the new cluster -
 use [replica cluster mode][cnpg-replica] if that matters.
 
 [cnpg-replica]: https://cloudnative-pg.io/documentation/current/replica_cluster/
