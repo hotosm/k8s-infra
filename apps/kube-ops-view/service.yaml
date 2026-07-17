@@ -3,13 +3,16 @@ kind: Service
 metadata:
   name: kube-ops-view
   namespace: default
-  labels:
-    app: kube-ops-view
+  annotations:
+    # Forces a clean MagicDNS name on your Tailnet
+    tailscale.com/hostname: "kube-ops-view"
 spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
   selector:
+    # This must match the labels in your deployment.yaml
     app: kube-ops-view
-  type: ClusterIP
   ports:
-  - port: 80
-    targetPort: 8080
-    protocol: TCP
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
