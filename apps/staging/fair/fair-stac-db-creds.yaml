@@ -5,6 +5,10 @@ metadata:
   creationTimestamp: null
   name: fair-stac-db-creds
   namespace: fair-staging
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: HookFailed
+    argocd.argoproj.io/sync-wave: "-5"
 spec:
   encryptedData:
     database: AgDDL06jSwk7ll4La2Bc19cZgldlr61EMAfPGb6sdCiY11BjA6zrUCrQ974LmcClzG7eNLCcwC60KALD9lhlaTyOPQPYweEDoxolv3+NOqbLP8NggfMDDTDA/L7WkAJouR7VrgHR0mYsqfx9o5WrFo18ucugmfIKwcXVQxowCShnMZPh3XIcVOAKS1w9PqmVbNb9xkkQ/hncC7rgzBCrgeDexP6g2a3qd5L91w4w30WOYpMrRx69EX/ql3+aWyklBIch8jQj3KjlzOGU/DGK8xm4FhumtGtyTvUMgBUYlra3IPFaNpVTc38+tOR9F3dEsUqJTrWDtDDTKwx4cjmHcT7L8SoBgaLZJ8aLfE3ShOfdrWEQZO+EdUHoj3eCsSI1ZLBlfLH7GDYVLVMJXA1d9N2+hXffC3JFo8n9LtNi2kJz4G8mUSHT+zTJYRizaETZzZpHScbJBRTomVQNr1KfslNlEasS2jbofKdkq1uDdLNSghJ9GGaUpkpcZmI67yHm0LnJBp00NKGhlSipzYkXS+ehgnuXR29zblPi+pIumiJnAtXFCZpv1pkQXrKXy0XQDDkAN88rvrJYdPC2RkFqutPRSBsRJAKJM7+llN1nEs7naXaPMILoS6gAPtGMvzujEGnC+Vkft/J6HYOCaSdlOoXvw778N22NUYmqwrWfNai5/zuUCbhXBkkhr1s4DHkX0zet1rth1P1zSeI=
