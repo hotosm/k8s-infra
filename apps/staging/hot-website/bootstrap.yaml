@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: ResourceQuota
 metadata:
-  name: staging-website-quota
-  namespace: staging-website
+  name: website-staging-quota
+  namespace: website-staging
   annotations:
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
 spec:
@@ -16,8 +16,8 @@ spec:
 apiVersion: v1
 kind: LimitRange
 metadata:
-  name: staging-website-limits
-  namespace: staging-website
+  name: website-staging-limits
+  namespace: website-staging
   annotations:
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
 spec:

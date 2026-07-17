@@ -4,7 +4,7 @@
 #   - PR opened with head=staging targeting base=main   -> Application created.
 #   - Namespace auto-created via CreateNamespace=true (not managed by the
 #     Application, so it survives teardown).
-#   - Workloads (sealed secret, quota/limits, chart) sync into staging-website.
+#   - Workloads (sealed secret, quota/limits, chart) sync into website-staging.
 #     Quota/limits/sealed-secret carry Delete=false so the resources-finalizer
 #     leaves them behind when the Application is deleted.
 #   - Karpenter's cpu-autoscale NodePool spins a spot node from 0.
@@ -71,7 +71,7 @@ spec:
           path: apps/staging/hot-website
       destination:
         server: https://kubernetes.default.svc
-        namespace: staging-website
+        namespace: website-staging
       syncPolicy:
         automated:
           selfHeal: true
