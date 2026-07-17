@@ -33,7 +33,7 @@ spec:
         name: barman-cloud.cloudnative-pg.io
         parameters:
           barmanObjectName: zenml-db-staging-store
-          serverName: zenml-db-prod    # matches renamed prefix from step 2
+          serverName: zenml-db-staging
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
