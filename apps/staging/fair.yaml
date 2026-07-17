@@ -1,0 +1,90 @@
+# Per-PR fair staging (backend + eoAPI + MLflow + ZenML). Triggered by
+# staging->main PRs on hotosm/fAIr. On close, Helm workloads prune; namespace,
+# bootstrap resources, and sealed secrets persist via Prune=false,Delete=false.
+# Persistent DBs (mlflow-db, zenml-db, fair-stac in postgres ns) sit outside
+# the ApplicationSet, so PR churn only cycles compute. See README.md.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: fair-staging
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - pullRequest:
+        github:
+          owner: hotosm
+          repo: fAIr
+        # Anonymous GitHub API - 60 req/hr is enough at this poll rate.
+        requeueAfterSeconds: 300
+        filters:
+          - branchMatch: "^staging$"
+            targetBranchMatch: "^main$"
+  template:
+    metadata:
+      name: "fair-staging-pr-{{ .number }}"
+      finalizers:
+        - resources-finalizer.argoproj.io
+    spec:
+      project: default
+      sources:
+        - repoURL: https://github.com/hotosm/fAIr.git
+          targetRevision: "{{ .head_sha }}"
+          path: chart
+          helm:
+            releaseName: fair
+            valueFiles:
+              - $k8s-infra/apps/staging/fair/backend/helm/values.yaml
+            parameters:
+              - name: image.tag
+                value: "sha-{{ .head_sha }}"
+
+        - repoURL: https://devseed.com/eoapi-k8s
+          chart: eoapi
+          targetRevision: 0.12.2
+          helm:
+            releaseName: fair-eoapi
+            skipCrds: false
+            passCredentials: false
+            valueFiles:
+              - $k8s-infra/apps/staging/fair/eoapi/helm/values.yaml
+
+        - repoURL: https://community-charts.github.io/helm-charts
+          chart: mlflow
+          targetRevision: 1.8.1
+          helm:
+            releaseName: mlflow
+            valueFiles:
+              - $k8s-infra/apps/staging/fair/mlflow/helm/values.yaml
+
+        - repoURL: oci://public.ecr.aws/zenml/zenml
+          chart: zenml
+          targetRevision: 0.94.2
+          helm:
+            releaseName: zenml
+            valueFiles:
+              - $k8s-infra/apps/staging/fair/zenml/helm/values.yaml
+
+        # Referenced by $k8s-infra in the valueFiles above.
+        - repoURL: https://github.com/hotosm/k8s-infra.git
+          targetRevision: HEAD
+          ref: k8s-infra
+
+        # Extras: bootstrap, zenml RBAC, sealed secrets. Non-recursive.
+        - repoURL: https://github.com/hotosm/k8s-infra.git
+          targetRevision: HEAD
+          path: apps/staging/fair
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: fair-staging
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+        managedNamespaceMetadata:
+          labels:
+            environment: staging
+            app: fair

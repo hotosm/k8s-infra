@@ -111,7 +111,9 @@ stac:
     enabled: true
     # path: "/"
   settings:
-    labels: {}
+    labels:
+      project: fair
+      tool: fair
     resources: {}
     extraEnvFrom: []
     extraVolumeMounts: []

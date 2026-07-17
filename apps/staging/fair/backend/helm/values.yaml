@@ -1,59 +1,52 @@
-externalDatabase:
-  host: "fair-db-staging-rw.postgres.svc.cluster.local"
-  database: ai
-  username: fair
-  existingSecret: fair-db-credentials
-  existingSecretKey: password
-
+# Staging overrides for fair backend. Chart pulled from PR head_sha
+# (see ../../fair.yaml).
+#
+# ALLOWED_HOSTS must include localhost - kubelet probes send Host: localhost.
 ingress:
   enabled: true
   className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    external-dns.alpha.kubernetes.io/hostname: stage.api.ai.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
   hosts:
-    - host: fair.hotosm.org
+    - host: stage.api.ai.hotosm.org
       paths:
-        - path: /api
+        - path: /
           pathType: Prefix
+  tls:
+    - secretName: fair-staging-tls
+      hosts:
+        - stage.api.ai.hotosm.org
 
 backend:
+  replicaCount: 1
   envFrom:
     - secretRef:
         name: fair-api-credentials
 
+# Frontend lives permanently on CloudFront; not per-PR.
 frontend:
-  mode: cloudfront
-  runtimeEnv:
-    VITE_API_URL: 'https://stage.api.ai.hotosm.org'
-    VITE_AUTH_PROVIDER: 'hanko'
-    VITE_HANKO_URL: 'https://dev.login.hotosm.org'
-  cloudfront:
-    roleArn: "arn:aws:iam::670261699094:role/dronetm-prod-frontend-cloudfront-deploy"
-    region: us-east-1
-    s3Bucket: hotosm-fair-staging-frontend
-    aliases:
-      - stage.ai.hotosm.org
-    acmCertificateArn: 'arn:aws:acm:us-east-1:670261699094:certificate/e6eaaa9c-0de8-4222-b8f9-0e8c3e56f813'
-    priceClass: PriceClass_All
+  enabled: false
 
-
-env: 
+env:
   DEBUG: "false"
   AUTH_PROVIDER: "hanko"
   HOSTNAME: "stage.api.ai.hotosm.org"
   API_BASE_URL: "https://stage.api.ai.hotosm.org/api/v1"
   FRONTEND_URL: "https://stage.ai.hotosm.org"
-  ALLOWED_HOSTS: "stage.api.ai.hotosm.org"
+  ALLOWED_HOSTS: "stage.api.ai.hotosm.org,localhost"
   CSRF_TRUSTED_ORIGINS: "https://stage.api.ai.hotosm.org,https://stage.ai.hotosm.org,http://localhost:5173,http://localhost:3500,http://127.0.0.1:5173,http://127.0.0.1:3500"
   CORS_ALLOWED_ORIGINS: "https://stage.ai.hotosm.org,http://localhost:5173,http://localhost:3500,http://127.0.0.1:5173,http://127.0.0.1:3500"
   SECURE_SSL_REDIRECT: "true"
-  DATABASE_SSL_MODE: "require"
+  # Bundled in-cluster postgres has no TLS.
+  DATABASE_SSL_MODE: "disable"
   FAIR_ZENML_STORE_URL: "https://zenml.ai.hotosm.org"
   ZENML_STORE_VERIFY_SSL: "false"
   ZENML_CONFIG_PATH: "/tmp/zenml"
   ZENML_ACTIVE_STACK_ID: "b9090be8-caf1-494e-8c45-cc636234d889"
   HOME: "/tmp"
-  # fair.zenml.config._workload_selector reads this to build pipeline-pod
-  # nodeSelectors. Must match the live label-domain on the ml node-pool
-  # (see dok8s/main.tf labels)
+  # Must match the ml node-pool label-domain (dok8s/main.tf).
   FAIR_LABEL_DOMAIN: "fair-k8s"
   FAIR_UPLOAD_ARTIFACTS: "true"
   FAIR_STAC_API_URL: "https://stac.ai.hotosm.org/stac"
@@ -72,4 +65,16 @@ env:
   EMAIL_USE_TLS: "true"
   DEFAULT_FROM_EMAIL: "no-reply@fair.hotosm.org"
 
-  
+# Bundled Postgres (fair chart >= 0.1.1). Chart injects DATABASE_URL,
+# overriding the sealed secret. Wiped on PR close.
+postgres:
+  enabled: true
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
