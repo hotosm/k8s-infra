@@ -94,21 +94,13 @@ Commit, let ArgoCD sync.
 ```bash
 kubectl get cluster zenml-db-staging -n postgres -w   # In Healthy state
 kubectl exec -n postgres zenml-db-staging-1 -- \
-  psql -U postgres -c "SELECT count(*) FROM pipeline_run;"
+  psql -U postgres -d zenml -c "SELECT count(*) FROM pipeline_run;"
 ```
 
-### 4. Cutover
+### 4. Switch
 
-Writes to prod between step 1 and now won't reach the new cluster -
-use [replica cluster mode][cnpg-replica] if that matters.
-
-[cnpg-replica]: https://cloudnative-pg.io/documentation/current/replica_cluster/
-
-```bash
-kubectl scale deploy zenml -n zenml --replicas=0
-```
-
-Update `apps/zenml/helm/values.yaml`:
+Once staging is `Healthy` and the counts match, point the app at it in
+`apps/zenml/helm/values.yaml`:
 
 ```yaml
 zenml:
@@ -116,8 +108,14 @@ zenml:
     url: "postgresql://zenml@zenml-db-staging-rw.postgres.svc.cluster.local:5432/zenml"
 ```
 
-Commit, ArgoCD sync, scale the app back up. Add a `ScheduledBackup`
-targeting `zenml-db-staging`.
+Commit, let ArgoCD sync - the URL change rolls the Deployment, which
+reconnects to the new DB (retrying until it's up). Then add a
+`ScheduledBackup` targeting `zenml-db-staging`.
+
+Writes to prod between step 1 and now won't reach the new cluster -
+use [replica cluster mode][cnpg-replica] if that matters.
+
+[cnpg-replica]: https://cloudnative-pg.io/documentation/current/replica_cluster/
 
 ### 5. Drop the old cluster + S3 archive
 
