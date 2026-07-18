@@ -14,10 +14,10 @@ spec:
         valueFiles:
           - $k8s-infra/apps/zenml-prod/helm/values.yaml
     - repoURL: https://github.com/hotosm/k8s-infra.git
-      targetRevision: HEAD
+      targetRevision: feature/zenml-prod-opentofu
       ref: k8s-infra
     - repoURL: https://github.com/hotosm/k8s-infra.git
-      targetRevision: HEAD
+      targetRevision: feature/zenml-prod-opentofu
       path: apps/zenml-prod
       kustomize: {}
   destination:
