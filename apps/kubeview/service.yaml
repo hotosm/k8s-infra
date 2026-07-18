@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubeview
+  namespace: kubeview 
+  annotations:
+    tailscale.com/hostname: "kubeview"
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  selector:
+    app.kubernetes.io/name: "kubeview" 
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
