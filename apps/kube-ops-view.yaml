@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-ops-view
+  namespace: argocd
+  annotations:
+    # 1. Define the alias (kubeops) and the image registry to track
+    argocd-image-updater.argoproj.io/image-list: kubeops=ghcr.io/hotosm/kube-ops-view
+    # 2. Tell it to look for the most recently created tag (your Git SHAs)
+    argocd-image-updater.argoproj.io/kubeops.update-strategy: latest
+    # 3. Ignore the rolling "latest" tag so it specifically triggers on unique SHA tags
+    argocd-image-updater.argoproj.io/kubeops.ignore-tags: latest
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/hotosm/k8s-infra.git'
+    targetRevision: HEAD
+    path: apps/kube-ops-view
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

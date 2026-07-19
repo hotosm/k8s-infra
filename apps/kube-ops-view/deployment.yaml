@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-ops-view
+  namespace: default
+  labels:
+    app: kube-ops-view
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kube-ops-view
+  template:
+    metadata:
+      labels:
+        app: kube-ops-view
+    spec:
+      serviceAccountName: kube-ops-view
+      containers:
+      - name: kube-ops-view
+        image: ghcr.io/hotosm/kube-ops-view:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
