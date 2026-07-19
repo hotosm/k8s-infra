@@ -27,10 +27,10 @@ postgresql:
         database: "database"
 
 postgrescluster:
-  enabled: true
+  enabled: false
 
 pgstacBootstrap:
-  enabled: false
+  enabled: true
   configMaps:
     pgstacSettings:
       annotations:
