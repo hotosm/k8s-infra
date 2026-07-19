@@ -7,7 +7,7 @@ image:
 
 # Target the NEW CloudNativePG cluster created for mlflow-prod
 backendStore:
-  databaseMigration: true # Remember to set to true on first deployment
+  databaseMigration: false # Disabled post-initial deployment
   databaseConnectionCheck: true
   postgres:
     enabled: true
