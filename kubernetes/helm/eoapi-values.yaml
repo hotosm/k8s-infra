@@ -43,6 +43,15 @@ raster:
         memory: "4Gi"
 
 stac:
+  image:
+    # From https://github.com/hotosm/OpenAerialMap/tree/main/backend/stac-api
+    name: ghcr.io/hotosm/openaerialmap/stac-api
+    tag: main
+  command:
+    - "uvicorn"
+    - "app.main:app"
+    - "--host=$(HOST)"
+    - "--port=$(PORT)"
   settings:
     envVars:
       ##############
