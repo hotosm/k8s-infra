@@ -84,6 +84,9 @@ pgstacBootstrap:
 stac:
   enabled: true
   overrideRootPath: ""
+  image:
+    name: ghcr.io/stac-utils/stac-fastapi-pgstac
+    tag: "2.4.8" # Stable, battle-tested release running Python 3.11
   ingress:
     enabled: true
   settings:
