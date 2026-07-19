@@ -1,0 +1,111 @@
+ingress:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/enable-access-log: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: "/$2"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: stac.fair.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+  host: "stac.fair.hotosm.org"
+  rootPath: "/"
+  tls:
+    enabled: true
+    secretName: fair-prod-eoapi-tls
+
+postgresql:
+  type: "external-secret"
+  external:
+    existingSecret:
+      name: "fair-stac-prod-db-creds"
+      keys:
+        username: "username"
+        password: "password"
+        host: "host"
+        port: "port"
+        database: "database"
+
+postgrescluster:
+  enabled: false
+
+pgstacBootstrap:
+  enabled: true
+  configMaps:
+    pgstacSettings:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-7"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    initdbSql:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-7"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    initdbJson:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-7"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    pgstacQueryables:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-7"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    initdb:
+      annotations: {}
+  jobs:
+    pgstacSuperuserInitDb:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-6"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    pgstacMigrate:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-5"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    pgstacLoadSamples:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-4"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    pgstacLoadQueryables:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-3"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+  settings:
+    loadSamples: false
+    queryables: []
+    user: fair_stac_prod
+    database: fair-stac-prod
+
+stac:
+  enabled: true
+  overrideRootPath: ""
+  ingress:
+    enabled: true
+  settings:
+    labels:
+      project: fair
+      tool: fair
+    envVars:
+      HOST: "0.0.0.0"
+      PORT: "8080"
+      WEB_CONCURRENCY: "6"
+      ENABLE_TRANSACTIONS_EXTENSIONS: "false"
+      STAC_FASTAPI_TITLE: "Production STAC FastAPI for fAIr"
+      STAC_FASTAPI_DESCRIPTION: "Production STAC FastAPI deployment for fAIr."
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 75
+  resources:
+    requests:
+      cpu: "1000m"
+      memory: "2Gi"
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
