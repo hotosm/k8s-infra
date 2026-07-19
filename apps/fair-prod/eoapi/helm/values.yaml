@@ -27,7 +27,7 @@ postgresql:
         database: "database"
 
 postgrescluster:
-  enabled: false
+  enabled: true
 
 pgstacBootstrap:
   enabled: false
