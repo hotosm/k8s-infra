@@ -30,7 +30,7 @@ postgrescluster:
   enabled: false
 
 pgstacBootstrap:
-  enabled: true
+  enabled: false
   configMaps:
     pgstacSettings:
       annotations:
