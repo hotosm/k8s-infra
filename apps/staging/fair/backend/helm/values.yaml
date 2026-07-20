@@ -26,6 +26,9 @@ backend:
     - secretRef:
         name: fair-api-credentials
 
+  djangoQ:
+    enabled: false
+
   env:
     DEBUG: "false"
     AUTH_PROVIDER: "hanko"
@@ -81,3 +84,4 @@ postgres:
     limits:
       cpu: 500m
       memory: 512Mi
+
