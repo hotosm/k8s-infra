@@ -17,8 +17,7 @@ zenml:
   pro:
     enabled: false
 
-  # IMPORTANT: Updated for Production
-  serverURL: https://zenml-production.ai.hotosm.org
+  serverURL: https://zenml.ai.hotosm.org
   debug: false  # Recommended to set to false for production
   analyticsOptIn: false
   deploymentType: kubernetes
@@ -63,11 +62,9 @@ zenml:
     className: "nginx"
     annotations:
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
-      # IMPORTANT: Updated for Production DNS
-      external-dns.alpha.kubernetes.io/hostname: zenml-production.ai.hotosm.org
+      external-dns.alpha.kubernetes.io/hostname: zenml.ai.hotosm.org
       external-dns.alpha.kubernetes.io/ttl: "300"
-    # IMPORTANT: Updated for Production host
-    host: zenml-production.ai.hotosm.org
+    host: zenml.ai.hotosm.org
     path: /
     tls:
       enabled: true

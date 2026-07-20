@@ -53,7 +53,7 @@ variable "zenml_server" {
   URL for the zenml instance
   EOT
   type        = string
-  default     = "https://zenml.ai.hotosm.org"
+  default     = "https://zenml.stage.ai.hotosm.org"
 }
 
 variable "oidc_arn" {
