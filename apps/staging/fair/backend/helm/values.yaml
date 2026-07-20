@@ -9,17 +9,17 @@ ingress:
   className: nginx
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    external-dns.alpha.kubernetes.io/hostname: stage.ai.hotosm.org
+    external-dns.alpha.kubernetes.io/hostname: api.stage.ai.hotosm.org
     external-dns.alpha.kubernetes.io/ttl: "300"
   hosts:
-    - host: stage.ai.hotosm.org
+    - host: api.stage.ai.hotosm.org
       paths:
         - path: /
           pathType: Prefix
   tls:
     - secretName: fair-staging-tls
       hosts:
-        - stage.ai.hotosm.org
+        - api.stage.ai.hotosm.org
 
 backend:
   envFrom:
@@ -69,6 +69,7 @@ backend:
 # Prod uses S3+cloudfront, but staging is a simple Django+Whitenoise
 # Frontend dist served.
 frontend:
+  tag: stage
   mode: bundleWithBackend
 
 
