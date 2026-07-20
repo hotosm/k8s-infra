@@ -81,9 +81,6 @@ pgstacBootstrap:
 
 # --- PRODUCTION HARDENING & LATEST TAG ---
 stac:
-  image:
-    repository: ghcr.io/stac-utils/stac-fastapi-pgstac
-    tag: "6.3.1"
   resources:
     requests:
       cpu: 250m
