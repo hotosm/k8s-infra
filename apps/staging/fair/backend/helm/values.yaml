@@ -33,6 +33,7 @@ backend:
     DEBUG: "false"
     AUTH_PROVIDER: "hanko"
     HOSTNAME: "stage.ai.hotosm.org"
+    VITE_BASE_API_URL: "https://stage.ai.hotosm.org"
     API_BASE_URL: "https://stage.ai.hotosm.org/api/v1"
     FRONTEND_URL: "https://stage.ai.hotosm.org"
     ALLOWED_HOSTS: "stage.ai.hotosm.org,localhost"
