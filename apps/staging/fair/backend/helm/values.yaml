@@ -9,17 +9,17 @@ ingress:
   className: nginx
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    external-dns.alpha.kubernetes.io/hostname: api.stage.ai.hotosm.org
+    external-dns.alpha.kubernetes.io/hostname: stage.ai.hotosm.org
     external-dns.alpha.kubernetes.io/ttl: "300"
   hosts:
-    - host: api.stage.ai.hotosm.org
+    - host: stage.ai.hotosm.org
       paths:
         - path: /
           pathType: Prefix
   tls:
     - secretName: fair-staging-tls
       hosts:
-        - api.stage.ai.hotosm.org
+        - stage.ai.hotosm.org
 
 backend:
   envFrom:
