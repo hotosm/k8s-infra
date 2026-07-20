@@ -9,7 +9,7 @@ ingress:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     external-dns.alpha.kubernetes.io/hostname: stac.ai.hotosm.org
     external-dns.alpha.kubernetes.io/ttl: "300"
-  host: "stac.ai.hotosm.org"
+  host: "stac.stage.ai.hotosm.org"
   rootPath: "/"
   tls:
     enabled: true
