@@ -9,7 +9,7 @@ ingress:
     external-dns.alpha.kubernetes.io/hostname: stac.fair.hotosm.org
     external-dns.alpha.kubernetes.io/ttl: "300"
   host: "stac.fair.hotosm.org"
-  rootPath: "/"
+  #rootPath: "/"
   tls:
     enabled: true
     secretName: fair-prod-eoapi-tls
