@@ -2,25 +2,26 @@
 # (see ../../fair.yaml).
 #
 # ALLOWED_HOSTS must include localhost - kubelet probes send Host: localhost.
+backendReplicaCount: 1
+
 ingress:
   enabled: true
   className: nginx
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    external-dns.alpha.kubernetes.io/hostname: stage.api.ai.hotosm.org
+    external-dns.alpha.kubernetes.io/hostname: stage.ai.hotosm.org
     external-dns.alpha.kubernetes.io/ttl: "300"
   hosts:
-    - host: stage.api.ai.hotosm.org
+    - host: stage.ai.hotosm.org
       paths:
         - path: /
           pathType: Prefix
   tls:
     - secretName: fair-staging-tls
       hosts:
-        - stage.api.ai.hotosm.org
+        - stage.ai.hotosm.org
 
 backend:
-  replicaCount: 1
   envFrom:
     - secretRef:
         name: fair-api-credentials
@@ -28,11 +29,11 @@ backend:
   env:
     DEBUG: "false"
     AUTH_PROVIDER: "hanko"
-    HOSTNAME: "api.stage.ai.hotosm.org"
-    API_BASE_URL: "https://api.stage.ai.hotosm.org/api/v1"
+    HOSTNAME: "stage.ai.hotosm.org"
+    API_BASE_URL: "https://stage.ai.hotosm.org/api/v1"
     FRONTEND_URL: "https://stage.ai.hotosm.org"
-    ALLOWED_HOSTS: "api.stage.ai.hotosm.org,localhost"
-    CSRF_TRUSTED_ORIGINS: "https://api.stage.ai.hotosm.org,https://stage.ai.hotosm.org,http://localhost:5173,http://localhost:3500,http://127.0.0.1:5173,http://127.0.0.1:3500"
+    ALLOWED_HOSTS: "stage.ai.hotosm.org,localhost"
+    CSRF_TRUSTED_ORIGINS: "https://stage.ai.hotosm.org,http://localhost:5173,http://localhost:3500,http://127.0.0.1:5173,http://127.0.0.1:3500"
     CORS_ALLOWED_ORIGINS: "https://stage.ai.hotosm.org,http://localhost:5173,http://localhost:3500,http://127.0.0.1:5173,http://127.0.0.1:3500"
     SECURE_SSL_REDIRECT: "true"
     # Bundled in-cluster postgres has no TLS.
@@ -62,13 +63,13 @@ backend:
     DEFAULT_FROM_EMAIL: "no-reply@fair.hotosm.org"
 
 
-# Frontend lives permanently on CloudFront; not per-PR.
+# Prod uses S3+cloudfront, but staging is a simple Django+Whitenoise
+# Frontend dist served.
 frontend:
-  enabled: false
+  mode: bundleWithBackend
 
 
-# Bundled Postgres (fair chart >= 0.1.1). Chart injects DATABASE_URL,
-# overriding the sealed secret. Wiped on PR close.
+# Bundled Postgres Chart injects DATABASE_URL, overriding the sealed secret.
 postgres:
   enabled: true
   persistence:

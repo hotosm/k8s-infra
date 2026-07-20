@@ -36,7 +36,11 @@ spec:
             valueFiles:
               - $k8s-infra/apps/staging/fair/backend/helm/values.yaml
             parameters:
-              - name: image.tag
+              # Both images are published via a shared workflow, same version num.
+              # The frontend tag is here too because staging bundles the SPA into the backend.
+              - name: image.backend.tag
+                value: "sha-{{ .head_sha }}"
+              - name: frontend.image.tag
                 value: "sha-{{ .head_sha }}"
 
         - repoURL: https://devseed.com/eoapi-k8s
