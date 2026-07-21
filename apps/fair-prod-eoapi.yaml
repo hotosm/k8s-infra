@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fair-prod-eoapi
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://devseed.com/eoapi-k8s
+      chart: eoapi
+      targetRevision: 0.12.2
+      helm:
+        releaseName: fair-prod-eoapi
+        skipCrds: false
+        passCredentials: false
+        valueFiles:
+          - $k8s-infra/apps/fair-prod/eoapi/helm/values.yaml
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/fair-prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: fair-prod
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

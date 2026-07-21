@@ -1,0 +1,114 @@
+ingress:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/enable-access-log: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: "/$2"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: stac.ai.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+  host: "stac.ai.hotosm.org"
+  #rootPath: "/"
+  tls:
+    enabled: true
+    secretName: fair-prod-eoapi-tls
+
+postgresql:
+  type: "external-secret"
+  external:
+    existingSecret:
+      name: "fair-stac-prod-db-creds"
+      keys:
+        username: "username"
+        password: "password"
+        host: "host"
+        port: "port"
+        database: "database"
+
+postgrescluster:
+  enabled: false
+
+pgstacBootstrap:
+  enabled: true
+  configMaps:
+    pgstacSettings:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-7"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    initdbSql:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-7"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    initdbJson:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-7"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    pgstacQueryables:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-7"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    initdb:
+      annotations: {}
+  jobs:
+    pgstacSuperuserInitDb:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-6"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    pgstacMigrate:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-5"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    pgstacLoadSamples:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-4"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    pgstacLoadQueryables:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-3"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+  settings:
+    loadSamples: false
+    queryables: []
+
+# --- PRODUCTION HARDENING & LATEST TAG ---
+stac:
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  securityContext:
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: stac
+            topologyKey: topology.kubernetes.io/zone
+  livenessProbe:
+    httpGet:
+      path: /_mgmt/ping
+      port: 8080
+    initialDelaySeconds: 15
+    periodSeconds: 20
+  readinessProbe:
+    httpGet:
+      path: /_mgmt/ping
+      port: 8080
+    initialDelaySeconds: 15
+    periodSeconds: 20
