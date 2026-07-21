@@ -66,6 +66,7 @@ backend:
     EMAIL_PORT: "587"
     EMAIL_USE_TLS: "true"
     DEFAULT_FROM_EMAIL: "no-reply@fair.hotosm.org"
+    OSM_LOGIN_REDIRECT_URI: "https://stage.ai.hotosm.org/authenticate/"
 
 
 # Prod uses S3+cloudfront, but staging is a simple Django+Whitenoise
