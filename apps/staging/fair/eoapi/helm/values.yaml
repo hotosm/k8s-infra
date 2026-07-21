@@ -114,7 +114,13 @@ stac:
     labels:
       project: fair
       tool: fair
-    resources: {}
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 512Mi
     extraEnvFrom: []
     extraVolumeMounts: []
     extraVolumes: []
@@ -122,7 +128,9 @@ stac:
       HOST: "0.0.0.0"
       PORT: "8080"
       # https://www.uvicorn.org/settings/#production
-      WEB_CONCURRENCY: "10" # Handles many concurrent requests; reduce to 4-6 with autoscaling
+      # Reduce as we don't need many concurrent connection on stage
+      # Each takes about ~100Mi, so if increasing, also bump resources
+      WEB_CONCURRENCY: "2"
       DB_MIN_CONN_SIZE: "1"
       DB_MAX_CONN_SIZE: "5" # Quite intensive (queries, transactions, searches)
       STAC_FASTAPI_TITLE: "fAIr STAC Catalog"
