@@ -30,7 +30,7 @@ backend:
     enabled: false
 
   env:
-    DEBUG: "false"
+    DEBUG: "true"
     AUTH_PROVIDER: "hanko"
     HOSTNAME: "stage.ai.hotosm.org"
     VITE_BASE_API_URL: "https://stage.ai.hotosm.org"
