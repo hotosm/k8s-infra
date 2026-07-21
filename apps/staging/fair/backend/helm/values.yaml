@@ -40,7 +40,6 @@ backend:
     LOGIN_URL: "https://dev.login.hotosm.org"
     # AUTH_PROVIDER: "dev"
     HOSTNAME: "stage.ai.hotosm.org"
-    VITE_BASE_API_URL: "https://stage.ai.hotosm.org"
     API_BASE_URL: "https://stage.ai.hotosm.org/api/v1"
     FRONTEND_URL: "https://stage.ai.hotosm.org"
     ALLOWED_HOSTS: "stage.ai.hotosm.org,localhost"
@@ -80,6 +79,8 @@ frontend:
     VITE_FAIR_STAC_CATALOG_BASE_URL: "https://stac.stage.ai.hotosm.org/stac"
     VITE_HANKO_URL: "https://dev.login.hotosm.org"
     VITE_AUTH_PROVIDER: "hanko"
+    VITE_FAIR_PROD_URL: "https://stage.ai.hotosm.org"
+    VITE_NODE_ENV: "production"
 
 # Bundled Postgres Chart injects DATABASE_URL, overriding the sealed secret.
 postgres:
