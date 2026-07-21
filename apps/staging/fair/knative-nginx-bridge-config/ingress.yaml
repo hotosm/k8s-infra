@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: knative-nginx-bridge
+  namespace: fair-staging
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    # CRITICAL: Pass the host header so Kourier knows which model to route to
+    nginx.ingress.kubernetes.io/upstream-vhost: $host
+    # CRITICAL: Give Karpenter time to spin up new EC2 nodes during a cold start
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+spec:
+  rules:
+  # Catch all traffic for the ML models
+  - host: "*.predict.staging.ai.hotosm.org" 
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            # Route it directly to the internal Kourier service
+            name: kourier
+            port:
+              number: 80

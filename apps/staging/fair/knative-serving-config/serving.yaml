@@ -1,0 +1,34 @@
+apiVersion: operator.knative.dev/v1beta1
+kind: KnativeServing
+metadata:
+  name: knative-serving
+  namespace: knative-serving
+spec:
+  ingress:
+    kourier:
+      enabled: true
+      service-type: ClusterIP
+  config:
+    network:
+      ingress-class: "kourier.ingress.networking.knative.dev"
+    domain:
+      "predict.stage.ai.hotosm.org": ""
+  # Run 2 replicas for HA so single-node drains don't cause traffic outages.
+  # kourier-gateway is the critical one - all Knative traffic passes through it.
+  deployments:
+    - name: activator
+      replicas: 2
+    - name: webhook
+      replicas: 2
+    - name: 3scale-kourier-gateway
+      replicas: 2
+  # Override the operator's default 80% minAvailable (which blocks all evictions on <5
+  # replicas) with an absolute minAvailable=1. With 2 replicas, this permits 1 disruption
+  # at a time - i.e. node drains work, and users still hit the surviving replica.
+  podDisruptionBudgets:
+    - name: activator-pdb
+      minAvailable: 1
+    - name: webhook-pdb
+      minAvailable: 1
+    - name: 3scale-kourier-gateway-pdb
+      minAvailable: 1

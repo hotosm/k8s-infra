@@ -78,6 +78,14 @@ spec:
         - repoURL: https://github.com/hotosm/k8s-infra.git
           targetRevision: HEAD
           path: apps/staging/fair
+
+        # Knative for inference pipeline
+        - repoURL: 'https://github.com/hotosm/k8s-infra'
+          targetRevision: main
+          path: apps/staging/knative-serving-config 
+        - repoURL: 'https://github.com/hotosm/k8s-infra'
+          targetRevision: main
+          path: apps/staging/knative-nginx-bridge-config 
       destination:
         server: https://kubernetes.default.svc
         namespace: fair-staging
