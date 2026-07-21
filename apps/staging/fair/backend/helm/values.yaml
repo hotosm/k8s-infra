@@ -31,8 +31,14 @@ backend:
 
   env:
     DEBUG: "true"
-    # AUTH_PROVIDER: "hanko"
-    AUTH_PROVIDER: "dev"
+    # AUTH
+    AUTH_PROVIDER: "hanko"
+    HANKO_API_URL: "https://dev.login.hotosm.org"
+    COOKIE_DOMAIN: ".hotosm.org"
+    OSM_LOGIN_REDIRECT_URI: "https://stage.ai.hotosm.org/authenticate/"
+    # JWT_AUDIENCE: "" ## TODO: Add this if needed
+    LOGIN_URL: "https://dev.login.hotosm.org"
+    # AUTH_PROVIDER: "dev"
     HOSTNAME: "stage.ai.hotosm.org"
     VITE_BASE_API_URL: "https://stage.ai.hotosm.org"
     API_BASE_URL: "https://stage.ai.hotosm.org/api/v1"
@@ -60,20 +66,20 @@ backend:
     FAIR_DOMAIN: "stage.ai.hotosm.org"
     LOG_PATH: "/tmp/fair-logs"
     RAW_DATA_API_URL: "https://api-prod.raw-data.hotosm.org/v1"
-    HANKO_API_URL: "https://dev.login.hotosm.org"
-    COOKIE_DOMAIN: ".hotosm.org"
     EMAIL_HOST: "email-smtp.us-east-1.amazonaws.com"
     EMAIL_PORT: "587"
     EMAIL_USE_TLS: "true"
     DEFAULT_FROM_EMAIL: "no-reply@fair.hotosm.org"
-    OSM_LOGIN_REDIRECT_URI: "https://stage.ai.hotosm.org/authenticate/"
-
 
 # Prod uses S3+cloudfront, but staging is a simple Django+Whitenoise
 # Frontend dist served.
 frontend:
   mode: bundleWithBackend
-
+  runtimeEnv: 
+    VITE_BASE_API_URL: "https://stage.ai.hotosm.org/api/v1"
+    VITE_FAIR_STAC_CATALOG_BASE_URL: "https://stac.stage.ai.hotosm.org/stac"
+    VITE_HANKO_URL: "https://dev.login.hotosm.org"
+    VITE_AUTH_PROVIDER: "hanko"
 
 # Bundled Postgres Chart injects DATABASE_URL, overriding the sealed secret.
 postgres:
