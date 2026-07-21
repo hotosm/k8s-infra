@@ -12,7 +12,7 @@ docker run --rm -it --entrypoint=bash \
   -v $HOME/.config/zenml:/zenml/.zenconfig \
   ghcr.io/hotosm/zenml-postgres:0.94.1
 
-zenml login https://zenml.ai.hotosm.org
+zenml login https://zenml.stage.ai.hotosm.org
 ```
 
 While it's possible to configure everything manually via

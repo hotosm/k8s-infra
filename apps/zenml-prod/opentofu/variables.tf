@@ -53,7 +53,7 @@ variable "zenml_server" {
   URL for the zenml instance
   EOT
   type        = string
-  default     = "https://zenml-production.ai.hotosm.org" # Updated to production URL (verify if this matches your ingress setup)
+  default     = "https://zenml.ai.hotosm.org"
 }
 
 variable "oidc_arn" {

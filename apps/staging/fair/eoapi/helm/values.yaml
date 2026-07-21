@@ -7,7 +7,7 @@ ingress:
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: "/$2"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    external-dns.alpha.kubernetes.io/hostname: stac.ai.hotosm.org
+    external-dns.alpha.kubernetes.io/hostname: stac.stage.ai.hotosm.org
     external-dns.alpha.kubernetes.io/ttl: "300"
   host: "stac.stage.ai.hotosm.org"
   rootPath: "/"
