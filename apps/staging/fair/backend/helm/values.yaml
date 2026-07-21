@@ -75,7 +75,7 @@ frontend:
   mode: bundleWithBackend
   runtimeEnv: 
     VITE_BASE_API_URL: "https://stage.ai.hotosm.org/api/v1"
-    FAIR_STAC_CATALOG_BASE_URL: "https://stac.stage.ai.hotosm.org/stac"
+    VITE_FAIR_STAC_CATALOG_BASE_URL: "https://stac.stage.ai.hotosm.org/stac"
 
 
 # Bundled Postgres Chart injects DATABASE_URL, overriding the sealed secret.
