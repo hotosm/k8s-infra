@@ -72,7 +72,6 @@ backend:
 # Prod uses S3+cloudfront, but staging is a simple Django+Whitenoise
 # Frontend dist served.
 frontend:
-  tag: stage
   mode: bundleWithBackend
 
 
