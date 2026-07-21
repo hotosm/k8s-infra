@@ -75,7 +75,7 @@ backend:
 frontend:
   mode: bundleWithBackend
   runtimeEnv: 
-    VITE_BASE_API_URL: "https://stage.ai.hotosm.org/api/v1"
+    VITE_BASE_API_URL: "https://stage.ai.hotosm.org/api/v1/"
     VITE_FAIR_STAC_CATALOG_BASE_URL: "https://stac.stage.ai.hotosm.org/stac"
     VITE_HANKO_URL: "https://dev.login.hotosm.org"
     VITE_AUTH_PROVIDER: "hanko"
