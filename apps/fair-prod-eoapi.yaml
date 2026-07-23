@@ -14,13 +14,13 @@ spec:
         skipCrds: false
         passCredentials: false
         valueFiles:
-          - $k8s-infra/apps/fair-prod/eoapi/helm/values.yaml
+          - $k8s-infra/apps/stac-prod/eoapi/helm/values.yaml
     - repoURL: https://github.com/hotosm/k8s-infra.git
       targetRevision: HEAD
       ref: k8s-infra
     - repoURL: https://github.com/hotosm/k8s-infra.git
       targetRevision: HEAD
-      path: apps/fair-prod
+      path: apps/stac-prod
   destination:
     server: https://kubernetes.default.svc
     namespace: fair-prod
