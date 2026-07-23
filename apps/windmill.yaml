@@ -33,3 +33,12 @@ spec:
       prune: true
     syncOptions:
       - CreateNamespace=true
+  # The heavy worker group is scaled by KEDA (0..2); ignore its replica count
+  # so selfHeal does not fight KEDA and reset it back to the chart's value.
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      name: windmill-workers-heavy
+      namespace: windmill
+      jqPathExpressions:
+        - .spec.replicas

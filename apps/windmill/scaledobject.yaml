@@ -1,0 +1,45 @@
+# Autoscales the `heavy` worker group from 0 to 2 based on the number of
+# `heavy`-tagged jobs in the Windmill Postgres queue. When the queue drains,
+# KEDA scales back to 0 and Karpenter consolidates the node(s) away.
+#
+# Reuses the existing windmill-db-url secret (full Postgres URL under `url`) as
+# the scaler connection string.
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: windmill-db-auth
+  namespace: windmill
+spec:
+  secretTargetRef:
+    - parameter: connection
+      name: windmill-db-url
+      key: url
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: windmill-heavy
+  namespace: windmill
+spec:
+  scaleTargetRef:
+    name: windmill-workers-heavy
+  minReplicaCount: 0
+  maxReplicaCount: 2
+  pollingInterval: 30
+  # Keep a worker (and its node) ~5 min after the queue empties to avoid
+  # thrashing between back-to-back jobs.
+  cooldownPeriod: 300
+  triggers:
+    - type: postgresql
+      authenticationRef:
+        name: windmill-db-auth
+      metadata:
+        # Counts running + waiting heavy jobs so workers stay up while jobs
+        # run, and scale to 0 only once the queue is fully drained.
+        # NOTE: confirm the table/columns against the deployed Windmill schema
+        # (recent versions use v2_job_queue with a `tag` column).
+        query: >
+          SELECT count(*) FROM v2_job_queue
+          WHERE tag = 'heavy' AND scheduled_for <= now();
+        targetQueryValue: "1"

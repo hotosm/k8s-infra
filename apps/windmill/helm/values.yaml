@@ -13,29 +13,33 @@ windmill:
   workerGroups:
     - name: default
       replicas: 1
-      # TODO leave unbounded until we address:
-      # https://github.com/hotosm/k8s-infra/issues/4#issuecomment-4513081083
-      # and add the `highmem` group below
-      # resources:
-      #   requests:
-      #     cpu: "500m"
-      #     memory: "1Gi"
-      #   limits:
-      #     memory: "4Gi"
-    # For the windmill script / job, set worker group tag to `highmem`
-    # This should rely on KEDA to autoscale based on the Postgres queue.
-    # If `highmem` jobs are pending, KEDA will scale 0 --> 1 workers.
-    # - name: highmem
-    #   replicas: 0
-    #   resources:
-    #     requests:
-    #       cpu: "2000m"
-    #       memory: "8Gi"
-    #     limits:
-    #       memory: "10Gi"
-    #   extraEnv:
-    #     - name: WORKER_TAGS
-    #       value: "highmem"
+
+    # Heavy batch jobs (e.g. monthly country exports). Scripts tagged `heavy`
+    # in the Windmill UI run here. Scales 0 -> 2 with KEDA based on the Postgres
+    # job queue (see scaledobject.yaml), landing on the cpu-autoscale Karpenter
+    # pool so nodes only exist while jobs run.
+    #
+    # replicas must be >= 1 for the chart to render the Deployment; KEDA then
+    # owns the replica count 0..2. ArgoCD ignores .spec.replicas for this
+    # Deployment (see apps/windmill.yaml ignoreDifferences) so it does not fight
+    # KEDA scaling to zero.
+    - name: heavy
+      replicas: 1
+      resources:
+        requests:
+          cpu: "4"
+          memory: "12Gi"
+        limits:
+          memory: "12Gi"
+      nodeSelector:
+        node-type: cpu
+        nodegroup: autoscale
+      tolerations:
+        - key: spot
+          operator: Exists
+      extraEnv:
+        - name: WORKER_TAGS
+          value: "heavy"
 
   # Full-text search indexer; off to save resources for now.
   indexer:
