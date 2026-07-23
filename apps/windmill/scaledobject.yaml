@@ -37,8 +37,6 @@ spec:
       metadata:
         # Counts running + waiting heavy jobs so workers stay up while jobs
         # run, and scale to 0 only once the queue is fully drained.
-        # NOTE: confirm the table/columns against the deployed Windmill schema
-        # (recent versions use v2_job_queue with a `tag` column).
         query: >
           SELECT count(*) FROM v2_job_queue
           WHERE tag = 'heavy' AND scheduled_for <= now();
