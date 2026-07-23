@@ -1,0 +1,30 @@
+# NOTE KEDA is used to application autoscaling, based on 'events',
+# e.g. a database queue, or incoming http requests.
+# In contrast, Karpenter is used to scale up nodes when our
+# cluster runs out of capacity.
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keda
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://kedacore.github.io/charts
+      chart: keda
+      targetRevision: 2.20.1
+      helm:
+        releaseName: keda
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keda
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      # KEDA CRDs are large; server-side apply avoids the client-side
+      # last-applied-configuration annotation size limit
+      - ServerSideApply=true
