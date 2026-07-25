@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fair-prod
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: fair-api=ghcr.io/hotosm/fair-api
+    argocd-image-updater.argoproj.io/fair-api.update-strategy: latest
+    argocd-image-updater.argoproj.io/fair-api.helm.image-name: image.repository
+    argocd-image-updater.argoproj.io/fair-api.helm.image-tag: image.tag
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/hotosm/fair.git
+      targetRevision: main
+      path: chart
+      helm:
+        releaseName: fair-prod
+        valueFiles:
+          - $k8s-infra/apps/fair-prod/helm/values.yaml
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/fair-prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: fair-prod
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

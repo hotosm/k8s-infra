@@ -199,3 +199,9 @@ variable "cluster_ci_access_role_arn" {
   CI deployer role to provide cluster access entry
   EOT
 }
+
+variable "frontend_acm_certificate_arn" {
+  type        = string
+  description = "ACM Certificate ARN in us-east-1 for fair.hotosm.org"
+  default     = "arn:aws:acm:us-east-1:670261699094:certificate/EXAMPLE-ACM-CERTIFICATE-ARN"
+}

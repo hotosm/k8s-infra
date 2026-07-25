@@ -1,0 +1,18 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: fair-prod-db-creds
+  namespace: postgres
+  annotations:
+    argocd.argoproj.io/sync-wave: "-5"
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: HookFailed
+spec:
+  encryptedData:
+    password: AgCDNmzhqbaiFx+t+PJs/LT2VaBtJB4dYFCBETtTk8pAFJ9/p7EyXGFyxT2h/MKs4htpVnLBp1mBxcHpG4Y/XCOdOaa/f8Nl1DtWCMJHJsBuJhiLdcEf/U4GswpxQ5VrYzLouBqqSBKSvD/RdHOcsqe7C3tStGafmTsG5V9r+bpFRaQzZZTxVP0c32xMPMNbv6dSnFaro7hEn3y+4nsHm/rewM3EgsMjwUUllBdatoYMo/28U3gtwfQR30rT8SEvEnYYWMLzWre7WhOTXxB8gSfWZ2OWsTrYDGVP67ZaK9mT2nbHGj6qd6cIqMMKnWPB0Ojr4u+WTRQ6u9JwOTFR0xuJ3p/D0/zf6+Ze/yViU9lRuYpiged51SXNMgk/gDQ4aRGj870ooq+9+a/TenruwQKjLeuejjCCyZzSYVpam32SXMq5F24dGOFFZQwBhlF8q1AxrySHMYl9n0hUmaKJwjUXYW2PN4x2bX9FFBwg+s5cTgTOYstc9b+ix7ovTj1oPvsMGD+YXJepAJq7JHgbYmpENpFdLeU1+ZPTIb/CvNYN0zHMjCHggMq7pP+eS7p450UcL/WPFHenevGniSlJ3Idk9DPrFSGGKc17YYhHc+JrpeB9/VzlIVjvQmkIK1KT1aY9lPA7LmmuUKWeLLMQCqYASS2HRTH8tGcExxoH67V4tgcCAqI4iJlYF7UqhIxS4AscKQaMcGv0HYm1gfJ3EMcPK2k2n2gkJPmrTBFUZG8=
+    username: AgCn8V+ZYODesgfaQbXubLjFPbyB4z029JBLY0EtTAFZnadRBssxo2Tfhj2Gbr4SqQkvxOE1LK72n6CQA21vt1HZQeEB8DVj6bY/gQLLsTYOxSmujbkMpgBUMTm00viesiQL595hojHufV/DR/0wmNgsB8Gic2fHeq8/rtNhf9viNANcmPlErZ15jViHFjAfbL+W3Rein2Z+3Bjqpj5VEwdWtvQOUyJKNijwMgcc5+JWScqxPHjwK/b4FdqU8be+pM/c6JKZr8LBntOy/PLJSNmtA3+CnY9J94ye1XOqoxv+mmOkGIawX2RzjLI6ih3wPDGTzMFoL6dN0RkIvbDEZXlX/ULwMBV99QKnIXIauBAT52hxmB7MBuy4M/6AVhdb79I3mk9EkjnuLYnbzvTmSwCaahXejG7NYDlWAzgASPO7aE2lbix4TXzLcy0CW2YhfTIZ3aFT+e0rYjABMZD8nPmliAvJg5TPZ3/xr9SuL+RJKt9cgcBQbMJ8WZDkDf4c65JIPGwmSM4ygZZWyzw62KDfn1B/bvEjGrYkQawoxVQ1QkfHWRHN2HMEGgXCvlQgiUqy5HYo46k68RJOBF367HV7T7n9Ot6e5arzdTkhp3W/yFJB5kmTNQnXt9RqOwSfUpCwjkQvDp8SwmY3NjcXMG1aWwkY0Tl8hI3qk4doS2giYv/t/GEgQySdzCyyCwxQ/+kAatRtRm5dyVA1Mak=
+  template:
+    metadata:
+      name: fair-prod-db-creds
+      namespace: postgres

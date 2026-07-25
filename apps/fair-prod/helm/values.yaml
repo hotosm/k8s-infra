@@ -1,0 +1,69 @@
+global:
+  environment: production
+
+image:
+  repository: ghcr.io/hotosm/fair-api
+  tag: main
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: ghcr-pull-secret
+
+env:
+  DJANGO_SETTINGS_MODULE: config.settings
+  # Disable serving frontend SPA directly from Django pods
+  SERVE_FRONTEND: "false"
+  
+  # Database Configuration
+  POSTGRES_HOST: "fair-prod-db-rw.postgres.svc.cluster.local"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "fair_prod"
+  POSTGRES_USER: "fair_prod_rw"
+  
+  # Cross-Origin & Integrations
+  CORS_ALLOWED_ORIGINS: "https://fair.hotosm.org"
+  ZENML_STORE_URL: "https://zenml-production.ai.hotosm.org"
+  MLFLOW_TRACKING_URI: "http://mlflow-prod.mlflow-prod.svc.cluster.local:5000"
+  STAC_API_URL: "https://stac.ai.hotosm.org"
+  HANKO_URL: "https://login.hotosm.org"
+  AWS_STORAGE_BUCKET_NAME: "hotosm-fair-models-production"
+  
+envFromSecrets:
+  - name: fair-prod-secret-env
+
+api:
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      external-dns.alpha.kubernetes.io/hostname: api.fair.hotosm.org
+      external-dns.alpha.kubernetes.io/ttl: "300"
+      nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    hosts:
+      - host: api.fair.hotosm.org
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: fair-prod-api-tls
+        hosts:
+          - api.fair.hotosm.org
+
+worker:
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: "1000m"
+      memory: "2Gi"
+    limits:
+      cpu: "4000m"
+      memory: "8Gi"
