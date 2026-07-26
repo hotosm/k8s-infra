@@ -1,0 +1,71 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fair-production
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: fair-backend=ghcr.io/hotosm/fair/backend
+    argocd-image-updater.argoproj.io/fair-backend.update-strategy: latest
+    argocd-image-updater.argoproj.io/fair-backend.helm.image-name: image.backend.repository
+    argocd-image-updater.argoproj.io/fair-backend.helm.image-tag: image.backend.tag
+spec:
+  project: default
+  sources:
+    # 1. fAIr Backend
+    - repoURL: https://github.com/hotosm/fAIr.git
+      targetRevision: main
+      path: chart
+      helm:
+        releaseName: fair-backend
+        valueFiles:
+          - $k8s-infra/apps/production/fair/backend/helm/values.yaml
+
+    # 2. STAC / eoAPI
+    - repoURL: https://devseed.com/eoapi-k8s
+      chart: eoapi
+      targetRevision: 0.12.2
+      helm:
+        releaseName: fair-eoapi
+        skipCrds: false
+        passCredentials: false
+        valueFiles:
+          - $k8s-infra/apps/production/fair/eoapi/helm/values.yaml
+
+    # 3. MLflow
+    - repoURL: https://community-charts.github.io/helm-charts
+      chart: mlflow
+      targetRevision: 1.8.1
+      helm:
+        releaseName: mlflow
+        valueFiles:
+          - $k8s-infra/apps/production/fair/mlflow/helm/values.yaml
+
+    # 4. ZenML
+    - repoURL: oci://public.ecr.aws/zenml/zenml
+      chart: zenml
+      targetRevision: 0.94.2
+      helm:
+        releaseName: zenml
+        valueFiles:
+          - $k8s-infra/apps/production/fair/zenml/helm/values.yaml
+
+    # 5. Reference to this infrastructure repo (required for valueFiles mapping)
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+
+    # 6. Apply all extra resources (Sealed Secrets, RBAC, etc.) in the root folder
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/production/fair
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: fair-prod
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
