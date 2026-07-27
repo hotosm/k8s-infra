@@ -51,7 +51,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   is_ipv6_enabled     = true
   comment             = "fAIr Production Frontend CDN"
   default_root_object = "index.html"
-  aliases             = ["fair.hotosm.org"]
+  aliases             = ["ai.hotosm.org"]
 
   origin {
     domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
