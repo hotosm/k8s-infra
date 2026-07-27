@@ -9,7 +9,7 @@ zenml:
   # requestTimeout: 20
 
   image:
-    repository: ghcr.io/hotosm/zenml-postgres
+    repository: ghcr.io/hotosm/fair/zenml-postgres
     pullPolicy: Always
     # Overrides the image tag whose default is the chart appVersion.
     tag:
