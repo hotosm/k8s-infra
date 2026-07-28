@@ -4,7 +4,7 @@ metadata:
   name: fair-production
   namespace: argocd
   annotations:
-    argocd-image-updater.argoproj.io/image-list: fair-backend=ghcr.io/hotosm/fair/backend
+    argocd-image-updater.argoproj.io/image-list: fair-backend=ghcr.io/hotosm/fair/api
     argocd-image-updater.argoproj.io/fair-backend.update-strategy: latest
     argocd-image-updater.argoproj.io/fair-backend.helm.image-name: image.backend.repository
     argocd-image-updater.argoproj.io/fair-backend.helm.image-tag: image.backend.tag

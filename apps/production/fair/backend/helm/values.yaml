@@ -2,7 +2,7 @@ global:
   environment: production
 
 image:
-  repository: ghcr.io/hotosm/fair/backend
+  repository: ghcr.io/hotosm/fair/api
   tag: main
   pullPolicy: Always
 
