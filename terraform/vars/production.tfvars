@@ -4,6 +4,7 @@ state_bucket  = "hotosm-terraform"
 lock_table    = "k8s-infra"
 instance_type = "t3.xlarge"
 bucket_names  = ["hotosm-pgstac-backup", "hotosm-fair-mlflow-prod"]
+core_nodegroup_size = 6
 tags = {
   project = "k8s-infra"
 }
