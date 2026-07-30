@@ -98,7 +98,7 @@ config:
     # Swap-aware sizing: request = peak / (1 + swapRatio), swap absorbs the peak.
     # Needs the swap-enabled pool (apps/karpenter/scaleodm-ec2nodeclass.yaml),
     # which the nodeSelector above pins pods to.
-    swapRatio: 2.0
+    swapRatio: 1.0
     memoryRequestMinGiB: 4
 
 argo:
