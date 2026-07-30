@@ -29,7 +29,8 @@ config:
 
   # Defaults, except gp3 storageclass
   workflow:
-    activeDeadlineSeconds: 21600
+    # 48hrs processing deadline
+    activeDeadlineSeconds: 172800
     workspace:
       mode: auto
       size: "30Gi"
@@ -58,7 +59,7 @@ config:
     retryLimit: 1
     retryBackoffDuration: "60s"
     retryBackoffFactor: "2"
-    retryBackoffMaxDuration: "6h"
+    retryBackoffMaxDuration: "48h"
     ttlSuccessSeconds: 86400
     ttlFailureSeconds: 604800
     podGCStrategy: "OnWorkflowSuccess"
