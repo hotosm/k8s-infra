@@ -13,6 +13,10 @@ workspaceStorageClass:
   create: true
 
 config:
+  # TEMPORARY: ODX ships a newer, more memory-optimised OpenSfM in the same
+  # image and runs the same run.py CLI. Revert to ghcr.io/opendronemap/odm:<ver> later.
+  odmImage: "ghcr.io/spwoodcock/odx:3.8.1"
+
   observability:
     enabled: false
     serviceName: "scaleodm"
@@ -63,17 +67,38 @@ config:
     # "spot" is cheapest; use "on-demand" for stable capacity.
     # Individual submissions can override this via the capacityType API field.
     capacityType: "spot"
+    # Jobs >= 5000 images run for hours; pin them to on-demand so a spot
+    # eviction can't waste the run.
+    onDemandImageThreshold: 5000
+    # Target the dedicated ScaleODM pool (apps/karpenter/scaleodm-nodepool.yaml)
+    # and tolerate its taint, so ODM jobs get the NVMe/swap nodes and nothing
+    # else does. schedulingMode set explicitly (not inherited) so it can't drift.
+    schedulingMode: "karpenter"
+    nodeSelector: "pool=scaleodm"
+    tolerations: "dedicated=scaleodm:NoSchedule"
 
   processSizing:
     memoryLimitMarginPercent: 20
     memoryMinGiB: 4
-    memoryMaxGiB: 256
-    cpuPerGiB: 0.25
-    cpuLimitMultiplier: 1.5
+    # Peak-estimate ceiling. 600Gi covers ~13k images (~189Gi RAM request), which
+    # fits a 256Gi NVMe node + swap. Bigger jobs clamp (and may fail) rather than
+    # pend; split-merge will handle them.
+    memoryMaxGiB: 600
+    # RAM-driven selection: CPU = 0.125 vCPU per GiB of RAM request (r-family
+    # ratio), so it always fits the RAM-selected node. cpuLimitMultiplier 0 omits
+    # the CPU limit so ODM uses every node core.
+    cpuPerGiB: 0.125
+    cpuLimitMultiplier: 0
+    cpuMaxCores: 0
     ephemeralGiBPerGiBRAM: 0.3
     ephemeralLimitMultiplier: 1.2
     fastOrthoMemoryMultiplier: 0.5
     dsmDtmMemoryMultiplier: 1.5
+    # Swap-aware sizing: request = peak / (1 + swapRatio), swap absorbs the peak.
+    # Needs the swap-enabled pool (apps/karpenter/scaleodm-ec2nodeclass.yaml),
+    # which the nodeSelector above pins pods to.
+    swapRatio: 2.0
+    memoryRequestMinGiB: 4
 
 argo:
   controller:
