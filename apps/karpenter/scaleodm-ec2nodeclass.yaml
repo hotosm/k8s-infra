@@ -1,0 +1,122 @@
+# NVMe + swap node config for the dedicated ScaleODM pool (scaleodm-nodepool).
+# Kept separate from the shared "autoscale" class so only ScaleODM gets the
+# NVMe/swap setup.
+
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: scaleodm-swap
+spec:
+  role: KarpenterNodeRole-hotosm-production-cluster
+
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: hotosm-production-cluster
+        kubernetes.io/role/internal-elb: "1"
+
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: hotosm-production-cluster
+
+  # OS and container images only. Swap and ephemeral scratch go on the NVMe
+  # instance store below, so the root volume stays small.
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 80Gi
+        volumeType: gp3
+        deleteOnTermination: true
+
+  # RAID0 the NVMe instance store and use it for kubelet ephemeral storage and
+  # the swap file. NVMe swap is ~100x faster than EBS, so ScaleODM's heavy paging
+  # during mvs-texturing stays fast.
+  instanceStorePolicy: RAID0
+
+  # Swap = 2x node RAM (benchmarked). ScaleODM requests peak/3, so RAM + 2*RAM
+  # covers the peak. See ScaleODM docs/swap.md.
+  #
+  # userData (AL2023 multipart MIME): a shellscript installs a systemd unit that
+  # enables swap; a NodeConfig sets the kubelet swap flags.
+  userData: |
+    MIME-Version: 1.0
+    Content-Type: multipart/mixed; boundary="//"
+
+    --//
+    Content-Type: text/x-shellscript; charset="us-ascii"
+
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # Install a systemd unit that enables swap after the NVMe mount and before
+    # kubelet, so it can't race the mount from cloud-init. The script also waits
+    # for the mount as a fallback, and joins without swap (rather than boot-loop)
+    # if the NVMe never appears, since the 80Gi root can't hold swap.
+
+    cat > /usr/local/bin/setup-nvme-swap.sh <<'SCRIPT'
+    #!/usr/bin/env bash
+    set -uo pipefail
+    SWAP_DIR=""
+    for _ in $(seq 1 30); do
+      if mountpoint -q /mnt/k8s-disks/0; then SWAP_DIR="/mnt/k8s-disks/0"; break; fi
+      sleep 2
+    done
+    if [ -z "${SWAP_DIR}" ]; then
+      echo "NVMe instance store not mounted; starting without swap." >&2
+      exit 0
+    fi
+    SWAPFILE="${SWAP_DIR}/swapfile"
+    RAM_KB=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
+    SWAP_MB=$(( RAM_KB * 2 / 1024 ))   # swap = 2x RAM (benchmarked)
+    if ! swapon --show | grep -q "${SWAPFILE}"; then
+      if fallocate -l "${SWAP_MB}M" "${SWAPFILE}" && chmod 600 "${SWAPFILE}" && mkswap "${SWAPFILE}" && swapon "${SWAPFILE}"; then
+        echo "Swap enabled (${SWAP_MB}MiB at ${SWAPFILE})."
+      else
+        echo "Swap setup failed; continuing without swap." >&2
+        rm -f "${SWAPFILE}" || true
+      fi
+    fi
+    SCRIPT
+    chmod 0755 /usr/local/bin/setup-nvme-swap.sh
+
+    cat > /etc/systemd/system/nvme-swap.service <<'UNIT'
+    [Unit]
+    Description=Enable 2x-RAM swap on the NVMe instance store
+    Wants=mnt-k8s\x2ddisks-0.mount
+    After=mnt-k8s\x2ddisks-0.mount
+    Before=kubelet.service
+
+    [Service]
+    Type=oneshot
+    RemainAfterExit=yes
+    ExecStart=/usr/local/bin/setup-nvme-swap.sh
+    ExecStartPost=-/usr/sbin/swapon --show
+
+    [Install]
+    WantedBy=multi-user.target
+    UNIT
+
+    systemctl daemon-reload
+    systemctl enable --now nvme-swap.service
+
+    --//
+    Content-Type: application/node.eks.aws
+
+    apiVersion: node.eks.aws/v1alpha1
+    kind: NodeConfig
+    spec:
+      kubelet:
+        config:
+          failSwapOn: false             # allow nodes with swap to join
+          # NodeSwap is GA and on by default in 1.30+, so no feature gate needed.
+          memorySwap:
+            swapBehavior: LimitedSwap   # only Burstable pods get swap
+    --//--
+
+  tags:
+    Name: karpenter-scaleodm
+    karpenter.sh/discovery: hotosm-production-cluster
+
+  # Pin the AL2023 AMI release for prod (matches the shared autoscale class).
+  # AL2023 release_version: 1.34.9-20260625. Update on cluster upgrades.
+  amiSelectorTerms:
+    - alias: al2023@v20260625
