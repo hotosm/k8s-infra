@@ -30,6 +30,11 @@ spec:
   # RAID0 the NVMe instance store and use it for kubelet ephemeral storage and
   # the swap file. NVMe swap is ~100x faster than EBS, so ScaleODM's heavy paging
   # during mvs-texturing stays fast.
+  #
+  # This only covers swap + ephemeral scratch. The ODM working directory is a
+  # separate gp3 PVC (the scaleodm-workspace storageclass). If undistort or MVS
+  # becomes disk-bound, tune that class's throughput/IOPS in the ScaleODM Helm
+  # values, not here. See apps/scaleodm/helm/values.yaml.
   instanceStorePolicy: RAID0
 
   # Swap = 2x node RAM (benchmarked). ScaleODM requests peak/3, so RAM + 2*RAM

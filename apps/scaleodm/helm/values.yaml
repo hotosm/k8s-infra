@@ -8,7 +8,17 @@ secrets:
       secretKey: "AWS_SECRET_ACCESS_KEY"
       region: "AWS_DEFAULT_REGION"
 
-# Deploys "scaleodm-workspace" used below
+# Deploys the "scaleodm-workspace" storageclass used below. This gp3 volume is
+# the ODM working directory: undistort and OpenMVS write heavy intermediate
+# files here (undistorted TIFs, depthmaps) at the gp3 baseline of ~125 MiB/s /
+# 3000 IOPS. Separate from the node's fast NVMe swap + ephemeral (see
+# apps/karpenter/scaleodm-ec2nodeclass.yaml).
+#
+# Perf note: if undistort or MVS goes I/O-bound (stage stuck at low CPU with the
+# job stalled on disk), give it more disk throughput. Either raise this class's
+# gp3 throughput/IOPS via the chart (e.g. 500-1000 MiB/s, 6000-16000 IOPS), or
+# point workflow.workspace.storageClass below at a custom higher-throughput gp3
+# class.
 workspaceStorageClass:
   create: true
 
