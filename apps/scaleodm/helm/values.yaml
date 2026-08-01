@@ -23,10 +23,6 @@ workspaceStorageClass:
   create: true
 
 config:
-  # TEMPORARY: ODX ships a newer, more memory-optimised OpenSfM in the same
-  # image and runs the same run.py CLI. Revert to ghcr.io/opendronemap/odm:<ver> later.
-  odmImage: "ghcr.io/spwoodcock/odx:3.8.1"
-
   observability:
     enabled: false
     serviceName: "scaleodm"
