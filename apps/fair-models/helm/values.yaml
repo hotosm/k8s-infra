@@ -1,6 +1,11 @@
 environment: develop
 
-# The CI pipeline will automatically update these tags for all 4 models
+stac:
+  # This explicitly tells Helm NOT to run the registration job
+  register: false
+  # You can put your dev URL here, or leave it out entirely since we are skipping
+  apiUrl: "https://stac-dev.ai.hotosm.org" 
+
 models:
   dinov3s_buildings:
     image: ghcr.io/hotosm/dinov3s-inference
@@ -14,7 +19,3 @@ models:
   yolo11n_detection:
     image: ghcr.io/hotosm/yolo11n-inference
     tag: "latest"
-
-stac:
-  # Skip STAC registration on develop
-  register: false

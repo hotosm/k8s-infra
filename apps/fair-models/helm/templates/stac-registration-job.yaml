@@ -2,25 +2,36 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: stac-register-{{ .Release.Revision }}
-  namespace: {{ .Release.Namespace }}
+  name: stac-registration-job
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
 spec:
-  backoffLimit: 2
   template:
     spec:
       restartPolicy: Never
       containers:
         - name: stac-register
-          image: ghcr.io/hotosm/fair-py-ops:latest 
+          image: python:3.11-slim
+          envFrom:
+            - secretRef:
+                name: fair-stac-db-creds
+          env:
+            - name: FAIR_STAC_API_URL
+              value: {{ .Values.stac.apiUrl | quote }}
           command: ["/bin/sh", "-c"]
           args:
             - |
-              echo "Scanning fair-models repo for STAC items..."
-              fair base-model register-from-github --branch {{ .Values.environment }}
-          envFrom:
-            - secretRef:
-                name: fair-stac-db-creds # Securely mounts credentials from Sealed Secrets
+              apt-get update && apt-get install -y git
+              git clone -b {{ .Values.environment }} https://github.com/hotosm/fair-models.git
+              cd fair-models
+              pip install .
+              
+              echo "Starting STAC registration..."
+              for stac_file in models/*/stac-item.json; do
+                if [ -f "$stac_file" ]; then
+                  echo "Registering $stac_file..."
+                  fair basemodel register "$stac_file"
+                fi
+              done
+              echo "Registration complete!"
 {{- end }}
