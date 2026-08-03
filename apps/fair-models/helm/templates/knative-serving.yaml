@@ -14,9 +14,9 @@ spec:
     metadata:
       annotations:
         # Scale to zero capabilities
-        autoscaling.knative.dev/min-Scale: "0"
-        # Optional: Set max scale to prevent Karpenter from over-provisioning nodes
-        autoscaling.knative.dev/max-Scale: "3"
+        autoscaling.knative.dev/min-scale: "{{ $.Values.knative.minScale | default "0" }}"
+        # Set max scale to prevent Karpenter from over-provisioning nodes
+        autoscaling.knative.dev/max-scale: "{{ $.Values.knative.maxScale | default "3" }}"
     spec:
       containers:
         - image: "{{ $modelConfig.image }}:{{ $modelConfig.tag }}"
@@ -24,5 +24,5 @@ spec:
             - name: MODEL_MODULE
               value: "models.{{ $modelName }}.pipeline"
           ports:
-            - containerPort: 8090 # Target port based on fair.serve.base
+            - containerPort: 8090
 {{- end }}

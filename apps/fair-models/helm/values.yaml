@@ -1,5 +1,9 @@
 environment: develop
 
+knative:
+  minScale: "0"
+  maxScale: "3"
+  
 stac:
   # This explicitly tells Helm NOT to run the registration job
   register: false
