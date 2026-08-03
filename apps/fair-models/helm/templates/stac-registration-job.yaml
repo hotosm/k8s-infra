@@ -22,16 +22,30 @@ spec:
           args:
             - |
               apt-get update && apt-get install -y git
-              git clone -b {{ .Values.environment }} https://github.com/hotosm/fair-models.git
+              
+              # Clone with depth 2 so we have enough history to run a diff
+              git clone --depth 2 -b {{ .Values.environment }} https://github.com/hotosm/fair-models.git
               cd fair-models
               pip install .
               
-              echo "Starting STAC registration..."
-              for stac_file in models/*/stac-item.json; do
-                if [ -f "$stac_file" ]; then
-                  echo "Registering $stac_file..."
-                  fair basemodel register "$stac_file"
-                fi
-              done
-              echo "Registration complete!"
+              echo "Checking for changed models..."
+              # Use diff to find changed files. Fallback to all files if HEAD~1 does not exist.
+              if git rev-parse HEAD~1 >/dev/null 2>&1; then
+                CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep "stac-item.json" || true)
+              else
+                echo "No previous commit found. Defaulting to all models."
+                CHANGED_FILES=$(ls models/*/stac-item.json 2>/dev/null || true)
+              fi
+              
+              if [ -z "$CHANGED_FILES" ]; then
+                echo "No STAC JSON files were modified in this deployment. Skipping registration."
+              else
+                for stac_file in $CHANGED_FILES; do
+                  if [ -f "$stac_file" ]; then
+                    echo "Registering $stac_file..."
+                    fair basemodel register "$stac_file"
+                  fi
+                done
+              fi
+              echo "Registration job complete!"
 {{- end }}
