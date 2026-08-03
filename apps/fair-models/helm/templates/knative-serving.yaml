@@ -1,0 +1,28 @@
+{{- range $modelName, $modelConfig := .Values.models }}
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  # Knative URLs require RFC-1123 compliance (replace underscores with dashes)
+  name: {{ $modelName | replace "_" "-" }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ $modelName | replace "_" "-" }}
+    environment: {{ $.Values.environment }}
+spec:
+  template:
+    metadata:
+      annotations:
+        # Scale to zero capabilities
+        autoscaling.knative.dev/min-Scale: "0"
+        # Optional: Set max scale to prevent Karpenter from over-provisioning nodes
+        autoscaling.knative.dev/max-Scale: "3"
+    spec:
+      containers:
+        - image: "{{ $modelConfig.image }}:{{ $modelConfig.tag }}"
+          env:
+            - name: MODEL_MODULE
+              value: "models.{{ $modelName }}.pipeline"
+          ports:
+            - containerPort: 8090 # Target port based on fair.serve.base
+{{- end }}

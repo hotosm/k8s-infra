@@ -1,0 +1,11 @@
+environment: develop
+
+# The CI pipeline will automatically update these tags
+models:
+  unet_segmentation:
+    image: ghcr.io/hotosm/unet-inference
+    tag: "latest"
+
+stac:
+  # Transcript logic: Skip STAC registration on develop, enable on stage/main
+  register: false

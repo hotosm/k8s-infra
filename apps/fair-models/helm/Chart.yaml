@@ -1,0 +1,6 @@
+apiVersion: v2
+name: fair-models
+description: Deploy fAIr Knative Model Services and STAC Registration
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

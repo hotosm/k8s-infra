@@ -1,0 +1,26 @@
+{{- if .Values.stac.register }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: stac-register-{{ .Release.Revision }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: stac-register
+          image: ghcr.io/hotosm/fair-py-ops:latest 
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Scanning fair-models repo for STAC items..."
+              fair base-model register-from-github --branch {{ .Values.environment }}
+          envFrom:
+            - secretRef:
+                name: fair-stac-db-creds # Securely mounts credentials from Sealed Secrets
+{{- end }}
