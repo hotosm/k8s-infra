@@ -1,11 +1,20 @@
 environment: develop
 
-# The CI pipeline will automatically update these tags
+# The CI pipeline will automatically update these tags for all 4 models
 models:
+  dinov3s_buildings:
+    image: ghcr.io/hotosm/dinov3s-inference
+    tag: "latest"
+  resnet18_classification:
+    image: ghcr.io/hotosm/resnet18-inference
+    tag: "latest"
   unet_segmentation:
     image: ghcr.io/hotosm/unet-inference
     tag: "latest"
+  yolo11n_detection:
+    image: ghcr.io/hotosm/yolo11n-inference
+    tag: "latest"
 
 stac:
-  # Transcript logic: Skip STAC registration on develop, enable on stage/main
+  # Skip STAC registration on develop
   register: false
