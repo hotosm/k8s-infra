@@ -11,7 +11,7 @@ spec:
       chart: scaleodm
       # Auto-track the most recent published chart.
       # Pin to a version if needed.
-      targetRevision: "1.0.0-rc.5"
+      targetRevision: "1.0.0-rc.6"
       helm:
         releaseName: scaleodm
         valueFiles:
