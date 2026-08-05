@@ -24,7 +24,7 @@ spec:
     metadata:
       name: "fair-staging-pr-{{ .number }}"
       finalizers:
-        - resources-finalizer.argoproj.io
+        - resources-finalizer.argocd.argoproj.io
     spec:
       project: default
       sources:
