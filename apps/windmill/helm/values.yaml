@@ -32,6 +32,15 @@ windmill:
     # owns the replica count (0..maxReplicaCount, see scaledobject.yaml). ArgoCD
     # ignores .spec.replicas for these Deployments (see apps/windmill.yaml
     # ignoreDifferences) so it does not fight KEDA scaling to zero.
+    #
+    # MANUAL STEP: WORKER_TAGS below makes a worker *register* its tag when it
+    # scales up, but for a tag to be *selectable* on a script/flow it must also
+    # be added to Windmill's "Assignable Tags" list (superadmin -> Workers tab
+    # -> Assignable Tags). That list lives in the Windmill DB, not in these
+    # manifests, so ArgoCD cannot manage it - add each tag once by hand:
+    # osm-export-small, osm-export-medium, osm-export-big (tm-export later).
+    # Scale-to-zero is fine once assigned: an assigned job queues with its tag,
+    # KEDA counts it and scales a worker up to run it.
 
     # Requests are trimmed below the nominal node size so Karpenter packs each
     # pod onto the intended instance rather than bumping to the next size up.

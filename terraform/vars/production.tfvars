@@ -1,9 +1,9 @@
-environment   = "production"
-region        = "us-east-1"
-state_bucket  = "hotosm-terraform"
-lock_table    = "k8s-infra"
-instance_type = "t3.xlarge"
-bucket_names  = ["hotosm-pgstac-backup", "hotosm-fair-mlflow-prod"]
+environment         = "production"
+region              = "us-east-1"
+state_bucket        = "hotosm-terraform"
+lock_table          = "k8s-infra"
+instance_type       = "t3.xlarge"
+bucket_names        = ["hotosm-pgstac-backup", "hotosm-fair-mlflow-prod"]
 core_nodegroup_size = 7
 tags = {
   project = "k8s-infra"
