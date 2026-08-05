@@ -1,5 +1,5 @@
-# Autoscales the `heavy` worker group from 0 to 2 based on the number of
-# `heavy`-tagged jobs in the Windmill Postgres queue. When the queue drains,
+# Autoscales the OSM export worker groups from 0 based on the number of
+# matching tagged jobs in the Windmill Postgres queue. When the queue drains,
 # KEDA scales back to 0 and Karpenter consolidates the node(s) away.
 #
 # Reuses the existing windmill-db-url secret (full Postgres URL under `url`) as
@@ -19,11 +19,11 @@ spec:
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
-  name: windmill-heavy
+  name: windmill-osm-export-small
   namespace: windmill
 spec:
   scaleTargetRef:
-    name: windmill-workers-heavy
+    name: windmill-workers-osm-export-small
   minReplicaCount: 0
   maxReplicaCount: 2
   pollingInterval: 30
@@ -35,9 +35,91 @@ spec:
       authenticationRef:
         name: windmill-db-auth
       metadata:
-        # Counts running + waiting heavy jobs so workers stay up while jobs
-        # run, and scale to 0 only once the queue is fully drained.
+        # Counts running + waiting jobs so workers stay up while jobs run, and
+        # scale to 0 only once the queue is fully drained.
         query: >
           SELECT count(*) FROM v2_job_queue
-          WHERE tag = 'heavy' AND scheduled_for <= now();
+          WHERE tag = 'osm-export-small' AND scheduled_for <= now();
         targetQueryValue: "1"
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: windmill-osm-export-medium
+  namespace: windmill
+spec:
+  scaleTargetRef:
+    name: windmill-workers-osm-export-medium
+  minReplicaCount: 0
+  maxReplicaCount: 2
+  pollingInterval: 30
+  # Keep a worker (and its node) ~5 min after the queue empties to avoid
+  # thrashing between back-to-back jobs.
+  cooldownPeriod: 300
+  triggers:
+    - type: postgresql
+      authenticationRef:
+        name: windmill-db-auth
+      metadata:
+        # Counts running + waiting jobs so workers stay up while jobs run, and
+        # scale to 0 only once the queue is fully drained.
+        query: >
+          SELECT count(*) FROM v2_job_queue
+          WHERE tag = 'osm-export-medium' AND scheduled_for <= now();
+        targetQueryValue: "1"
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: windmill-osm-export-big
+  namespace: windmill
+spec:
+  scaleTargetRef:
+    name: windmill-workers-osm-export-big
+  minReplicaCount: 0
+  maxReplicaCount: 1
+  pollingInterval: 30
+  # Keep a worker (and its node) ~5 min after the queue empties to avoid
+  # thrashing between back-to-back jobs.
+  cooldownPeriod: 300
+  triggers:
+    - type: postgresql
+      authenticationRef:
+        name: windmill-db-auth
+      metadata:
+        # Counts running + waiting jobs so workers stay up while jobs run, and
+        # scale to 0 only once the queue is fully drained.
+        query: >
+          SELECT count(*) FROM v2_job_queue
+          WHERE tag = 'osm-export-big' AND scheduled_for <= now();
+        targetQueryValue: "1"
+# Tasking Manager exports. Needs an extended Windmill image with extra Python
+# deps before it can be enabled; see
+# https://github.com/hotosm/k8s-infra/issues/184
+# Uncomment (and the matching worker group in helm/values.yaml) once ready.
+# ---
+# apiVersion: keda.sh/v1alpha1
+# kind: ScaledObject
+# metadata:
+#   name: windmill-tm-export
+#   namespace: windmill
+# spec:
+#   scaleTargetRef:
+#     name: windmill-workers-tm-export
+#   minReplicaCount: 0
+#   maxReplicaCount: 4
+#   pollingInterval: 30
+#   # Keep a worker (and its node) ~5 min after the queue empties to avoid
+#   # thrashing between back-to-back jobs.
+#   cooldownPeriod: 300
+#   triggers:
+#     - type: postgresql
+#       authenticationRef:
+#         name: windmill-db-auth
+#       metadata:
+#         # Counts running + waiting jobs so workers stay up while jobs run, and
+#         # scale to 0 only once the queue is fully drained.
+#         query: >
+#           SELECT count(*) FROM v2_job_queue
+#           WHERE tag = 'tm-export' AND scheduled_for <= now();
+#         targetQueryValue: "1"

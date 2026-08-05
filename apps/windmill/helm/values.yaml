@@ -7,30 +7,48 @@ windmill:
   # Disable LSP / Multiplayer / Debugger sidecar deployment.
   extraReplicas: 0
 
-  # Single worker group, one replica. Jobs run inline in the worker pod
-  # (unshare + bubblewrap sandbox); workers do not spawn per-job pods.
-  # So essentially with relicas:1 we can run one job at a time, sequentially.
   workerGroups:
-    - name: default
-      replicas: 1
 
-    # Heavy batch jobs (e.g. monthly country exports). Scripts tagged `heavy`
-    # in the Windmill UI run here. Scales 0 -> 2 with KEDA based on the Postgres
-    # job queue (see scaledobject.yaml), landing on the cpu-autoscale Karpenter
-    # pool so nodes only exist while jobs run.
-    #
-    # replicas must be >= 1 for the chart to render the Deployment; KEDA then
-    # owns the replica count 0..2. ArgoCD ignores .spec.replicas for this
-    # Deployment (see apps/windmill.yaml ignoreDifferences) so it does not fight
-    # KEDA scaling to zero.
-    - name: heavy
+    # Basic scripts / baseline one job at a time, sequential
+    - name: default
       replicas: 1
       resources:
         requests:
-          cpu: "4"
-          memory: "12Gi"
+          cpu: "1"
+          memory: "1Gi"
         limits:
-          memory: "12Gi"
+          cpu: "2"
+          memory: "2Gi"
+  
+    # Autoscaled jobs based on tags/labels.
+    # These scale from 0 based on KEDA, using the Postgres queue for windmill
+    # as a trigger (see scaledobject.yaml).
+    #
+    # If there isn't enough resource to run the job, karpenter will autoscale
+    # a new suitable node to handle it, then shut down, landing on the
+    # cpu-autoscale Karpenter pool so nodes only exist while jobs run.
+    #
+    # replicas must be >= 1 for the chart to render the Deployment; KEDA then
+    # owns the replica count (0..maxReplicaCount, see scaledobject.yaml). ArgoCD
+    # ignores .spec.replicas for these Deployments (see apps/windmill.yaml
+    # ignoreDifferences) so it does not fight KEDA scaling to zero.
+
+    # Requests are trimmed below the nominal node size so Karpenter packs each
+    # pod onto the intended instance rather than bumping to the next size up.
+    # Allow for the 7.5% vmMemoryOverheadPercent (see apps/karpenter/helm) plus
+    # ~1-1.5Gi of kube/system-reserved + eviction + DaemonSets, and ~0.5 vCPU.
+    # Targets a 4 vCPU / 8Gi (c*.xlarge) node.
+    - name: osm-export-small
+      replicas: 1
+      resources:
+        requests:
+          cpu: "2"
+          memory: "6500Mi"
+        limits:
+          memory: "6500Mi"
+      # Override as needed
+      # image: ""
+      # tag: ""
       nodeSelector:
         node-type: cpu
         nodegroup: autoscale
@@ -39,7 +57,77 @@ windmill:
           operator: Exists
       extraEnv:
         - name: WORKER_TAGS
-          value: "heavy"
+          value: "osm-export-small"
+
+    # Targets a 4 vCPU / 16Gi (m*.xlarge) node.
+    - name: osm-export-medium
+      replicas: 1
+      resources:
+        requests:
+          cpu: "3500m"
+          memory: "14Gi"
+        limits:
+          memory: "14Gi"
+      # Override as needed
+      # image: ""
+      # tag: ""
+      nodeSelector:
+        node-type: cpu
+        nodegroup: autoscale
+      tolerations:
+        - key: spot
+          operator: Exists
+      extraEnv:
+        - name: WORKER_TAGS
+          value: "osm-export-medium"
+
+    # Targets a 4 vCPU / 32Gi (r*.xlarge) node.
+    - name: osm-export-big
+      replicas: 1
+      resources:
+        requests:
+          cpu: "3500m"
+          memory: "28Gi"
+        limits:
+          memory: "28Gi"
+      # Override as needed
+      # image: ""
+      # tag: ""
+      nodeSelector:
+        node-type: cpu
+        nodegroup: autoscale
+      tolerations:
+        - key: spot
+          operator: Exists
+      extraEnv:
+        - name: WORKER_TAGS
+          value: "osm-export-big"
+
+    # Tasking Manager exports. Needs an extended Windmill image with extra
+    # Python deps before it can be enabled; see
+    # https://github.com/hotosm/k8s-infra/issues/184
+    # Uncomment (and the matching ScaledObject in scaledobject.yaml) once the
+    # image is ready, filling in the image + tag below.
+    # - name: tm-export
+    #   replicas: 1
+    #   resources:
+    #     requests:
+    #       cpu: "2"
+    #       memory: "1500Mi"
+    #     limits:
+    #       memory: "1500Mi"
+    #   # Extended image with the TM export Python deps (see issue #184)
+    #   # image: ""
+    #   # tag: ""
+    #   nodeSelector:
+    #     node-type: cpu
+    #     nodegroup: autoscale
+    #   tolerations:
+    #     - key: spot
+    #       operator: Exists
+    #   extraEnv:
+    #     - name: WORKER_TAGS
+    #       value: "tm-export"
 
   # Full-text search indexer; off to save resources for now.
   indexer:
