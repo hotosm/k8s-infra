@@ -22,15 +22,8 @@ releases:
       - name: disable_check_for_upgrades
         value: true
 
-  - name: eoapi-support
-    namespace: eoapi-support
-    chart: eoapi/eoapi-support
-    version: 0.1.7
-    needs: [eoapi/eoapi]
-    installed: {{ readFile "eoapi-values.yaml" | fromYaml | get "ingress.tls.enabled" false }}
-    values:
-      - eoapi-support-values.yaml
-
+# eoapi-support (bundled Prometheus/Grafana) removed. Monitoring is now the
+# cluster-wide apps/monitoring stack (#134).
 
 repositories:
   - name: eoapi
