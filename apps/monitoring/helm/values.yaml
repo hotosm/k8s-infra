@@ -1,0 +1,61 @@
+# kube-prometheus-stack: one Operator for the whole cluster
+# Apps opt in with a ServiceMonitor/PodMonitor in any namespace (see README)
+
+prometheus:
+  prometheusSpec:
+    # Discover monitors/rules cluster-wide, not just this release's
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+    scrapeConfigSelectorNilUsesHelmValues: false
+    retention: 30d
+    retentionSize: "45GB"   # stay under the PVC below
+    resources:
+      requests: { cpu: 500m, memory: 2Gi }
+      limits: { memory: 4Gi }
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources: { requests: { storage: 50Gi } }
+
+alertmanager:
+  # Enabled with no receivers yet - add Slack/email routing when ready
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources: { requests: { storage: 5Gi } }
+
+grafana:
+  # Admin creds from a sealed secret, avoids a random chart-generated password
+  admin:
+    existingSecret: grafana-admin-creds
+    userKey: admin-user
+    passwordKey: admin-password
+  persistence:
+    enabled: true
+    storageClassName: gp3
+    size: 10Gi
+  # On the tailnet (no public ingress)
+  service:
+    type: LoadBalancer
+    loadBalancerClass: tailscale
+    annotations:
+      tailscale.com/hostname: grafana
+  # Auto-import app dashboards shipped as ConfigMaps labelled grafana_dashboard
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      searchNamespaces: ALL
+
+# Cluster collectors exabled explicitly
+nodeExporter:
+  enabled: true
+kubeStateMetrics:
+  enabled: true
