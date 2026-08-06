@@ -111,6 +111,53 @@ argo:
   controller:
     # Only allow 5 jobs to run at a time for now
     parallelism: 5
+
+    # Scraped by the cluster-wide kube-prometheus-stack (apps/monitoring).
+    # Gives argo_workflows_count{status=...}, pod counts, queue depth/latency
+    # and error counts, plus the custom metrics declared below.
+    metricsConfig:
+      enabled: true
+      # Deliberately no metricsTTL: it evicts custom metrics from controller
+      # memory, which resets counters/histograms. Only worth setting if the
+      # custom label sets below ever grow high-cardinality.
+    serviceMonitor:
+      enabled: true   # created in ns "argo"; monitoring's selectors are open
+
+    # Applied to EVERY workflow this controller runs - which is ScaleODM's ODM
+    # pipelines *and* the OAM uploader's GeoTIFF pipeline (apps/oam-uploader-api.yaml),
+    # since one controller watches all namespaces. Hence the neutral name and
+    # the namespace label rather than a scaleodm_ prefix.
+    #
+    # Cardinality is namespaces x statuses, so a handful of series. Per-job
+    # dimensions (processing mode, capacity type, image count) are NOT available
+    # here - workflow-level metrics can only reference workflow variables, and
+    # ScaleODM does not currently stamp those onto the Workflow. Adding them
+    # needs a change in ScaleODM's app/workflows/standard.go.
+    workflowDefaults:
+      spec:
+        metrics:
+          prometheus:
+            # Buckets span 1min to 32h: ODM pipelines run for hours and the
+            # activeDeadlineSeconds ceiling is 48h.
+            - name: workflow_duration_seconds
+              help: "Workflow wall-clock duration by namespace and final status"
+              labels:
+                - key: namespace
+                  value: "{{workflow.namespace}}"
+                - key: status
+                  value: "{{workflow.status}}"
+              histogram:
+                buckets: [60, 300, 900, 1800, 3600, 7200, 14400, 28800, 57600, 115200]
+                value: "{{workflow.duration}}"
+            - name: workflow_result_total
+              help: "Completed workflows by namespace and final status"
+              labels:
+                - key: namespace
+                  value: "{{workflow.namespace}}"
+                - key: status
+                  value: "{{workflow.status}}"
+              counter:
+                value: "1"
   artifactRepository:
     archiveLogs: true
     s3:

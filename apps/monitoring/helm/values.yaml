@@ -41,6 +41,11 @@ grafana:
     enabled: true
     storageClassName: gp3
     size: 10Gi
+  # The chart defaults to RollingUpdate, which deadlocks against the RWO PVC
+  # above: the new pod can't attach the volume until the old one releases it,
+  # and the old one isn't torn down until the new one is Ready. Replace instead.
+  deploymentStrategy:
+    type: Recreate
   # On the tailnet (no public ingress)
   service:
     type: LoadBalancer
@@ -54,8 +59,22 @@ grafana:
       label: grafana_dashboard
       searchNamespaces: ALL
 
-# Cluster collectors exabled explicitly
+# Cluster collectors enabled explicitly
 nodeExporter:
   enabled: true
 kubeStateMetrics:
   enabled: true
+
+kube-state-metrics:
+  # cAdvisor only labels container metrics with `pod`, so on its own you can't
+  # tell which Argo workflow a pod belonged to. Surfacing these labels as
+  # kube_pod_labels / kube_node_labels series lets PromQL join them, e.g.
+  #
+  #   container_memory_working_set_bytes{namespace="odm"}
+  #     * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)
+  #       kube_pod_labels{namespace="odm"}
+  #
+  # Both are bounded: pod series disappear with PodGC, nodes with the node.
+  metricLabelsAllowlist:
+    - "pods=[workflows.argoproj.io/workflow]"
+    - "nodes=[karpenter.sh/nodepool,karpenter.sh/capacity-type,node.kubernetes.io/instance-type]"
