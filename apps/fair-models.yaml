@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fair-models
+  namespace: argocd
+  annotations:
+    # 1. Define aliases and track the specific GHCR images for all 4 models
+    argocd-image-updater.argoproj.io/image-list: >
+      unet=ghcr.io/hotosm/fair-models/unet_segmentation,
+      dino=ghcr.io/hotosm/fair-models/dinov3s_buildings,
+      resnet=ghcr.io/hotosm/fair-models/resnet18_classification,
+      yolo=ghcr.io/hotosm/fair-models/yolov11n_detection
+
+    # 2. Sort by push date to grab the latest unique tag
+    argocd-image-updater.argoproj.io/unet.update-strategy: latest
+    argocd-image-updater.argoproj.io/dino.update-strategy: latest
+    argocd-image-updater.argoproj.io/resnet.update-strategy: latest
+    argocd-image-updater.argoproj.io/yolo.update-strategy: latest
+
+    # 3. Ignore mutable rolling tags (forces tracking of short Git SHAs)
+    argocd-image-updater.argoproj.io/unet.ignore-tags: latest, latest-inference, dev-inference
+    argocd-image-updater.argoproj.io/dino.ignore-tags: latest, latest-inference, dev-inference
+    argocd-image-updater.argoproj.io/resnet.ignore-tags: latest, latest-inference, dev-inference
+    argocd-image-updater.argoproj.io/yolo.ignore-tags: latest, latest-inference, dev-inference
+
+    # 4. Map the aliases directly to specific Helm values paths
+    argocd-image-updater.argoproj.io/unet.helm.image-name: models.unet_segmentation.image
+    argocd-image-updater.argoproj.io/unet.helm.image-tag: models.unet_segmentation.tag
+    
+    argocd-image-updater.argoproj.io/dino.helm.image-name: models.dinov3s_buildings.image
+    argocd-image-updater.argoproj.io/dino.helm.image-tag: models.dinov3s_buildings.tag
+
+    argocd-image-updater.argoproj.io/resnet.helm.image-name: models.resnet18_classification.image
+    argocd-image-updater.argoproj.io/resnet.helm.image-tag: models.resnet18_classification.tag
+
+    argocd-image-updater.argoproj.io/yolo.helm.image-name: models.yolov11n_detection.image
+    argocd-image-updater.argoproj.io/yolo.helm.image-tag: models.yolov11n_detection.tag
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/hotosm/k8s-infra.git'
+    path: 'apps/fair-models'
+    targetRevision: HEAD
+    helm:
+      releaseName: fair-models
+      valueFiles:
+        - values.yaml
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: fair-models
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
