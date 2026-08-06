@@ -33,8 +33,9 @@ spec:
       prune: true
     syncOptions:
       - CreateNamespace=true
-  # The osm-export worker groups are scaled by KEDA; ignore their replica
-  # counts so selfHeal does not fight KEDA and reset them to the chart's value.
+  # The osm-export and tm-export worker groups are scaled by KEDA; ignore their
+  # replica counts so selfHeal does not fight KEDA and reset them to the
+  # chart's value.
   ignoreDifferences:
     - group: apps
       kind: Deployment
@@ -51,6 +52,12 @@ spec:
     - group: apps
       kind: Deployment
       name: windmill-workers-osm-export-big
+      namespace: windmill
+      jqPathExpressions:
+        - .spec.replicas
+    - group: apps
+      kind: Deployment
+      name: windmill-workers-tm-export
       namespace: windmill
       jqPathExpressions:
         - .spec.replicas

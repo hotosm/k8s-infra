@@ -1,0 +1,4 @@
+apiVersion: v2
+name: cluster-core
+description: HOT cluster-wide core resources - RBAC roles/bindings and StorageClasses
+version: 0.2.0

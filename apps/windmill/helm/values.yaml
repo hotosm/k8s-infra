@@ -11,11 +11,11 @@ windmill:
 
     # Basic scripts / baseline one job at a time, sequential
     - name: default
-      replicas: 4
+      replicas: 2
       resources:
         requests:
-          cpu: "1"
-          memory: "1Gi"
+          cpu: "0.5"
+          memory: "256Mi"
         limits:
           cpu: "2"
           memory: "2Gi"
@@ -38,7 +38,7 @@ windmill:
     # be added to Windmill's "Assignable Tags" list (superadmin -> Workers tab
     # -> Assignable Tags). That list lives in the Windmill DB, not in these
     # manifests, so ArgoCD cannot manage it - add each tag once by hand:
-    # osm-export-small, osm-export-medium, osm-export-big (tm-export later).
+    # osm-export-small, osm-export-medium, osm-export-big, tm-export.
     # Scale-to-zero is fine once assigned: an assigned job queues with its tag,
     # KEDA counts it and scales a worker up to run it.
 
@@ -112,31 +112,44 @@ windmill:
         - name: WORKER_TAGS
           value: "osm-export-big"
 
-    # Tasking Manager exports. Needs an extended Windmill image with extra
-    # Python deps before it can be enabled; see
+    # Tasking Manager exports. We could optimise this with extended Windmill
+    # image with extra Python dep: see
     # https://github.com/hotosm/k8s-infra/issues/184
-    # Uncomment (and the matching ScaledObject in scaledobject.yaml) once the
-    # image is ready, filling in the image + tag below.
-    # - name: tm-export
-    #   replicas: 1
-    #   resources:
-    #     requests:
-    #       cpu: "2"
-    #       memory: "1500Mi"
-    #     limits:
-    #       memory: "1500Mi"
-    #   # Extended image with the TM export Python deps (see issue #184)
-    #   # image: ""
-    #   # tag: ""
-    #   nodeSelector:
-    #     node-type: cpu
-    #     nodegroup: autoscale
-    #   tolerations:
-    #     - key: spot
-    #       operator: Exists
-    #   extraEnv:
-    #     - name: WORKER_TAGS
-    #       value: "tm-export"
+    # Update image + tag below if this is done.
+    - name: tm-export
+      replicas: 1
+      resources:
+        requests:
+          cpu: "2"
+          memory: "1500Mi"
+        limits:
+          memory: "1500Mi"
+      # Extended image with the TM export Python deps (see issue #184)
+      # image: ""
+      # tag: ""
+      nodeSelector:
+        node-type: cpu
+        nodegroup: autoscale
+      tolerations:
+        - key: spot
+          operator: Exists
+      extraEnv:
+        - name: WORKER_TAGS
+          value: "tm-export"
+      volumes:
+        - name: data
+          ephemeral:
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                storageClassName: gp3-ephemeral
+                resources:
+                  requests:
+                    storage: 50Gi
+      volumeMounts:
+        - name: data
+          mountPath: /data
 
   # Full-text search indexer; off to save resources for now.
   indexer:

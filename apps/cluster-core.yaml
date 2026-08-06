@@ -1,13 +1,16 @@
+# Cluster-wide core resources: RBAC roles/bindings and StorageClasses.
+# No destination namespace - these are cluster-scoped, apart from the contractor
+# RoleBindings, which set their own namespace from values.yaml.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cluster-rbac
+  name: cluster-core
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: 'https://github.com/hotosm/k8s-infra.git'
-    path: 'apps/cluster-rbac'
+    path: 'apps/cluster-core'
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
