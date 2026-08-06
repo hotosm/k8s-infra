@@ -45,27 +45,64 @@ spec:
 ```
 App Grafana dashboards: ship as ConfigMaps labelled `grafana_dashboard` (any ns).
 
+## Viewing it in Grafana
+
+Nothing to build for the basics - the stack ships the kubernetes-mixin dashboards.
+Search (Dashboards -> Browse) for:
+
+- **Kubernetes / Compute Resources / Namespace (Pods)** - set namespace to `odm`
+  for per-pod CPU/memory of every ODM job. The best starting point.
+- **Kubernetes / Compute Resources / Node (Pods)** - what a given ScaleODM node ran.
+- **Node Exporter / Nodes** - node CPU, memory, disk and swap.
+
+For ScaleODM specifically, `apps/scaleodm/grafana-dashboard.yaml` ships a
+**ScaleODM / ODM jobs** dashboard (workflow phases, job duration percentiles,
+per-job memory, OOM kills, swap). It's a ConfigMap labelled `grafana_dashboard`,
+so the sidecar imports it automatically - no Grafana-side config.
+
+For anything ad-hoc, use **Explore** and paste the queries below.
+
 ## Argo Workflows / batch jobs
 
-The Argo workflow controller (ns `argo`, installed by the ScaleODM chart) ships
-its own ServiceMonitor - see `apps/scaleodm/helm/values.yaml`. It exports both
-controller health (`argo_workflows_count{status=...}`, queue depth, error counts)
-and per-workflow `workflow_duration_seconds` / `workflow_result_total`, labelled
-by `namespace` so ScaleODM and OAM uploader workflows are distinguishable.
+The Argo controller (ns `argo`, from the ScaleODM chart) ships its own ServiceMonitor
+- see `apps/scaleodm/helm/values.yaml`. Builtins are `argo_workflows_gauge{status}`
+(live counts), `argo_workflows_total_count{phase,namespace}` (lifecycle totals) and
+queue/error metrics. On top of those we add a `workflow_duration_seconds` histogram,
+labelled `workflow_namespace` - not `namespace`, which would collide with the scrape
+target's own label.
 
-For what a job actually *consumed*, join cAdvisor to `kube_pod_labels` using the
-Argo pod label surfaced via `metricLabelsAllowlist` in `helm/values.yaml`:
+Container metrics have a `pod` label but no workflow name, so `metricLabelsAllowlist`
+in `helm/values.yaml` publishes the Argo pod label to join on:
 
 ```promql
-# peak working set per ODM job
-max by (label_workflows_argoproj_io_workflow) (
+max by (label_workflows_argoproj_io_workflow) (       # peak memory per ODM job
   container_memory_working_set_bytes{namespace="odm", container!=""}
   * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)
     kube_pod_labels{namespace="odm"}
 )
 ```
 
-Node labels (`karpenter.sh/nodepool`, `karpenter.sh/capacity-type`,
-`node.kubernetes.io/instance-type`) are allowlisted too, so the same join against
-`kube_node_labels` shows which instance types and spot/on-demand capacity jobs
-landed on.
+Compare with `kube_pod_container_resource_requests` to judge ScaleODM's sizing, and
+`kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}` for kills.
+Allowlisted node labels give instance type and spot/on-demand via `kube_node_labels`.
+
+### Swap
+
+ODM pods are sized below their peak on purpose, with NVMe swap covering the gap
+(`swapRatio` in `apps/scaleodm/helm/values.yaml`). Per-container swap is unavailable:
+the chart drops `container_memory_swap`, and un-dropping it means copying all 8
+upstream drop rules to edit one - so the chart's own
+`node_namespace_pod_container:container_memory_swap` rule is always empty here.
+Use node-exporter instead; the pool is dedicated, so node swap is job swap when a
+single ODM pod owns the node:
+
+```promql
+(node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes)   # swap used, per node
+  * on (namespace, pod) group_left(node) kube_pod_info{namespace="monitoring"}
+
+rate(node_vmstat_pswpin[5m])        # swap read rate - sustained means thrashing
+increase(node_vmstat_oom_kill[1h])  # kernel OOM kills
+```
+
+Full swap is expected; a sustained swap-in rate is the problem. Figures blur if two
+ODM pods share a node - check `count by (node) (kube_pod_info{namespace="odm"})`.
