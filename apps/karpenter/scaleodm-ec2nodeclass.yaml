@@ -117,7 +117,7 @@ spec:
     #   * `--now` starts it too early, before nodeadm mounts the RAID.
     # Requires= makes swap fail-closed at the node: if the swap unit fails (mount
     # never appeared, or mkswap/swapon failed) kubelet won't start, the node
-    # never goes Ready, and Karpenter replaces it — instead of joining swapless
+    # never goes Ready, and Karpenter replaces it - instead of joining swapless
     # and OOM-killing a multi-hour ODM job. Ordering also matters for
     # correctness: kubelet reads swap capacity at startup, so swap must be on
     # *before* kubelet or pods get memory.swap.max=0 even with host swap present.

@@ -56,14 +56,22 @@ spec:
 
   limits:
     # Aggregate cap for the whole pool (all ODM jobs share it, Argo parallelism
-    # 5). 512Gi runs two big jobs at once instead of serialising them, and lets
-    # Karpenter fall back to a larger node if the first choice is constrained.
-    # Cost-vs-concurrency dial. Note: a 3rd concurrent big job pends on capacity,
-    # and that pending time counts against the workflow activeDeadlineSeconds
-    # (6h). If 3+ concurrent big jobs become common, raise this cap (or the
-    # deadline).
-    cpu: "96"
-    memory: 512Gi
+    # 5). The cap counts each node's *full* capacity, not the pod's request: a
+    # ~6k-image --dsm --dtm job requests ~216Gi and lands on an r6id.12xlarge,
+    # which alone consumes 48 CPU / 372Gi. So this is really "how many big jobs
+    # run concurrently" -- 1536Gi fits three, and CPU is deliberately slack so
+    # memory stays the binding constraint. Cost-vs-concurrency dial.
+    #
+    # Overflow beyond the cap pends, and that pending time counts against the
+    # workflow activeDeadlineSeconds (48h, see apps/scaleodm/helm/values.yaml).
+    # Diagnosing this is unintuitive: Karpenter filters candidate instance types
+    # against the *remaining* limit headroom, so a pool at its cap reports
+    # "no instance type has enough resources" (with the full requirements dump)
+    # rather than naming the limit. If a pending ODM pod shows that, check
+    # `kubectl get nodepool scaleodm -o jsonpath='{.status.resources}'` against
+    # these values before touching the instance-type requirements above.
+    cpu: "192"
+    memory: 1536Gi
 
   disruption:
     # WhenEmpty only, so a node running a multi-hour ODM job is never
