@@ -95,3 +95,7 @@ postgres:
       cpu: 500m
       memory: 512Mi
 
+backend:
+  serviceAccount:
+    create: false
+    name: "fair-model-deployer"

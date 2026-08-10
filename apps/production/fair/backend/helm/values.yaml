@@ -67,3 +67,8 @@ worker:
     limits:
       cpu: "1000m"
       memory: "2Gi"
+
+backend:
+  serviceAccount:
+    create: false
+    name: "fair-model-deployer"
