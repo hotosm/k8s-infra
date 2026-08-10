@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fair-model-reconciliation
+  namespace: fair-prod
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  template:
+    spec:
+      serviceAccountName: fair-model-deployer
+      restartPolicy: Never
+      containers:
+        - name: model-reconciler
+          # Uses the standard production backend image
+          image: ghcr.io/hotosm/fair-backend:latest 
+          command: ["python", "manage.py", "reconcile_models"]
