@@ -9,7 +9,7 @@ spec:
     # Helm chart + values
     - repoURL: https://pkgs.tailscale.com/helmcharts
       chart: tailscale-operator
-      targetRevision: 1.96.5
+      targetRevision: 1.102.2
       helm:
         releaseName: tailscale-operator
         valuesObject:
