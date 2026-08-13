@@ -52,6 +52,12 @@ pgstacBootstrap:
     loadSamples: false
     queryables: []
 
+browser:
+  ingress:
+    # Own Ingress instead - the chart's rewrite-target strips /browser, which
+    # the image serves under. See ../../browser-ingress.yaml
+    enabled: false
+
 vector:
   # OGC Features / vector tiles unused
   enabled: false

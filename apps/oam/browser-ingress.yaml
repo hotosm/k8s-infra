@@ -1,0 +1,30 @@
+# stac-browser, served at https://api.imagery.hotosm.org/browser/
+#
+# The chart's own /browser path is disabled in eoapi/helm/values.yaml: its
+# Ingress carries rewrite-target /$2, which strips the prefix, but the image
+# serves under /browser/ (SB_pathPrefix baked in) and emits /browser/* asset
+# URLs. This Ingress passes the path through untouched.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: eoapi-browser
+  namespace: oam
+  annotations:
+    nginx.ingress.kubernetes.io/enable-access-log: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - api.imagery.hotosm.org
+      secretName: eoapi-tls
+  rules:
+    - host: api.imagery.hotosm.org
+      http:
+        paths:
+          - path: /browser
+            pathType: Prefix
+            backend:
+              service:
+                name: eoapi-browser
+                port:
+                  number: 8080

@@ -57,6 +57,8 @@ spec:
         - CREATE ROLE pgstac_ingest;
         - ALTER ROLE "oam_stac" WITH CREATEROLE;
         - ALTER ROLE "oam_stac" SET search_path TO pgstac, public;
+        # pgstac calls PostGIS unqualified, so every role needs it on the path
+        - ALTER DATABASE "oam-eoapi-pgstac-prod" SET search_path TO pgstac, public;
         - GRANT pgstac_read TO "oam_stac" WITH ADMIN OPTION;
         - GRANT pgstac_ingest TO "oam_stac" WITH ADMIN OPTION;
         - GRANT pgstac_admin TO "oam_stac" WITH ADMIN OPTION;
