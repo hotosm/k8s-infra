@@ -178,11 +178,22 @@ data "aws_iam_policy_document" "frontend_ci_policy" {
     sid    = "CloudFrontInvalidation"
     effect = "Allow"
     actions = [
-      "cloudfront:CreateInvalidation",
+      "cloudfront:CreateInvalidation"
+    ]
+    # Restricts invalidation strictly to the fAIr distribution
+    resources = [aws_cloudfront_distribution.frontend.arn]
+  }
+
+  statement {
+    sid    = "CloudFrontList"
+    effect = "Allow"
+    actions = [
       "cloudfront:ListDistributions"
     ]
+    # List commands require the wildcard resource in AWS
     resources = ["*"]
   }
+
 }
 
 # 10. Attach the Policy to the GitHub OIDC Role
