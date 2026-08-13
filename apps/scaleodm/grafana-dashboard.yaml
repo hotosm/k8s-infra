@@ -1,0 +1,218 @@
+# Auto-imported by the Grafana sidecar in apps/monitoring (label grafana_dashboard,
+# searchNamespaces: ALL). Applied by the `path: apps/scaleodm` source in
+# apps/scaleodm.yaml. Queries are documented in apps/monitoring/README.md.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scaleodm-dashboard
+  namespace: odm
+  labels:
+    grafana_dashboard: "1"
+data:
+  scaleodm.json: |
+    {
+      "title": "ScaleODM / ODM jobs",
+      "uid": "scaleodm-jobs",
+      "tags": ["scaleodm", "argo", "odm"],
+      "timezone": "browser",
+      "time": { "from": "now-24h", "to": "now" },
+      "refresh": "1m",
+      "schemaVersion": 39,
+      "templating": {
+        "list": [
+          {
+            "name": "datasource",
+            "label": "Data source",
+            "type": "datasource",
+            "query": "prometheus",
+            "current": {},
+            "hide": 0
+          }
+        ]
+      },
+      "panels": [
+        {
+          "type": "row",
+          "title": "Workflows",
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+        },
+        {
+          "type": "timeseries",
+          "title": "Workflows by phase (cluster-wide)",
+          "description": "argo_workflows_gauge is a controller-level gauge with no namespace attribute, so this covers ScaleODM and OAM uploader together.",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 1 },
+          "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "sum by (status) (argo_workflows_gauge)",
+              "legendFormat": "{{status}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "ODM workflows entering each phase (per hour)",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 },
+          "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "sum by (phase) (rate(argo_workflows_total_count{namespace=\"odm\"}[1h])) * 3600",
+              "legendFormat": "{{phase}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "ODM job duration (p50 / p95)",
+          "description": "From the workflow_duration_seconds histogram declared in apps/scaleodm/helm/values.yaml.",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 9 },
+          "fieldConfig": { "defaults": { "unit": "s", "min": 0 }, "overrides": [] },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "histogram_quantile(0.5, sum by (le) (rate(workflow_duration_seconds_bucket{workflow_namespace=\"odm\"}[6h])))",
+              "legendFormat": "p50",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(workflow_duration_seconds_bucket{workflow_namespace=\"odm\"}[6h])))",
+              "legendFormat": "p95",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Controller queue depth",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 9 },
+          "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "sum by (queue_name) (argo_workflows_queue_depth_gauge)",
+              "legendFormat": "{{queue_name}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "row",
+          "title": "Resources per job",
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 17 }
+        },
+        {
+          "type": "timeseries",
+          "title": "Memory working set per ODM job",
+          "description": "cAdvisor joined to kube_pod_labels via the allowlisted Argo pod label (apps/monitoring/helm/values.yaml).",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "gridPos": { "h": 9, "w": 12, "x": 0, "y": 18 },
+          "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 }, "overrides": [] },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "max by (label_workflows_argoproj_io_workflow) (\n  container_memory_working_set_bytes{namespace=\"odm\", container!=\"\"}\n  * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n    kube_pod_labels{namespace=\"odm\"}\n)",
+              "legendFormat": "{{label_workflows_argoproj_io_workflow}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Memory used vs requested (odm namespace)",
+          "description": "If used tracks well below requested, memoryMaxGiB / swapRatio in apps/scaleodm/helm/values.yaml are over-provisioning.",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "gridPos": { "h": 9, "w": 12, "x": 12, "y": 18 },
+          "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 }, "overrides": [] },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "sum(container_memory_working_set_bytes{namespace=\"odm\", container!=\"\"})",
+              "legendFormat": "used",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "sum(kube_pod_container_resource_requests{namespace=\"odm\", resource=\"memory\"})",
+              "legendFormat": "requested",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "OOM kills (odm namespace)",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 27 },
+          "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "sum by (pod) (kube_pod_container_status_last_terminated_reason{namespace=\"odm\", reason=\"OOMKilled\"})",
+              "legendFormat": "{{pod}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Pods pending (waiting on Karpenter capacity)",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 27 },
+          "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "sum(kube_pod_status_phase{namespace=\"odm\", phase=\"Pending\"})",
+              "legendFormat": "pending",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "row",
+          "title": "Swap (ScaleODM nodes)",
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 35 }
+        },
+        {
+          "type": "timeseries",
+          "title": "Swap in use, per node",
+          "description": "Per-container swap is unavailable (the chart drops container_memory_swap). The pool is dedicated, so node swap is job swap when one ODM pod owns the node.",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 36 },
+          "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 }, "overrides": [] },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "(node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes)\n  * on (namespace, pod) group_left(node) kube_pod_info{namespace=\"monitoring\"}",
+              "legendFormat": "{{node}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Swap read rate (thrashing)",
+          "description": "Full swap is expected by design. A sustained swap-in rate is the signal that swapRatio is too aggressive.",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 36 },
+          "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "rate(node_vmstat_pswpin[5m])\n  * on (namespace, pod) group_left(node) kube_pod_info{namespace=\"monitoring\"}",
+              "legendFormat": "{{node}}",
+              "refId": "A"
+            }
+          ]
+        }
+      ]
+    }

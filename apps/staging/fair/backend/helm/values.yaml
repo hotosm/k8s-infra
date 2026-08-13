@@ -27,7 +27,7 @@ backend:
         name: fair-api-credentials
 
   djangoQ:
-    enabled: false
+    enabled: true
 
   env:
     DEBUG: "true"

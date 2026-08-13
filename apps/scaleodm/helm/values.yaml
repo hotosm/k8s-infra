@@ -8,7 +8,17 @@ secrets:
       secretKey: "AWS_SECRET_ACCESS_KEY"
       region: "AWS_DEFAULT_REGION"
 
-# Deploys "scaleodm-workspace" used below
+# Deploys the "scaleodm-workspace" storageclass used below. This gp3 volume is
+# the ODM working directory: undistort and OpenMVS write heavy intermediate
+# files here (undistorted TIFs, depthmaps) at the gp3 baseline of ~125 MiB/s /
+# 3000 IOPS. Separate from the node's fast NVMe swap + ephemeral (see
+# apps/karpenter/scaleodm-ec2nodeclass.yaml).
+#
+# Perf note: if undistort or MVS goes I/O-bound (stage stuck at low CPU with the
+# job stalled on disk), give it more disk throughput. Either raise this class's
+# gp3 throughput/IOPS via the chart (e.g. 500-1000 MiB/s, 6000-16000 IOPS), or
+# point workflow.workspace.storageClass below at a custom higher-throughput gp3
+# class.
 workspaceStorageClass:
   create: true
 
@@ -25,7 +35,8 @@ config:
 
   # Defaults, except gp3 storageclass
   workflow:
-    activeDeadlineSeconds: 21600
+    # 48hrs processing deadline
+    activeDeadlineSeconds: 172800
     workspace:
       mode: auto
       size: "30Gi"
@@ -54,7 +65,7 @@ config:
     retryLimit: 1
     retryBackoffDuration: "60s"
     retryBackoffFactor: "2"
-    retryBackoffMaxDuration: "6h"
+    retryBackoffMaxDuration: "48h"
     ttlSuccessSeconds: 86400
     ttlFailureSeconds: 604800
     podGCStrategy: "OnWorkflowSuccess"
@@ -63,22 +74,69 @@ config:
     # "spot" is cheapest; use "on-demand" for stable capacity.
     # Individual submissions can override this via the capacityType API field.
     capacityType: "spot"
+    # Jobs >= 5000 images run for hours; pin them to on-demand so a spot
+    # eviction can't waste the run.
+    onDemandImageThreshold: 5000
+    # Target the dedicated ScaleODM pool (apps/karpenter/scaleodm-nodepool.yaml)
+    # and tolerate its taint, so ODM jobs get the NVMe/swap nodes and nothing
+    # else does. schedulingMode set explicitly (not inherited) so it can't drift.
+    schedulingMode: "karpenter"
+    nodeSelector: "pool=scaleodm"
+    tolerations: "dedicated=scaleodm:NoSchedule"
 
   processSizing:
     memoryLimitMarginPercent: 20
     memoryMinGiB: 4
-    memoryMaxGiB: 256
-    cpuPerGiB: 0.25
-    cpuLimitMultiplier: 1.5
+    # Peak-estimate ceiling. 600Gi covers ~13k images (~189Gi RAM request), which
+    # fits a 256Gi NVMe node + swap. Bigger jobs clamp (and may fail) rather than
+    # pend; split-merge will handle them.
+    memoryMaxGiB: 600
+    # RAM-driven selection: CPU = 0.125 vCPU per GiB of RAM request (r-family
+    # ratio), so it always fits the RAM-selected node. cpuLimitMultiplier 0 omits
+    # the CPU limit so ODM uses every node core.
+    cpuPerGiB: 0.125
+    cpuLimitMultiplier: 0
+    cpuMaxCores: 0
     ephemeralGiBPerGiBRAM: 0.3
     ephemeralLimitMultiplier: 1.2
     fastOrthoMemoryMultiplier: 0.5
     dsmDtmMemoryMultiplier: 1.5
+    # Swap-aware sizing: request = peak / (1 + swapRatio), swap absorbs the peak.
+    # Needs the swap-enabled pool (apps/karpenter/scaleodm-ec2nodeclass.yaml),
+    # which the nodeSelector above pins pods to.
+    swapRatio: 1.0
+    memoryRequestMinGiB: 4
 
 argo:
   controller:
     # Only allow 5 jobs to run at a time for now
     parallelism: 5
+
+    # Scraped by the cluster-wide kube-prometheus-stack (apps/monitoring).
+    metricsConfig:
+      enabled: true
+      # Deliberately no metricsTTL: it evicts custom metrics from controller memory
+    serviceMonitor:
+      enabled: true   # created in ns "argo"
+
+    # Applied to EVERY workflow this controller runs - ScaleODM's ODM pipelines
+    workflowDefaults:
+      spec:
+        metrics:
+          prometheus:
+            # Buckets span 1min to 32h: ODM pipelines run for hours and the
+            # activeDeadlineSeconds ceiling is 48h.
+            - name: workflow_duration_seconds
+              help: "Workflow wall-clock duration by namespace and final status"
+              labels:
+                - key: workflow_namespace
+                  value: "{{workflow.namespace}}"
+                - key: status
+                  value: "{{workflow.status}}"
+              histogram:
+                buckets: [60, 300, 900, 1800, 3600, 7200, 14400, 28800, 57600, 115200]
+                value: "{{workflow.duration}}"
+
   artifactRepository:
     archiveLogs: true
     s3:

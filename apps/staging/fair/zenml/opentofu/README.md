@@ -10,7 +10,7 @@
 # We must run in our patched version of zenml for this to work
 docker run --rm -it --entrypoint=bash \
   -v $HOME/.config/zenml:/zenml/.zenconfig \
-  ghcr.io/hotosm/zenml-postgres:0.94.1
+  ghcr.io/hotosm/fair/zenml-postgres:0.94.1
 
 zenml login https://zenml.stage.ai.hotosm.org
 ```

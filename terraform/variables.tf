@@ -76,7 +76,7 @@ variable "capacity_type" {
 }
 
 variable "core_nodegroup_size" {
-  default     = 5
+  default     = 7
   type        = number
   description = <<-EOT
   Fixed size of the managed "core" nodegroup (min = max = desired).

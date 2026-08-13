@@ -1,0 +1,38 @@
+# Add storage classes that reference the aws-ebs-csi-driver
+# Default GP3 (its faster and cheaper than gp2 in almost all scenarios)
+# We set a Retain policy as this storageclass is primarily used by CNPG databases,
+# to avoid accidental data loss.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp3
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: ebs.csi.aws.com
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+parameters:
+  type: gp3
+  fsType: ext4
+  encrypted: "true"
+---
+# Same as gp3 above, but reclaimPolicy: Delete instead of Retain.
+#
+# For *disposable scratch* volumes only - anything whose contents can be thrown
+# away when the pod goes.
+#
+# Do NOT use this for databases or anything else where accidentally deleting a
+# PVC should be recoverable - use `gp3` for those.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp3-ephemeral
+provisioner: ebs.csi.aws.com
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+parameters:
+  type: gp3
+  fsType: ext4
+  encrypted: "true"

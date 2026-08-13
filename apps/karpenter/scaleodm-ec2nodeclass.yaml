@@ -1,0 +1,169 @@
+# NVMe + swap node config for the dedicated ScaleODM pool (scaleodm-nodepool).
+# Kept separate from the shared "autoscale" class so only ScaleODM gets the
+# NVMe/swap setup.
+
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: scaleodm-swap
+spec:
+  role: KarpenterNodeRole-hotosm-production-cluster
+
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: hotosm-production-cluster
+        kubernetes.io/role/internal-elb: "1"
+
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: hotosm-production-cluster
+
+  # OS and container images only. Swap and ephemeral scratch go on the NVMe
+  # instance store below, so the root volume stays small.
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 80Gi
+        volumeType: gp3
+        deleteOnTermination: true
+
+  # RAID0 the NVMe instance store and use it for kubelet ephemeral storage and
+  # the swap file. NVMe swap is ~100x faster than EBS, so ScaleODM's heavy paging
+  # during mvs-texturing stays fast.
+  #
+  # This only covers swap + ephemeral scratch. The ODM working directory is a
+  # separate gp3 PVC (the scaleodm-workspace storageclass). If undistort or MVS
+  # becomes disk-bound, tune that class's throughput/IOPS in the ScaleODM Helm
+  # values, not here. See apps/scaleodm/helm/values.yaml.
+  instanceStorePolicy: RAID0
+
+  # Swap = 2x node RAM (benchmarked). With swapRatio 1.0 (apps/scaleodm/helm/
+  # values.yaml) ScaleODM requests peak/2, so node RAM (~peak/2) + 2*RAM of swap
+  # covers the peak with margin. See ScaleODM docs/swap.md.
+  #
+  # userData (AL2023 multipart MIME): a shellscript installs a systemd unit that
+  # enables swap; a NodeConfig sets the kubelet swap flags.
+  userData: |
+    MIME-Version: 1.0
+    Content-Type: multipart/mixed; boundary="//"
+
+    --//
+    Content-Type: text/x-shellscript; charset="us-ascii"
+
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # Install a systemd unit that creates swap after the NVMe mount, plus a
+    # kubelet drop-in (below) that orders it before, and Requires=, kubelet.
+    # This is fail-closed: if swap can't be set up (mount never appears, or
+    # mkswap/swapon fails) the unit fails, kubelet won't start, the node never
+    # registers, and Karpenter replaces it after its 15m timeout -- rather than
+    # joining swapless and OOM-killing a multi-hour ODM job. We can't fall back
+    # to root-EBS swap (the 80Gi root can't hold 2x-RAM swap), so the NVMe mount
+    # is mandatory; the script still waits for it as a guard against cloud-init
+    # ordering shifts.
+
+    cat > /usr/local/bin/setup-nvme-swap.sh <<'SCRIPT'
+    #!/usr/bin/env bash
+    set -uo pipefail
+    SWAP_DIR=""
+    for _ in $(seq 1 30); do
+      if mountpoint -q /mnt/k8s-disks/0; then SWAP_DIR="/mnt/k8s-disks/0"; break; fi
+      sleep 2
+    done
+    if [ -z "${SWAP_DIR}" ]; then
+      # The NodePool requires local NVMe (instance-local-nvme > 100), so a
+      # missing mount here is a boot-ordering race, not absent hardware. Exit
+      # non-zero: kubelet Requires= this unit (drop-in below), so a swap failure
+      # keeps the node from going Ready (Karpenter then replaces it) instead of
+      # silently joining swapless and OOM-killing a multi-hour ODM job.
+      echo "NVMe instance store not mounted after wait; failing (no swap)." >&2
+      exit 1
+    fi
+    SWAPFILE="${SWAP_DIR}/swapfile"
+    RAM_KB=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
+    SWAP_MB=$(( RAM_KB * 2 / 1024 ))   # swap = 2x RAM (benchmarked)
+    if ! swapon --show | grep -q "${SWAPFILE}"; then
+      if fallocate -l "${SWAP_MB}M" "${SWAPFILE}" && chmod 600 "${SWAPFILE}" && mkswap "${SWAPFILE}" && swapon "${SWAPFILE}"; then
+        echo "Swap enabled (${SWAP_MB}MiB at ${SWAPFILE})."
+      else
+        echo "Swap setup failed; failing (no swap)." >&2
+        rm -f "${SWAPFILE}" || true
+        exit 1
+      fi
+    fi
+    SCRIPT
+    chmod 0755 /usr/local/bin/setup-nvme-swap.sh
+
+    cat > /etc/systemd/system/nvme-swap.service <<'UNIT'
+    [Unit]
+    Description=Enable 2x-RAM swap on the NVMe instance store
+    Wants=mnt-k8s\x2ddisks-0.mount
+    After=mnt-k8s\x2ddisks-0.mount
+    Before=kubelet.service
+
+    [Service]
+    Type=oneshot
+    RemainAfterExit=yes
+    ExecStart=/usr/local/bin/setup-nvme-swap.sh
+    ExecStartPost=-/usr/sbin/swapon --show
+    UNIT
+
+    # Trigger nvme-swap.service from kubelet itself. This drop-in makes systemd
+    # start (and order before) the swap unit whenever kubelet starts, i.e. after
+    # nodeadm has mounted the NVMe RAID. This is the reliable first-boot trigger:
+    #   * `systemctl enable` alone is racy (multi-user.target may already be
+    #     active during cloud-final, so the unit would never start on boot 1);
+    #   * `--now` starts it too early, before nodeadm mounts the RAID.
+    # Requires= makes swap fail-closed at the node: if the swap unit fails (mount
+    # never appeared, or mkswap/swapon failed) kubelet won't start, the node
+    # never goes Ready, and Karpenter replaces it - instead of joining swapless
+    # and OOM-killing a multi-hour ODM job. Ordering also matters for
+    # correctness: kubelet reads swap capacity at startup, so swap must be on
+    # *before* kubelet or pods get memory.swap.max=0 even with host swap present.
+    mkdir -p /etc/systemd/system/kubelet.service.d
+    cat > /etc/systemd/system/kubelet.service.d/10-require-nvme-swap.conf <<'DROPIN'
+    [Unit]
+    Requires=nvme-swap.service
+    After=nvme-swap.service
+    DROPIN
+
+    # No `systemctl enable`/`--now`: the unit has no [Install] section and is
+    # started solely by the kubelet drop-in above, so it can't fire early.
+    systemctl daemon-reload
+
+    # VM tuning for the brief OpenMVS peak.
+    #  - swappiness=10: keep ODM's hot set in RAM outside the peak; the container
+    #    limit forces reclaim at the peak. Benchmark vs the 60 default.
+    #  - min_free_kbytes (512Mi, above kubelet's 100Mi eviction threshold) +
+    #    watermark_scale_factor: kswapd reclaims early, so a fast fusion spike
+    #    can't outrun it into swap-blind node-pressure eviction.
+    cat > /etc/sysctl.d/90-scaleodm-vm.conf <<'SYSCTL'
+    vm.swappiness=10
+    vm.min_free_kbytes=524288
+    vm.watermark_scale_factor=200
+    SYSCTL
+    sysctl -p /etc/sysctl.d/90-scaleodm-vm.conf
+
+    --//
+    Content-Type: application/node.eks.aws
+
+    apiVersion: node.eks.aws/v1alpha1
+    kind: NodeConfig
+    spec:
+      kubelet:
+        config:
+          failSwapOn: false             # allow nodes with swap to join
+          # NodeSwap is GA and on by default in 1.30+, so no feature gate needed.
+          memorySwap:
+            swapBehavior: LimitedSwap   # only Burstable pods get swap
+    --//--
+
+  tags:
+    Name: karpenter-scaleodm
+    karpenter.sh/discovery: hotosm-production-cluster
+
+  # Pin the AL2023 AMI release for prod (matches the shared autoscale class).
+  # AL2023 release_version: 1.34.9-20260625. Update on cluster upgrades.
+  amiSelectorTerms:
+    - alias: al2023@v20260625

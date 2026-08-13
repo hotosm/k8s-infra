@@ -110,7 +110,7 @@ status:
         hookPhase: Running
         hookType: PreSync
         images:
-        - ghcr.io/hotosm/zenml-postgres:0.94.2
+        - ghcr.io/hotosm/fair/zenml-postgres:0.94.2
         kind: Job
         message: job.batch/zenml-prod-db-migration serverside-applied
         name: zenml-prod-db-migration
@@ -167,7 +167,7 @@ status:
   sourceHydrator: {}
   summary:
     images:
-    - ghcr.io/hotosm/zenml-postgres:0.94.2
+    - ghcr.io/hotosm/fair/zenml-postgres:0.94.2
   sync:
     comparedTo:
       destination:

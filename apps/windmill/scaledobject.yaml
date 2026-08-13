@@ -1,0 +1,124 @@
+# Autoscales the OSM export worker groups from 0 based on the number of
+# matching tagged jobs in the Windmill Postgres queue. When the queue drains,
+# KEDA scales back to 0 and Karpenter consolidates the node(s) away.
+#
+# Reuses the existing windmill-db-url secret (full Postgres URL under `url`) as
+# the scaler connection string.
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: windmill-db-auth
+  namespace: windmill
+spec:
+  secretTargetRef:
+    - parameter: connection
+      name: windmill-db-url
+      key: url
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: windmill-osm-export-small
+  namespace: windmill
+spec:
+  scaleTargetRef:
+    name: windmill-workers-osm-export-small
+  minReplicaCount: 0
+  maxReplicaCount: 2
+  pollingInterval: 30
+  # Keep a worker (and its node) ~5 min after the queue empties to avoid
+  # thrashing between back-to-back jobs.
+  cooldownPeriod: 300
+  triggers:
+    - type: postgresql
+      authenticationRef:
+        name: windmill-db-auth
+      metadata:
+        # Counts running + waiting jobs so workers stay up while jobs run, and
+        # scale to 0 only once the queue is fully drained.
+        query: >
+          SELECT count(*) FROM v2_job_queue
+          WHERE tag = 'osm-export-small' AND scheduled_for <= now();
+        targetQueryValue: "1"
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: windmill-osm-export-medium
+  namespace: windmill
+spec:
+  scaleTargetRef:
+    name: windmill-workers-osm-export-medium
+  minReplicaCount: 0
+  maxReplicaCount: 2
+  pollingInterval: 30
+  # Keep a worker (and its node) ~5 min after the queue empties to avoid
+  # thrashing between back-to-back jobs.
+  cooldownPeriod: 300
+  triggers:
+    - type: postgresql
+      authenticationRef:
+        name: windmill-db-auth
+      metadata:
+        # Counts running + waiting jobs so workers stay up while jobs run, and
+        # scale to 0 only once the queue is fully drained.
+        query: >
+          SELECT count(*) FROM v2_job_queue
+          WHERE tag = 'osm-export-medium' AND scheduled_for <= now();
+        targetQueryValue: "1"
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: windmill-osm-export-big
+  namespace: windmill
+spec:
+  scaleTargetRef:
+    name: windmill-workers-osm-export-big
+  minReplicaCount: 0
+  maxReplicaCount: 1
+  pollingInterval: 30
+  # Keep a worker (and its node) ~5 min after the queue empties to avoid
+  # thrashing between back-to-back jobs.
+  cooldownPeriod: 300
+  triggers:
+    - type: postgresql
+      authenticationRef:
+        name: windmill-db-auth
+      metadata:
+        # Counts running + waiting jobs so workers stay up while jobs run, and
+        # scale to 0 only once the queue is fully drained.
+        query: >
+          SELECT count(*) FROM v2_job_queue
+          WHERE tag = 'osm-export-big' AND scheduled_for <= now();
+        targetQueryValue: "1"
+# Tasking Manager exports. Each replica gets a 50Gi gp3 scratch volume at /data
+# (see helm/values.yaml), which is provisioned with the pod and deleted with it,
+# so scaling to 0 here is what keeps that storage from being billed while idle.
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: windmill-tm-export
+  namespace: windmill
+spec:
+  scaleTargetRef:
+    name: windmill-workers-tm-export
+  minReplicaCount: 0
+  maxReplicaCount: 4
+  pollingInterval: 30
+  # Keep a worker (and its node) ~5 min after the queue empties to avoid
+  # thrashing between back-to-back jobs.
+  cooldownPeriod: 300
+  triggers:
+    - type: postgresql
+      authenticationRef:
+        name: windmill-db-auth
+      metadata:
+        # Counts running + waiting jobs so workers stay up while jobs run, and
+        # scale to 0 only once the queue is fully drained.
+        query: >
+          SELECT count(*) FROM v2_job_queue
+          WHERE tag = 'tm-export' AND scheduled_for <= now();
+        targetQueryValue: "1"
