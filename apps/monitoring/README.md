@@ -60,6 +60,11 @@ For ScaleODM specifically, `apps/scaleodm/grafana-dashboard.yaml` ships a
 per-job memory, OOM kills, swap). It's a ConfigMap labelled `grafana_dashboard`,
 so the sidecar imports it automatically - no Grafana-side config.
 
+- **CloudNativePG** - every Postgres cluster in `databases/`: connections,
+  replication lag, WAL, backups. Vendored to `apps/monitoring/cnpg-dashboard.yaml`
+  from the upstream `cloudnative-pg/grafana-dashboards` repo; clusters appear
+  once they have `monitoring.enablePodMonitor: true`.
+
 For anything ad-hoc, use **Explore** and paste the queries below.
 
 ## Argo Workflows / batch jobs
