@@ -1,0 +1,89 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: oam-eoapi-pgstac-prod-db-store
+  namespace: postgres
+spec:
+  retentionPolicy: "60d"
+  configuration:
+    destinationPath: s3://hotosm-k8s-db-backup/oam-eoapi-pgstac-prod
+    endpointURL: https://s3.amazonaws.com
+    s3Credentials:
+      accessKeyId:
+        name: s3-creds
+        key: access-key-id
+      secretAccessKey:
+        name: s3-creds
+        key: secret-access-key
+    wal:
+      compression: gzip
+      encryption: AES256
+    data:
+      compression: gzip
+      encryption: AES256
+      jobs: 2
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: oam-eoapi-pgstac-prod-db
+  labels:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/version: 18-3-system-trixie
+spec:
+  instances: 2
+  description: "OAM eoAPI pgSTAC"
+  imageName: "ghcr.io/cloudnative-pg/postgis:18-3-system-trixie"
+  primaryUpdateStrategy: unsupervised
+  enablePDB: true
+  postgresql:
+    parameters:
+      idle_in_transaction_session_timeout: "60s"
+  bootstrap:
+    initdb:
+      database: oam-eoapi-pgstac-prod
+      owner: oam_stac
+      secret:
+        name: oam-eoapi-pgstac-prod-db-creds
+      postInitApplicationSQL:
+        - CREATE EXTENSION IF NOT EXISTS postgis;
+        - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder CASCADE;
+        - CREATE EXTENSION IF NOT EXISTS postgis_topology CASCADE;
+        - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+        - CREATE EXTENSION IF NOT EXISTS btree_gist;
+        - CREATE EXTENSION IF NOT EXISTS unaccent;
+        - CREATE ROLE pgstac_admin;
+        - CREATE ROLE pgstac_read;
+        - CREATE ROLE pgstac_ingest;
+        - ALTER ROLE "oam_stac" WITH CREATEROLE;
+        - ALTER ROLE "oam_stac" SET search_path TO pgstac, public;
+        - GRANT pgstac_read TO "oam_stac" WITH ADMIN OPTION;
+        - GRANT pgstac_ingest TO "oam_stac" WITH ADMIN OPTION;
+        - GRANT pgstac_admin TO "oam_stac" WITH ADMIN OPTION;
+  storage:
+    storageClass: gp3
+    size: 50Gi
+  walStorage:
+    storageClass: gp3
+    size: 20Gi
+  monitoring:
+    enablePodMonitor: false
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: oam-eoapi-pgstac-prod-db-store
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: oam-eoapi-pgstac-prod-db-backup
+  namespace: postgres
+spec:
+  schedule: "0 0 5 * * *"
+  backupOwnerReference: self
+  cluster:
+    name: oam-eoapi-pgstac-prod-db
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
