@@ -6,11 +6,19 @@ namespace.
 | Component | Serves | Config |
 |---|---|---|
 | eoapi | api.imagery.hotosm.org (`/stac`, `/raster`, `/browser`) | `eoapi/helm/values.yaml`, see `eoapi/README.md` to migrate catalog data |
+| stac-browser | `/browser` on the same host | `browser-ingress.yaml` (chart Ingress disabled) |
 | stac-map | `/map` on the same host | `stac-map-deployment.yaml` |
 | tilepack-api | tilepack downloads | `tilepack-api/helm/values.yaml` |
 | global-tms | global PMTiles layer | chart defaults + `mosaic-cronjob.yaml` |
 | uploader-api | upload.imagery.hotosm.org | `uploader-api/` - commented out in `apps/oam.yaml` |
 | ingest CronJobs | populate pgstac | `sync-oam.yaml`, `sync-maxar.yaml` |
+
+`browser-ingress.yaml` exists because of an upstream chart bug: on nginx,
+`templates/networking/ingress.yaml` never honours `skipStripPrefix`, so
+`/browser` gets `rewrite-target: /$2` and is stripped - but the image bakes
+`SB_pathPrefix=/browser/` and 404s on `/`. The chart's Traefik template already
+carries the flag. Upstream fix is to add `(not .skipStripPrefix)` to `$stripPath`
+in `eoapi.ingressPaths` and flag the browser entry; then this file can go.
 
 Databases are not here: `databases/oam-eoapi-pgstac-prod.yaml` and
 `databases/oam-uploader-prod.yaml`, both running in the `postgres` namespace.

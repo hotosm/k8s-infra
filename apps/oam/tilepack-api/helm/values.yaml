@@ -1,4 +1,3 @@
-# Chart default still names the old Crunchy secret; fix upstream too
 pgstac:
   secretName: oam-eoapi-pgstac-prod-db-creds
   uriKey: uri
