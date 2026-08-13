@@ -9,7 +9,7 @@ spec:
   sources:
     - repoURL: https://devseed.com/eoapi-k8s
       chart: eoapi
-      targetRevision: 0.12.2
+      targetRevision: 0.15.0
       helm:
         releaseName: eoapi
         skipCrds: false

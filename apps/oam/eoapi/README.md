@@ -27,7 +27,10 @@ set DSTPW (kubectl get secret -n postgres oam-eoapi-pgstac-prod-db-creds \
 # leftover rows fail the load on a duplicate key - run before every attempt
 kubectl exec -n postgres $DSTPOD -- psql -d $DSTDB -c "drop schema if exists pgstac cascade"
 
-# pin pypgstac to the target chart's pgstac version
+# pin pypgstac to the version the eoapi chart ships - migrations are
+# forward-only, so a DB ahead of the chart breaks its pgstacMigrate job:
+#   helm template eoapi eoapi/eoapi --version <ver> -f <values> \
+#     | grep -B20 'pypgstac migrate' | grep 'image:'
 kubectl run pypgstac -n postgres --restart=Never --image=python:3.12-slim \
   --env=PGHOST=oam-eoapi-pgstac-prod-db-rw --env=PGDATABASE=$DSTDB \
   --env=PGUSER=$DSTUSER --env=PGPASSWORD=$DSTPW \
@@ -35,7 +38,7 @@ kubectl run pypgstac -n postgres --restart=Never --image=python:3.12-slim \
 
 kubectl exec -n postgres pypgstac -- sh -c \
   'apt-get update -qq && apt-get install -y -qq --no-install-recommends postgresql-client'
-kubectl exec -n postgres pypgstac -- pip install -q "pypgstac[psycopg]==0.9.12"
+kubectl exec -n postgres pypgstac -- pip install -q "pypgstac[psycopg]==0.9.10"
 ```
 
 `read_json` collapses `\\` to `\` twice per line, so any item containing a
@@ -100,7 +103,7 @@ kubectl exec -n postgres pypgstac -- \
 time kubectl exec -n postgres pypgstac -- \
   pypgstac load items /tmp/items.ndjson --method upsert
 
-# no matviews on 0.9.12; loop stays correct on newer pgstac
+# no matviews on 0.9.10; loop stays correct on newer pgstac
 kubectl exec -n postgres $DSTPOD -- psql -d $DSTDB -c 'do $do$ declare r record; begin
   for r in select matviewname from pg_matviews where schemaname = \'pgstac\' loop
     execute format(\'refresh materialized view pgstac.%I\', r.matviewname);
@@ -125,6 +128,8 @@ kubectl delete pod -n postgres pypgstac
 ```
 
 > [!NOTE]
-> Upstream removed `pypgstac`. Past pgstac 0.9.x this becomes
-> `pgstac-migrate migrate` and `pgstac load --policy upsert`, and step 2's patch
-> is no longer needed.
+> The schema version must not be **ahead** of what the chart's `pgstacMigrate`
+> job targets - migrations are forward-only and the job fails with `Could not
+> determine path to get from <db> to <chart>`. Bumping the chart is not a fix:
+> eoapi 0.12.2 - 0.15.0 all ship `pgstac-pypgstac:v0.10.0`, whose tag is an image
+> version, not a pypgstac one - the tool inside targets schema 0.9.10.
