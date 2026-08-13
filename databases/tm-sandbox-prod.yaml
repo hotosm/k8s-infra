@@ -67,7 +67,7 @@
 #
 #   # prometheus
 #   monitoring:
-#     enablePodMonitor: false
+#     enablePodMonitor: true
 #
 #   plugins:
 #     - name: barman-cloud.cloudnative-pg.io
