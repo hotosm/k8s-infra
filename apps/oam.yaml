@@ -1,3 +1,4 @@
+# The whole OpenAerialMap stack, in the `oam` namespace. See apps/oam/README.md
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -5,14 +6,66 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  source:
-    repoURL: 'https://github.com/hotosm/k8s-infra'
-    targetRevision: main
-    path: apps/oam
+  sources:
+    - repoURL: https://devseed.com/eoapi-k8s
+      chart: eoapi
+      targetRevision: 0.12.2
+      helm:
+        releaseName: eoapi
+        skipCrds: false
+        passCredentials: false
+        valueFiles:
+          - $k8s-infra/apps/oam/eoapi/helm/values.yaml
+
+    - repoURL: oci://ghcr.io/hotosm/charts/openaerialmap/tilepack-api
+      chart: tilepack-api
+      targetRevision: 0.4.2
+      helm:
+        releaseName: tilepack-api
+        valueFiles:
+          - $k8s-infra/apps/oam/tilepack-api/helm/values.yaml
+
+    - repoURL: oci://ghcr.io/hotosm/charts/openaerialmap/global-tms
+      chart: global-tms
+      targetRevision: 0.2.10
+      helm:
+        releaseName: global-tms
+        # Chart defaults are fine
+
+    # Enable after the eoAPI migration; needs sealed secrets, see its README.
+    # - repoURL: oci://ghcr.io/hotosm/charts/openaerialmap/uploader-api
+    #   chart: uploader-api
+    #   targetRevision: 0.1.0
+    #   helm:
+    #     # WF_CALLBACK_URL default is derived from this release name.
+    #     releaseName: uploader-api
+    #     valueFiles:
+    #       - $k8s-infra/apps/oam/uploader-api/helm/values.yaml
+    #
+    # # GeoTIFF pipeline WorkflowTemplate, kept upstream.
+    # - repoURL: https://github.com/hotosm/openaerialmap.git
+    #   targetRevision: main
+    #   path: backend/uploader-api/pipeline
+    #   directory:
+    #     include: workflow-template.yaml
+
+    # Resolves $k8s-infra in the valueFiles above
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+
+    # Non-recursive: applies apps/oam/*.yaml only, not the values files
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/oam
   destination:
-    server: 'https://kubernetes.default.svc'
-    namespace: eoapi
+    server: https://kubernetes.default.svc
+    namespace: oam
   syncPolicy:
     automated:
-      prune: true
       selfHeal: true
+      # Migration: prune would delete the old `eoapi` ns stack we roll back to
+      prune: false
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

@@ -1,0 +1,69 @@
+# Chart: https://github.com/hotosm/openaerialmap/tree/main/backend/uploader-api/chart
+
+image:
+  tag: main
+  pullPolicy: Always
+
+# All credentials come from this sealed secret - see README
+existingSecret:
+  name: oam-uploader-secrets
+
+env:
+  LOG_LEVEL: INFO
+  ENVIRONMENT: production
+  AUTH_PROVIDER: hotosm
+  HANKO_API_URL: https://login.hotosm.org
+  LOGIN_URL: https://login.hotosm.org/app
+
+  # Empty endpoint = real AWS S3
+  S3_ENDPOINT: ""
+  S3_EXTERNAL_ENDPOINT: ""
+  S3_BUCKET: oin-hotosm-temp
+  S3_REGION: us-east-1
+  PUBLIC_ASSET_BASE_URL: https://oin-hotosm-temp.s3.us-east-1.amazonaws.com
+
+  # Workflows are created here; the ScaleODM Argo controller runs them
+  ARGO_NAMESPACE: oam
+  ARGO_WORKFLOW_TEMPLATE: geotiff-processing-template
+  PIPELINE_IMAGE_TAG: main
+
+  STAC_URL: https://api.imagery.hotosm.org
+  STAC_COLLECTION: openaerialmap
+
+  # pgstac catalog - databases/oam-eoapi-pgstac-prod.yaml
+  # PGSTAC_DB_PASSWORD in oam-uploader-secrets must match that cluster's
+  PGSTAC_DB_HOST: oam-eoapi-pgstac-prod-db-rw.postgres.svc
+  PGSTAC_DB_PORT: "5432"
+  PGSTAC_DB_USER: oam_stac
+  PGSTAC_DB_NAME: oam-eoapi-pgstac-prod
+
+  # Uploader's own DB - databases/oam-uploader-prod.yaml
+  DB_HOST: oam-uploader-db-rw.postgres.svc
+  DB_PORT: "5432"
+  DB_USER: oam_uploader
+  DB_NAME: oam_uploader
+
+# Using CNPG above, not the bundled Postgres
+db:
+  enabled: false
+
+# Sealed secret instead, to keep credentials out of git
+workflowS3Secret:
+  create: false
+
+ingress:
+  enabled: true
+  className: nginx
+  host: upload.imagery.hotosm.org
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: upload.imagery.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+  tls:
+    enabled: true
+    secretName: uploader-api-tls
+
+# Argo controller already deployed cluster-wide by ScaleODM
+argo:
+  enabled: false

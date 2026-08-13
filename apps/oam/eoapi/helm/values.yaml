@@ -1,0 +1,98 @@
+ingress:
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/enable-access-log: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: api.imagery.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+  host: "api.imagery.hotosm.org"
+  tls:
+    enabled: true
+    secretName: eoapi-tls
+
+postgresql:
+  type: "external-secret"
+  external:
+    existingSecret:
+      name: "oam-eoapi-pgstac-prod-db-creds"
+      keys:
+        username: "username"
+        password: "password"
+        host: "host"
+        port: "port"
+        database: "database"
+
+# Using CNPG instead - databases/oam-eoapi-pgstac-prod.yaml
+postgrescluster:
+  enabled: false
+
+pgstacBootstrap:
+  enabled: true
+  # Chart defaults are helm.sh/hook, which ArgoCD ignores - use sync waves
+  configMaps:
+    pgstacSettings: &bootstrapHook
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-7"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    initdbSql: *bootstrapHook
+    initdbJson: *bootstrapHook
+    pgstacQueryables: *bootstrapHook
+    initdb:
+      annotations: {}
+  jobs:
+    pgstacMigrate:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-5"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+  settings:
+    loadSamples: false
+    queryables: []
+
+vector:
+  # OGC Features / vector tiles unused
+  enabled: false
+
+raster:
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 6
+    # requestRate would need prometheus-adapter
+    type: "cpu"
+    behavior:
+      scaleDown:
+        stabilizationWindowSeconds: 60
+      scaleUp:
+        stabilizationWindowSeconds: 0
+    targets:
+      cpu: 85
+  settings:
+    resources:
+      requests: { cpu: "1024m", memory: "2Gi" }
+      limits: { cpu: "2048m", memory: "4Gi" }
+
+stac:
+  image:
+    # From https://github.com/hotosm/OpenAerialMap/tree/main/backend/stac-api
+    name: ghcr.io/hotosm/openaerialmap/stac-api
+    tag: main
+  command:
+    - "uvicorn"
+    - "app.main:app"
+    - "--host=$(HOST)"
+    - "--port=$(PORT)"
+  settings:
+    envVars:
+      HOST: "0.0.0.0"
+      PORT: "8080"
+      WEB_CONCURRENCY: "5"
+      ENABLE_TRANSACTIONS_EXTENSIONS: "false"
+      STAC_FASTAPI_TITLE: "STAC FastAPI for OpenAerialMap"
+      STAC_FASTAPI_DESCRIPTION: "STAC FastAPI deployment for the OpenAerialMap and open imagery catalogs."
+    resources:
+      requests: { cpu: 250m, memory: 512Mi }
+      limits: { cpu: 1000m, memory: 1Gi }

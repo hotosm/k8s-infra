@@ -4,7 +4,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: oam-global-mosaic
-  namespace: eoapi
+  namespace: oam
   labels:
     app: oam-global-mosaic
 spec:
@@ -36,28 +36,28 @@ spec:
                 - name: PGUSER
                   valueFrom:
                     secretKeyRef:
-                      key: user
-                      name: eoapi-pguser-eoapi
+                      key: username
+                      name: oam-eoapi-pgstac-prod-db-creds
                 - name: PGPORT
                   valueFrom:
                     secretKeyRef:
                       key: port
-                      name: eoapi-pguser-eoapi
+                      name: oam-eoapi-pgstac-prod-db-creds
                 - name: PGHOST
                   valueFrom:
                     secretKeyRef:
                       key: host
-                      name: eoapi-pguser-eoapi
+                      name: oam-eoapi-pgstac-prod-db-creds
                 - name: PGPASSWORD
                   valueFrom:
                     secretKeyRef:
                       key: password
-                      name: eoapi-pguser-eoapi
+                      name: oam-eoapi-pgstac-prod-db-creds
                 - name: PGDATABASE
                   valueFrom:
                     secretKeyRef:
-                      key: dbname
-                      name: eoapi-pguser-eoapi
+                      key: database
+                      name: oam-eoapi-pgstac-prod-db-creds
                 - name: S3_ACCESS_KEY
                   valueFrom:
                     secretKeyRef:
