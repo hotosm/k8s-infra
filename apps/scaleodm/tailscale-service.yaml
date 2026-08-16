@@ -13,5 +13,5 @@ spec:
     app.kubernetes.io/instance: scaleodm
   ports:
     - protocol: TCP
-      port: 31100
+      port: 80
       targetPort: 31100
