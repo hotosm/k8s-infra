@@ -76,8 +76,3 @@ jobs:
       - name: Pull kubeconfig
         run: |
           aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }}
-      - name: Deploy eoAPI Chart
-        uses: helmfile/helmfile-action@v2.1.1
-        with:
-          helmfile-args: ${{ github.event_name == 'push' && 'apply' || 'diff' }}
-          helmfile-workdirectory: kubernetes/helm
