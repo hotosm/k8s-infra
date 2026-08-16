@@ -18,7 +18,7 @@ spec:
       helm:
         releaseName: fair-backend
         valueFiles:
-          - $k8s-infra/apps/production/fair/backend/helm/values.yaml
+          - $k8s-infra/apps/fair/backend/helm/values.yaml
 
     # 2. STAC / eoAPI
     - repoURL: https://devseed.com/eoapi-k8s
@@ -29,7 +29,7 @@ spec:
         skipCrds: false
         passCredentials: false
         valueFiles:
-          - $k8s-infra/apps/production/fair/eoapi/helm/values.yaml
+          - $k8s-infra/apps/fair/eoapi/helm/values.yaml
 
     # 3. MLflow
     - repoURL: https://community-charts.github.io/helm-charts
@@ -38,7 +38,7 @@ spec:
       helm:
         releaseName: mlflow
         valueFiles:
-          - $k8s-infra/apps/production/fair/mlflow/helm/values.yaml
+          - $k8s-infra/apps/fair/mlflow/helm/values.yaml
 
     # 4. ZenML
     - repoURL: oci://public.ecr.aws/zenml/zenml
@@ -47,7 +47,7 @@ spec:
       helm:
         releaseName: zenml
         valueFiles:
-          - $k8s-infra/apps/production/fair/zenml/helm/values.yaml
+          - $k8s-infra/apps/fair/zenml/helm/values.yaml
 
     # 5. Reference to this infrastructure repo (required for valueFiles mapping)
     - repoURL: https://github.com/hotosm/k8s-infra.git
@@ -57,7 +57,7 @@ spec:
     # 6. Apply all extra resources (Sealed Secrets, RBAC, etc.) in the root folder
     - repoURL: https://github.com/hotosm/k8s-infra.git
       targetRevision: HEAD
-      path: apps/production/fair
+      path: apps/fair
 
   destination:
     server: https://kubernetes.default.svc
