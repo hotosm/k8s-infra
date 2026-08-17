@@ -127,8 +127,8 @@ data:
         },
         {
           "type": "timeseries",
-          "title": "Memory used vs requested (odm namespace)",
-          "description": "If used tracks well below requested, memoryMaxGiB / swapRatio in apps/scaleodm/helm/values.yaml are over-provisioning.",
+          "title": "Memory used vs requested vs limit (odm namespace)",
+          "description": "If used tracks well below requested, memoryMaxGiB / swapRatio in apps/scaleodm/helm/values.yaml are over-provisioning. Used pinning flat at the limit means the cgroup cap is being hit and the overflow is going to swap.",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "gridPos": { "h": 9, "w": 12, "x": 12, "y": 18 },
           "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 }, "overrides": [] },
@@ -144,20 +144,27 @@ data:
               "expr": "sum(kube_pod_container_resource_requests{namespace=\"odm\", resource=\"memory\"})",
               "legendFormat": "requested",
               "refId": "B"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "sum(kube_pod_container_resource_limits{namespace=\"odm\", resource=\"memory\"})",
+              "legendFormat": "limit",
+              "refId": "C"
             }
           ]
         },
         {
           "type": "timeseries",
-          "title": "OOM kills (odm namespace)",
+          "title": "Container termination reasons (odm namespace)",
+          "description": "All reasons, not just OOMKilled. A job that vanishes with no reason is eviction or external deletion rather than a cgroup OOM; that distinction is otherwise unrecoverable after the pod is gone.",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "gridPos": { "h": 8, "w": 12, "x": 0, "y": 27 },
           "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
           "targets": [
             {
               "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "expr": "sum by (pod) (kube_pod_container_status_last_terminated_reason{namespace=\"odm\", reason=\"OOMKilled\"})",
-              "legendFormat": "{{pod}}",
+              "expr": "sum by (pod, reason) (kube_pod_container_status_last_terminated_reason{namespace=\"odm\"})",
+              "legendFormat": "{{pod}} / {{reason}}",
               "refId": "A"
             }
           ]
@@ -178,23 +185,45 @@ data:
           ]
         },
         {
+          "type": "timeseries",
+          "title": "Memory as % of limit, per ODM job",
+          "description": "Sustained 100% means the job is pinned at memory.max and every further allocation is going to swap. That is the point of no return for a large dense reconstruction, and it precedes the kill by minutes.",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 35 },
+          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 110 }, "overrides": [] },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "100 * max by (label_workflows_argoproj_io_workflow) (\n  container_memory_working_set_bytes{namespace=\"odm\", container!=\"\"}\n  * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n    kube_pod_labels{namespace=\"odm\"}\n)\n/ on (label_workflows_argoproj_io_workflow) max by (label_workflows_argoproj_io_workflow) (\n  kube_pod_container_resource_limits{namespace=\"odm\", resource=\"memory\"}\n  * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n    kube_pod_labels{namespace=\"odm\"}\n)",
+              "legendFormat": "{{label_workflows_argoproj_io_workflow}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
           "type": "row",
           "title": "Swap (ScaleODM nodes)",
-          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 35 }
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 43 }
         },
         {
           "type": "timeseries",
-          "title": "Swap in use, per node",
-          "description": "Per-container swap is unavailable (the chart drops container_memory_swap). The pool is dedicated, so node swap is job swap when one ODM pod owns the node.",
+          "title": "Swap in use vs total, per node",
+          "description": "Per-container swap is unavailable (the chart drops container_memory_swap; see apps/monitoring/README.md to re-enable). The pool is dedicated, so node swap is job swap when one ODM pod owns the node. Under LimitedSwap a Burstable container only gets request/nodeRAM of total swap, so a job can exhaust its own allowance well below the node ceiling.",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 36 },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 44 },
           "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 }, "overrides": [] },
           "targets": [
             {
               "datasource": { "type": "prometheus", "uid": "${datasource}" },
               "expr": "(node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes)\n  * on (namespace, pod) group_left(node) kube_pod_info{namespace=\"monitoring\"}",
-              "legendFormat": "{{node}}",
+              "legendFormat": "{{node}} used",
               "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "node_memory_SwapTotal_bytes\n  * on (namespace, pod) group_left(node) kube_pod_info{namespace=\"monitoring\"}",
+              "legendFormat": "{{node}} total",
+              "refId": "B"
             }
           ]
         },
@@ -203,7 +232,7 @@ data:
           "title": "Swap read rate (thrashing)",
           "description": "Full swap is expected by design. A sustained swap-in rate is the signal that swapRatio is too aggressive.",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 36 },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 44 },
           "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
           "targets": [
             {
