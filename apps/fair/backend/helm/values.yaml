@@ -6,9 +6,6 @@ image:
   tag: main
   pullPolicy: Always
 
-imagePullSecrets:
-  - name: ghcr-pull-secret
-
 env:
   DJANGO_SETTINGS_MODULE: config.settings
   # Disable serving frontend SPA directly from Django pods
