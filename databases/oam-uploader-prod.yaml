@@ -1,0 +1,89 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: oam-uploader-db-store
+  namespace: postgres
+spec:
+  retentionPolicy: "60d"
+  configuration:
+    destinationPath: s3://hotosm-k8s-db-backup/oam-uploader
+    endpointURL: https://s3.amazonaws.com
+    s3Credentials:
+      accessKeyId:
+        name: s3-creds
+        key: access-key-id
+      secretAccessKey:
+        name: s3-creds
+        key: secret-access-key
+    wal:
+      compression: gzip # this saves a lot of storage
+      encryption: AES256 # AWS managed
+    data:
+      compression: gzip
+      encryption: AES256 # AWS managed
+      jobs: 2
+
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: oam-uploader-db
+  labels:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/version: 18-system-trixie
+
+spec:
+  instances: 1
+  description: "OAM Uploader API Database"
+  imageName: "ghcr.io/cloudnative-pg/postgresql:18-system-trixie"
+
+  primaryUpdateStrategy: unsupervised
+  # PDB (voluntary-eviction guard) disabled - single replica would otherwise block node drains on cluster upgrade
+  enablePDB: false
+
+  postgresql:
+    parameters:
+      # Kill idle-in-transaction sessions after 60s to release locks held by abandoned txns.
+      idle_in_transaction_session_timeout: "60s"
+
+  bootstrap:
+    initdb:
+      database: oam_uploader
+      owner: oam_uploader
+      secret:
+        # Kubernetes basic-auth convention has keys:
+        # - username
+        # - password
+        name: oam-uploader-db-creds
+
+  storage:
+    storageClass: gp3
+    size: 2Gi
+  walStorage:
+    storageClass: gp3
+    size: 2Gi
+
+  # prometheus
+  monitoring:
+    enablePodMonitor: true
+
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: oam-uploader-db-store
+
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: oam-uploader-db-backup
+  namespace: postgres
+spec:
+  schedule: "0 0 4 * * 3"  # At 04:00 UTC every Wednesday
+  backupOwnerReference: self
+  cluster:
+    name: oam-uploader-db
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
