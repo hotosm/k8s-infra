@@ -1,0 +1,42 @@
+opencost:
+  prometheus:
+    internal:
+      namespaceName: monitoring
+      serviceName: monitoring-kube-prometheus-prometheus
+      port: 9090
+
+  dataRetention:
+    dailyResolutionDays: 30  # default: 15
+
+  exporter:
+    defaultClusterId: "hotosm-production"
+    replicas: 1
+    resources:
+      requests:
+        cpu: "10m"
+        memory: "55Mi"
+      limits:
+        memory: "1Gi"
+    persistence:
+      enabled: true
+      storageClass: "gp3"  # adjust based on your environment
+      accessMode: ReadWriteOnce
+      size: 5Gi
+
+  metrics:
+    kubeStateMetrics:
+      emitKsmV1Metrics: false
+      emitKsmV1MetricsOnly: false
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: prometheus
+
+  ui:
+    enabled: true
+
+  # Not sure if needed atm
+  # serviceAccount:
+  # create: true
+  # annotations:
+  #   eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/S3Access
