@@ -32,22 +32,22 @@ spec:
         releaseName: global-tms
         # Chart defaults are fine
 
-    # Enable after the eoAPI migration; needs sealed secrets, see its README.
-    # - repoURL: oci://ghcr.io/hotosm/charts/openaerialmap/uploader-api
-    #   chart: uploader-api
-    #   targetRevision: 0.1.0
-    #   helm:
-    #     # WF_CALLBACK_URL default is derived from this release name.
-    #     releaseName: uploader-api
-    #     valueFiles:
-    #       - $k8s-infra/apps/oam/uploader-api/helm/values.yaml
-    #
-    # # GeoTIFF pipeline WorkflowTemplate, kept upstream.
-    # - repoURL: https://github.com/hotosm/openaerialmap.git
-    #   targetRevision: main
-    #   path: backend/uploader-api/pipeline
-    #   directory:
-    #     include: workflow-template.yaml
+    - repoURL: oci://ghcr.io/hotosm/charts/openaerialmap/uploader-api
+      chart: uploader-api
+      targetRevision: 0.2.0
+      helm:
+        # WF_CALLBACK_URL default is derived from this release name.
+        releaseName: uploader-api
+        valueFiles:
+          - $k8s-infra/apps/oam/uploader-api/helm/values.yaml
+
+    # GeoTIFF pipeline WorkflowTemplate, kept upstream. Tracks `main`, so local
+    # pipeline edits must be merged there before they take effect here.
+    - repoURL: https://github.com/hotosm/openaerialmap.git
+      targetRevision: main
+      path: backend/uploader-api/pipeline
+      directory:
+        include: workflow-template.yaml
 
     # Resolves $k8s-infra in the valueFiles above
     - repoURL: https://github.com/hotosm/k8s-infra.git

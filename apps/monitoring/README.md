@@ -56,9 +56,10 @@ Search (Dashboards -> Browse) for:
 - **Node Exporter / Nodes** - node CPU, memory, disk and swap.
 
 For ScaleODM specifically, `apps/scaleodm/grafana-dashboard.yaml` ships a
-**ScaleODM / ODM jobs** dashboard (workflow phases, job duration percentiles,
-per-job memory, OOM kills, swap). It's a ConfigMap labelled `grafana_dashboard`,
-so the sidecar imports it automatically - no Grafana-side config.
+**ScaleODM / ODM jobs** dashboard (per-job memory and CPU vs request, peak memory,
+workspace fill, kills, node shape, swap; Argo controller metrics in a collapsed row).
+It's a ConfigMap labelled `grafana_dashboard`, so the sidecar imports it automatically
+- no Grafana-side config. It renders in UTC so graphs line up with container logs.
 
 - **CloudNativePG** - every Postgres cluster in `databases/`: connections,
   replication lag, WAL, backups. Vendored to `apps/monitoring/cnpg-dashboard.yaml`
@@ -90,6 +91,40 @@ max by (label_workflows_argoproj_io_workflow) (       # peak memory per ODM job
 Compare with `kube_pod_container_resource_requests` to judge ScaleODM's sizing, and
 `kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}` for kills.
 Allowlisted node labels give instance type and spot/on-demand via `kube_node_labels`.
+
+### When the controller panels are empty
+
+The four panels in the collapsed **Argo controller** row are the only ones fed by the
+controller itself; everything else comes from cAdvisor, kube-state-metrics or
+node-exporter. All four empty at once means the scrape target is missing, not that the
+queries are wrong - work down this list:
+
+```bash
+# 1. Is the ServiceMonitor there at all? The chart only renders it if the
+#    monitoring.coreos.com CRD was visible when Argo CD templated the chart.
+kubectl -n argo get servicemonitor scaleodm-argo-workflows-workflow-controller
+
+# 2. Is the metrics Service there, with endpoints?
+kubectl -n argo get svc,endpoints -l app.kubernetes.io/component=workflow-controller
+
+# 3. Does the controller actually serve metrics?
+kubectl -n argo port-forward deploy/scaleodm-argo-workflows-workflow-controller 9090:9090
+curl -s localhost:9090/metrics | grep '^argo_workflows_' | cut -d'{' -f1 | sort -u
+
+# 4. Has Prometheus picked the target up?
+kubectl -n monitoring port-forward svc/monitoring-kube-prometheus-prometheus 9090:9090
+curl -s localhost:9090/api/v1/targets | jq '.data.activeTargets[]
+  | select(.labels.job|test("workflow-controller")) | {health, lastError, scrapeUrl}'
+```
+
+Step 3 is the one that settles it: it prints the metric names the deployed Argo actually
+emits. The panels are written against the Argo 3.6+ names (`argo_workflows_gauge`,
+`argo_workflows_total_count`, `argo_workflows_queue_depth_gauge`); the chart pins Argo
+3.7.4 so these should match, but confirm against that output before editing a query.
+
+`workflow_duration_seconds` is different - it is a per-workflow custom metric and only
+appears once a workflow *completes*. An empty duration panel with the other three
+populated is normal on a quiet day, not a fault.
 
 ### Swap
 

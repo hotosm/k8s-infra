@@ -22,3 +22,6 @@ in `eoapi.ingressPaths` and flag the browser entry; then this file can go.
 
 Databases are not here: `databases/oam-eoapi-pgstac-prod.yaml` and
 `databases/oam-uploader-prod.yaml`, both running in the `postgres` namespace.
+
+Staging is a separate, fully self-contained stack in `oam-staging` with no
+external databases - `apps/staging/oam.yaml` and `apps/staging/oam/README.md`.
