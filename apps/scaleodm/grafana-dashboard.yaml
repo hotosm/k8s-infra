@@ -1,6 +1,9 @@
 # Auto-imported by the Grafana sidecar in apps/monitoring (label grafana_dashboard,
 # searchNamespaces: ALL). Applied by the `path: apps/scaleodm` source in
 # apps/scaleodm.yaml. Queries are documented in apps/monitoring/README.md.
+#
+# timezone is utc, not browser: container logs and `kubectl` output are UTC, and
+# comparing a graph against a log line is the main thing this dashboard is for.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -14,7 +17,7 @@ data:
       "title": "ScaleODM / ODM jobs",
       "uid": "scaleodm-jobs",
       "tags": ["scaleodm", "argo", "odm"],
-      "timezone": "browser",
+      "timezone": "utc",
       "time": { "from": "now-24h", "to": "now" },
       "refresh": "1m",
       "schemaVersion": 39,
@@ -33,88 +36,15 @@ data:
       "panels": [
         {
           "type": "row",
-          "title": "Workflows",
-          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
-        },
-        {
-          "type": "timeseries",
-          "title": "Workflows by phase (cluster-wide)",
-          "description": "argo_workflows_gauge is a controller-level gauge with no namespace attribute, so this covers ScaleODM and OAM uploader together.",
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 1 },
-          "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
-          "targets": [
-            {
-              "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "expr": "sum by (status) (argo_workflows_gauge)",
-              "legendFormat": "{{status}}",
-              "refId": "A"
-            }
-          ]
-        },
-        {
-          "type": "timeseries",
-          "title": "ODM workflows entering each phase (per hour)",
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 },
-          "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
-          "targets": [
-            {
-              "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "expr": "sum by (phase) (rate(argo_workflows_total_count{namespace=\"odm\"}[1h])) * 3600",
-              "legendFormat": "{{phase}}",
-              "refId": "A"
-            }
-          ]
-        },
-        {
-          "type": "timeseries",
-          "title": "ODM job duration (p50 / p95)",
-          "description": "From the workflow_duration_seconds histogram declared in apps/scaleodm/helm/values.yaml.",
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 9 },
-          "fieldConfig": { "defaults": { "unit": "s", "min": 0 }, "overrides": [] },
-          "targets": [
-            {
-              "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "expr": "histogram_quantile(0.5, sum by (le) (rate(workflow_duration_seconds_bucket{workflow_namespace=\"odm\"}[6h])))",
-              "legendFormat": "p50",
-              "refId": "A"
-            },
-            {
-              "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "expr": "histogram_quantile(0.95, sum by (le) (rate(workflow_duration_seconds_bucket{workflow_namespace=\"odm\"}[6h])))",
-              "legendFormat": "p95",
-              "refId": "B"
-            }
-          ]
-        },
-        {
-          "type": "timeseries",
-          "title": "Controller queue depth",
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 9 },
-          "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
-          "targets": [
-            {
-              "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "expr": "sum by (queue_name) (argo_workflows_queue_depth_gauge)",
-              "legendFormat": "{{queue_name}}",
-              "refId": "A"
-            }
-          ]
-        },
-        {
-          "type": "row",
           "title": "Resources per job",
-          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 17 }
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
         },
         {
           "type": "timeseries",
           "title": "Memory working set per ODM job",
           "description": "cAdvisor joined to kube_pod_labels via the allowlisted Argo pod label (apps/monitoring/helm/values.yaml).",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "gridPos": { "h": 9, "w": 12, "x": 0, "y": 18 },
+          "gridPos": { "h": 9, "w": 12, "x": 0, "y": 1 },
           "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 }, "overrides": [] },
           "targets": [
             {
@@ -127,10 +57,70 @@ data:
         },
         {
           "type": "timeseries",
+          "title": "Memory as % of limit, per ODM job",
+          "description": "Sustained 100% means the job is pinned at memory.max and every further allocation is going to swap. Not automatically fatal - a job can sit there for tens of minutes and recover - but read it together with the node swap panels: 100% here plus swap still climbing precedes the kill by minutes.",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "gridPos": { "h": 9, "w": 12, "x": 12, "y": 1 },
+          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 110 }, "overrides": [] },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "100 * max by (label_workflows_argoproj_io_workflow) (\n  container_memory_working_set_bytes{namespace=\"odm\", container!=\"\"}\n  * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n    kube_pod_labels{namespace=\"odm\"}\n)\n/ on (label_workflows_argoproj_io_workflow) max by (label_workflows_argoproj_io_workflow) (\n  kube_pod_container_resource_limits{namespace=\"odm\", resource=\"memory\"}\n  * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n    kube_pod_labels{namespace=\"odm\"}\n)",
+              "legendFormat": "{{label_workflows_argoproj_io_workflow}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "bargauge",
+          "title": "Peak memory per ODM job (over dashboard range)",
+          "description": "max_over_time of the working set. This is the number to feed back into odmMemoryEstimationPoints / memoryMaxGiB in apps/scaleodm/helm/values.yaml - it saves reading VmPeak out of a container log after the fact. Sampled at 5m, so a shorter transient than that reads low.",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
+          "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 }, "overrides": [] },
+          "options": {
+            "displayMode": "gradient",
+            "orientation": "horizontal",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "max_over_time(\n  (\n    max by (label_workflows_argoproj_io_workflow) (\n      container_memory_working_set_bytes{namespace=\"odm\", container!=\"\"}\n      * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n        kube_pod_labels{namespace=\"odm\"}\n    )\n  )[$__range:5m]\n)",
+              "legendFormat": "{{label_workflows_argoproj_io_workflow}}",
+              "instant": true,
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "CPU used vs requested, per ODM job",
+          "description": "cpuLimitMultiplier is 0, so there is no CPU limit and the request is the only reference. Used sitting far below requested for hours means the node was picked for RAM and the cores are idle - that is the argument for a higher memory:vCPU instance shape, not a bigger one of the same.",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 10 },
+          "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "sum by (label_workflows_argoproj_io_workflow) (\n  rate(container_cpu_usage_seconds_total{namespace=\"odm\", container!=\"\"}[5m])\n  * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n    kube_pod_labels{namespace=\"odm\"}\n)",
+              "legendFormat": "{{label_workflows_argoproj_io_workflow}} used",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "sum by (label_workflows_argoproj_io_workflow) (\n  kube_pod_container_resource_requests{namespace=\"odm\", resource=\"cpu\"}\n  * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n    kube_pod_labels{namespace=\"odm\"}\n)",
+              "legendFormat": "{{label_workflows_argoproj_io_workflow}} requested",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
           "title": "Memory used vs requested vs limit (odm namespace)",
           "description": "If used tracks well below requested, memoryMaxGiB / swapRatio in apps/scaleodm/helm/values.yaml are over-provisioning. Used pinning flat at the limit means the cgroup cap is being hit and the overflow is going to swap.",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "gridPos": { "h": 9, "w": 12, "x": 12, "y": 18 },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 18 },
           "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 }, "overrides": [] },
           "targets": [
             {
@@ -155,10 +145,26 @@ data:
         },
         {
           "type": "timeseries",
-          "title": "Container termination reasons (odm namespace)",
-          "description": "All reasons, not just OOMKilled. A job that vanishes with no reason is eviction or external deletion rather than a cgroup OOM; that distinction is otherwise unrecoverable after the pod is gone.",
+          "title": "Workspace volume used (%)",
+          "description": "The gp3 scaleodm-workspace PVC, sized by workflow.workspace.dynamicSize in apps/scaleodm/helm/values.yaml (capped at maxGiB). Undistort and OpenMVS write their intermediates here; filling it kills the job in a way that looks nothing like an OOM.",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 27 },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 18 },
+          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 }, "overrides": [] },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "100 * kubelet_volume_stats_used_bytes{namespace=\"odm\"}\n  / kubelet_volume_stats_capacity_bytes{namespace=\"odm\"}",
+              "legendFormat": "{{persistentvolumeclaim}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Kills: container terminations + kernel OOM",
+          "description": "All termination reasons, not just OOMKilled, plus the node-level kernel OOM counter. A job that vanishes with a reason is a cgroup kill; one that vanishes with no reason but a kernel OOM on its node is memory.oom.group taking the whole cgroup down (which is also why the ODX exit-code-137 tiling fallback never fires). No reason and no kernel OOM is eviction or external deletion.",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 26 },
           "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
           "targets": [
             {
@@ -166,6 +172,12 @@ data:
               "expr": "sum by (pod, reason) (kube_pod_container_status_last_terminated_reason{namespace=\"odm\"})",
               "legendFormat": "{{pod}} / {{reason}}",
               "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "increase(node_vmstat_oom_kill[5m])\n  * on (namespace, pod) group_left(node) kube_pod_info{namespace=\"monitoring\"}\n  and on (node) kube_node_labels{label_karpenter_sh_nodepool=\"scaleodm\"}",
+              "legendFormat": "{{node}} / kernel OOM",
+              "refId": "B"
             }
           ]
         },
@@ -173,7 +185,7 @@ data:
           "type": "timeseries",
           "title": "Pods pending (waiting on Karpenter capacity)",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 27 },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 26 },
           "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
           "targets": [
             {
@@ -185,43 +197,44 @@ data:
           ]
         },
         {
-          "type": "timeseries",
-          "title": "Memory as % of limit, per ODM job",
-          "description": "Sustained 100% means the job is pinned at memory.max and every further allocation is going to swap. That is the point of no return for a large dense reconstruction, and it precedes the kill by minutes.",
+          "type": "row",
+          "title": "Nodes and swap (ScaleODM pool)",
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 34 }
+        },
+        {
+          "type": "table",
+          "title": "ODM nodes: shape, capacity type, jobs per node",
+          "description": "Value is the number of odm pods on that node. The swap panels beside this assume one job owns a node - anything above 1 here means they are blurred together.",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 35 },
-          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 110 }, "overrides": [] },
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 35 },
+          "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
           "targets": [
             {
               "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "expr": "100 * max by (label_workflows_argoproj_io_workflow) (\n  container_memory_working_set_bytes{namespace=\"odm\", container!=\"\"}\n  * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n    kube_pod_labels{namespace=\"odm\"}\n)\n/ on (label_workflows_argoproj_io_workflow) max by (label_workflows_argoproj_io_workflow) (\n  kube_pod_container_resource_limits{namespace=\"odm\", resource=\"memory\"}\n  * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n    kube_pod_labels{namespace=\"odm\"}\n)",
-              "legendFormat": "{{label_workflows_argoproj_io_workflow}}",
+              "expr": "count by (node, label_node_kubernetes_io_instance_type, label_karpenter_sh_capacity_type) (\n  kube_pod_info{namespace=\"odm\"}\n  * on (node) group_left(label_node_kubernetes_io_instance_type, label_karpenter_sh_capacity_type)\n    kube_node_labels{label_karpenter_sh_nodepool=\"scaleodm\"}\n)",
+              "format": "table",
+              "instant": true,
               "refId": "A"
             }
           ]
-        },
-        {
-          "type": "row",
-          "title": "Swap (ScaleODM nodes)",
-          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 43 }
         },
         {
           "type": "timeseries",
           "title": "Swap in use vs total, per node",
           "description": "Per-container swap is unavailable (the chart drops container_memory_swap; see apps/monitoring/README.md to re-enable). The pool is dedicated, so node swap is job swap when one ODM pod owns the node. Under LimitedSwap a Burstable container only gets request/nodeRAM of total swap, so a job can exhaust its own allowance well below the node ceiling.",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 44 },
+          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 35 },
           "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 }, "overrides": [] },
           "targets": [
             {
               "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "expr": "(node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes)\n  * on (namespace, pod) group_left(node) kube_pod_info{namespace=\"monitoring\"}",
+              "expr": "(node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes)\n  * on (namespace, pod) group_left(node) kube_pod_info{namespace=\"monitoring\"}\n  and on (node) kube_node_labels{label_karpenter_sh_nodepool=\"scaleodm\"}",
               "legendFormat": "{{node}} used",
               "refId": "A"
             },
             {
               "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "expr": "node_memory_SwapTotal_bytes\n  * on (namespace, pod) group_left(node) kube_pod_info{namespace=\"monitoring\"}",
+              "expr": "node_memory_SwapTotal_bytes\n  * on (namespace, pod) group_left(node) kube_pod_info{namespace=\"monitoring\"}\n  and on (node) kube_node_labels{label_karpenter_sh_nodepool=\"scaleodm\"}",
               "legendFormat": "{{node}} total",
               "refId": "B"
             }
@@ -230,16 +243,86 @@ data:
         {
           "type": "timeseries",
           "title": "Swap read rate (thrashing)",
-          "description": "Full swap is expected by design. A sustained swap-in rate is the signal that swapRatio is too aggressive.",
+          "description": "Full swap is expected by design. A sustained swap-in rate is the signal that swapRatio is too aggressive - or, paired with a flat 100%-of-limit job, that the job is stalled rather than working.",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 44 },
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 35 },
           "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
           "targets": [
             {
               "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "expr": "rate(node_vmstat_pswpin[5m])\n  * on (namespace, pod) group_left(node) kube_pod_info{namespace=\"monitoring\"}",
+              "expr": "rate(node_vmstat_pswpin[5m])\n  * on (namespace, pod) group_left(node) kube_pod_info{namespace=\"monitoring\"}\n  and on (node) kube_node_labels{label_karpenter_sh_nodepool=\"scaleodm\"}",
               "legendFormat": "{{node}}",
               "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "row",
+          "title": "Argo controller",
+          "collapsed": true,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 43 },
+          "panels": [
+            {
+              "type": "timeseries",
+              "title": "Workflows by phase (cluster-wide)",
+              "description": "argo_workflows_gauge is a controller-level gauge with no namespace attribute, so this covers ScaleODM and OAM uploader together. Empty means the workflow-controller-metrics target is not being scraped - see apps/monitoring/README.md.",
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "gridPos": { "h": 8, "w": 12, "x": 0, "y": 44 },
+              "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
+              "targets": [
+                {
+                  "datasource": { "type": "prometheus", "uid": "${datasource}" },
+                  "expr": "sum by (status) (argo_workflows_gauge)",
+                  "legendFormat": "{{status}}",
+                  "refId": "A"
+                }
+              ]
+            },
+            {
+              "type": "timeseries",
+              "title": "ODM workflows entering each phase (per hour)",
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "gridPos": { "h": 8, "w": 12, "x": 12, "y": 44 },
+              "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
+              "targets": [
+                {
+                  "datasource": { "type": "prometheus", "uid": "${datasource}" },
+                  "expr": "sum by (phase) (rate(argo_workflows_total_count{namespace=\"odm\"}[1h])) * 3600",
+                  "legendFormat": "{{phase}}",
+                  "refId": "A"
+                }
+              ]
+            },
+            {
+              "type": "timeseries",
+              "title": "Mean ODM job duration by status",
+              "description": "sum/count of the workflow_duration_seconds histogram declared in apps/scaleodm/helm/values.yaml. Mean, not percentiles: at a handful of multi-hour jobs a day a p95 is noise. Only moves when a workflow completes.",
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "gridPos": { "h": 8, "w": 12, "x": 0, "y": 52 },
+              "fieldConfig": { "defaults": { "unit": "s", "min": 0 }, "overrides": [] },
+              "targets": [
+                {
+                  "datasource": { "type": "prometheus", "uid": "${datasource}" },
+                  "expr": "sum by (status) (workflow_duration_seconds_sum{workflow_namespace=\"odm\"})\n  / sum by (status) (workflow_duration_seconds_count{workflow_namespace=\"odm\"})",
+                  "legendFormat": "{{status}}",
+                  "refId": "A"
+                }
+              ]
+            },
+            {
+              "type": "timeseries",
+              "title": "Controller queue depth",
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "gridPos": { "h": 8, "w": 12, "x": 12, "y": 52 },
+              "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
+              "targets": [
+                {
+                  "datasource": { "type": "prometheus", "uid": "${datasource}" },
+                  "expr": "sum by (queue_name) (argo_workflows_queue_depth_gauge)",
+                  "legendFormat": "{{queue_name}}",
+                  "refId": "A"
+                }
+              ]
             }
           ]
         }
