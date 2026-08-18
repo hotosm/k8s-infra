@@ -46,7 +46,9 @@ config:
       accessMode: ReadWriteOnce
       dynamicSize:
         enabled: true
-        maxGiB: 1024
+        # 12k images at pc-quality medium fills ~1.4TiB of undistorted TIFs and
+        # depthmaps; the PVC is deleted with the workflow.
+        maxGiB: 2048
         fallbackMBPerImage: 20
         # Profile order: fastOrtho, then dsmDtm, then standard.
         fastOrtho:
@@ -87,10 +89,10 @@ config:
   processSizing:
     memoryLimitMarginPercent: 20
     memoryMinGiB: 4
-    # Peak-estimate ceiling. 600Gi covers ~13k images (~189Gi RAM request), which
-    # fits a 256Gi NVMe node + swap. Bigger jobs clamp (and may fail) rather than
-    # pend; split-merge will handle them.
-    memoryMaxGiB: 600
+    # Peak-estimate ceiling, set so a 12k-image --dsm --dtm job lands on an
+    # r6id.24xlarge: 1200Gi peak -> 600Gi request, 720Gi limit, 75 vCPU. Bigger
+    # jobs clamp to the same node rather than pend; use ODM --split for those.
+    memoryMaxGiB: 1200
     # RAM-driven selection: CPU = 0.125 vCPU per GiB of RAM request (r-family
     # ratio), so it always fits the RAM-selected node. cpuLimitMultiplier 0 omits
     # the CPU limit so ODM uses every node core.

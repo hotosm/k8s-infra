@@ -41,6 +41,11 @@ spec:
   # values.yaml) ScaleODM requests peak/2, so node RAM (~peak/2) + 2*RAM of swap
   # covers the peak with margin. See ScaleODM docs/swap.md.
   #
+  # 2x RAM fits the instance store on every c/m/r size the pool allows (largest:
+  # r6id.24xlarge, 1536Gi swap on ~5.3TiB of NVMe). Raising the NodePool's
+  # instance-cpu ceiling past 96 needs this rechecked: fallocate failing here is
+  # fail-closed, so the node never joins and Karpenter loops replacing it.
+  #
   # userData (AL2023 multipart MIME): a shellscript installs a systemd unit that
   # enables swap; a NodeConfig sets the kubelet swap flags.
   userData: |

@@ -42,9 +42,11 @@ spec:
           operator: Gt
           values: ["100"]
 
+        # 96 vCPU (r6id/r7id.24xlarge, 768Gi) is the largest we allow; a 12k-image
+        # job needs ~600Gi. Above that, use ODM --split.
         - key: karpenter.k8s.aws/instance-cpu
           operator: In
-          values: ["4", "8", "16", "32", "48"]
+          values: ["4", "8", "16", "32", "48", "64", "96"]
 
         - key: karpenter.k8s.aws/instance-generation
           operator: Gt
@@ -57,10 +59,10 @@ spec:
   limits:
     # Aggregate cap for the whole pool (all ODM jobs share it, Argo parallelism
     # 5). The cap counts each node's *full* capacity, not the pod's request: a
-    # ~6k-image --dsm --dtm job requests ~216Gi and lands on an r6id.12xlarge,
-    # which alone consumes 48 CPU / 372Gi. So this is really "how many big jobs
-    # run concurrently" -- 1536Gi fits three, and CPU is deliberately slack so
-    # memory stays the binding constraint. Cost-vs-concurrency dial.
+    # 12k-image --dsm --dtm job requests ~600Gi and lands on an r6id.24xlarge,
+    # which alone consumes 96 CPU / 768Gi. So this is really "how many big jobs
+    # run concurrently" -- 3x a 24xlarge fits two big jobs plus a node's worth
+    # of smaller ones.
     #
     # Overflow beyond the cap pends, and that pending time counts against the
     # workflow activeDeadlineSeconds (48h, see apps/scaleodm/helm/values.yaml).
@@ -70,8 +72,8 @@ spec:
     # rather than naming the limit. If a pending ODM pod shows that, check
     # `kubectl get nodepool scaleodm -o jsonpath='{.status.resources}'` against
     # these values before touching the instance-type requirements above.
-    cpu: "192"
-    memory: 1536Gi
+    cpu: "288"
+    memory: 2304Gi
 
   disruption:
     # WhenEmpty only, so a node running a multi-hour ODM job is never
