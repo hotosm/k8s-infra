@@ -6,6 +6,7 @@ metadata:
 spec:
   project: default
   sources:
+    # OpenCost
     - repoURL: https://opencost.github.io/opencost-helm-chart
       chart: opencost
       targetRevision: 2.5.29
@@ -13,6 +14,12 @@ spec:
         releaseName: opencost
         valueFiles:
           - $k8s-infra/apps/opencost/helm/values.yaml
+
+    # Git repo containing values.yaml
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+
   destination:
     server: https://kubernetes.default.svc
     namespace: opencost
