@@ -1,4 +1,4 @@
-# apps/mlflow-prod/helm/values.yaml
+# apps/fair/mlflow/helm/values.yaml
 replicaCount: 2 # Recommended: Increase for Production availability
 
 image:

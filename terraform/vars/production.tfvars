@@ -14,3 +14,5 @@ cluster_admin_access_role_arns = [
 ]
 cluster_ci_access_role_arn = "arn:aws:iam::670261699094:role/Github-AWS-OIDC"
 # Trigger pipeline to apply MLflow sealed secrets
+
+frontend_acm_certificate_arn = "arn:aws:acm:us-east-1:670261699094:certificate/1482495f-1889-4b88-8ab9-e2219397ef90"

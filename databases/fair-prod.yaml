@@ -1,0 +1,82 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: fair-prod-db-store
+  namespace: postgres
+spec:
+  retentionPolicy: "60d"
+  configuration:
+    destinationPath: s3://hotosm-k8s-db-backup/fair-prod
+    endpointURL: https://s3.amazonaws.com
+    s3Credentials:
+      accessKeyId:
+        name: s3-creds
+        key: access-key-id
+      secretAccessKey:
+        name: s3-creds
+        key: secret-access-key
+    wal:
+      compression: gzip
+      encryption: AES256
+    data:
+      compression: gzip
+      encryption: AES256
+      jobs: 2
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: fair-prod-db
+  namespace: postgres
+  labels:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/version: 18-3-system-trixie
+spec:
+  instances: 2
+  description: "fAIr Production Backend Database"
+  imageName: "ghcr.io/cloudnative-pg/postgis:18-3-system-trixie"
+  primaryUpdateStrategy: unsupervised
+  enablePDB: false
+  postgresql:
+    parameters:
+      idle_in_transaction_session_timeout: "60s"
+  bootstrap:
+    initdb:
+      database: fair_prod
+      owner: fair_prod_rw
+      secret:
+        name: fair-prod-db-creds
+      postInitApplicationSQL:
+        - CREATE EXTENSION IF NOT EXISTS postgis;
+        - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder CASCADE;
+        - CREATE EXTENSION IF NOT EXISTS postgis_topology CASCADE;
+        - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+        - CREATE EXTENSION IF NOT EXISTS btree_gist;
+        - CREATE EXTENSION IF NOT EXISTS unaccent;
+  storage:
+    storageClass: gp3
+    size: 50Gi
+  walStorage:
+    storageClass: gp3
+    size: 20Gi
+  monitoring:
+    enablePodMonitor: false
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: fair-prod-db-store
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: fair-prod-db-backup
+  namespace: postgres
+spec:
+  schedule: "0 0 3 * * 1"
+  backupOwnerReference: self
+  cluster:
+    name: fair-prod-db
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
