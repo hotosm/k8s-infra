@@ -20,6 +20,11 @@ spec:
       targetRevision: HEAD
       ref: k8s-infra
 
+    # Extra resources
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/opencost
+
   destination:
     server: https://kubernetes.default.svc
     namespace: opencost
