@@ -23,6 +23,14 @@ env:
   EXPORT_TOOL_BACKEND_URL: "https://export.hotosm.org"
   CHATMAP_BACKEND_URL: "https://chatmap.hotosm.org"
 
+  # Email (Amazon SES). Same account Hanko already uses for its passcodes;
+  # SMTP_USER/SMTP_PASSWORD live in the sealed secret, not here.
+  # Needed by team/organization invites, org approvals and data deletion requests.
+  SMTP_HOST: "email-smtp.us-east-1.amazonaws.com"
+  SMTP_PORT: "587"
+  SMTP_FROM_ADDRESS: "noreply@hotosmmail.org"
+  SMTP_STARTTLS: "true"
+
 ingress:
   enabled: true
   className: "nginx"
