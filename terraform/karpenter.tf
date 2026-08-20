@@ -193,8 +193,107 @@ resource "aws_iam_role_policy_attachment" "karpenter_controller" {
   policy_arn = aws_iam_policy.karpenter_controller.arn
 }
 
-# SQS queue used by Karpenter for interruption handling
+# SQS queue used by Karpenter for interruption handling.
+# Settings match Karpenter's upstream CloudFormation reference.
 resource "aws_sqs_queue" "karpenter_interruption_queue" {
   name = aws_eks_cluster.cluster.name
+
+  # Interruption events are only actionable inside the ~2min warning window;
+  # anything older is noise on controller restart.
+  message_retention_seconds = 300
+  sqs_managed_sse_enabled   = true
 }
 
+
+# ---------------------------------------------------------------------------
+# Interruption event routing
+#
+# The SQS queue above is polled by Karpenter, but nothing published to it until
+# these rules existed - so interruption handling was silently inert (see
+# incident-report.md). EventBridge delivers spot interruption warnings, rebalance
+# recommendations, instance state changes and AWS Health scheduled events, giving
+# Karpenter time to cordon + drain a node before it goes away.
+#
+# Covers Karpenter-managed nodes only. The `core` managed nodegroup is ON_DEMAND
+# and is not in scope here.
+# ---------------------------------------------------------------------------
+
+# Allow EventBridge to publish into the interruption queue.
+data "aws_iam_policy_document" "karpenter_interruption_queue" {
+  statement {
+    sid       = "EventBridgeSendMessage"
+    effect    = "Allow"
+    actions   = ["sqs:SendMessage"]
+    resources = [aws_sqs_queue.karpenter_interruption_queue.arn]
+
+    principals {
+      type        = "Service"
+      identifiers = ["events.amazonaws.com", "sqs.amazonaws.com"]
+    }
+  }
+
+  statement {
+    sid       = "DenyHTTP"
+    effect    = "Deny"
+    actions   = ["sqs:*"]
+    resources = [aws_sqs_queue.karpenter_interruption_queue.arn]
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
+}
+
+resource "aws_sqs_queue_policy" "karpenter_interruption_queue" {
+  queue_url = aws_sqs_queue.karpenter_interruption_queue.id
+  policy    = data.aws_iam_policy_document.karpenter_interruption_queue.json
+}
+
+locals {
+  karpenter_interruption_events = {
+    health_event = {
+      description   = "AWS Health scheduled change (maintenance, retirement, reboot)"
+      event_pattern = { source = ["aws.health"], detail-type = ["AWS Health Event"] }
+    }
+    spot_interruption = {
+      description   = "EC2 spot instance interruption warning"
+      event_pattern = { source = ["aws.ec2"], detail-type = ["EC2 Spot Instance Interruption Warning"] }
+    }
+    rebalance = {
+      description   = "EC2 instance rebalance recommendation"
+      event_pattern = { source = ["aws.ec2"], detail-type = ["EC2 Instance Rebalance Recommendation"] }
+    }
+    state_change = {
+      description   = "EC2 instance state-change notification"
+      event_pattern = { source = ["aws.ec2"], detail-type = ["EC2 Instance State-change Notification"] }
+    }
+  }
+}
+
+resource "aws_cloudwatch_event_rule" "karpenter_interruption" {
+  for_each = local.karpenter_interruption_events
+
+  name          = "${local.cluster_prefix}-karpenter-${each.key}"
+  description   = each.value.description
+  event_pattern = jsonencode(each.value.event_pattern)
+
+  # Required by the CI role's IAM policy (aws:RequestTag/project must be k8s-control)
+  tags = {
+    project = "k8s-control"
+  }
+}
+
+resource "aws_cloudwatch_event_target" "karpenter_interruption" {
+  for_each = local.karpenter_interruption_events
+
+  rule      = aws_cloudwatch_event_rule.karpenter_interruption[each.key].name
+  target_id = "KarpenterInterruptionQueue"
+  arn       = aws_sqs_queue.karpenter_interruption_queue.arn
+}

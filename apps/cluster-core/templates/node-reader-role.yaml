@@ -1,0 +1,26 @@
+# Complements read-only-role.yaml: the built-in "view" ClusterRole covers namespaced
+# resources only, so viewers/contractors cannot read cluster-scoped Nodes without this.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: node-reader
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: node-reader-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: node-reader
+subjects:
+  - kind: Group
+    name: viewers
+    apiGroup: rbac.authorization.k8s.io
+  - kind: Group
+    name: contractor
+    apiGroup: rbac.authorization.k8s.io
