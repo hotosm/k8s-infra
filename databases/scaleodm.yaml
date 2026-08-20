@@ -33,13 +33,14 @@ metadata:
     app.kubernetes.io/version: 18-system-trixie
 
 spec:
-  instances: 1
+  # Two instances (primary + hot standby) so a node fault fails over instead of causing an outage
+  instances: 2
   description: "ScaleODM Database"
   imageName: "ghcr.io/cloudnative-pg/postgresql:18-system-trixie"
 
   primaryUpdateStrategy: unsupervised
-  # PDB (voluntary-eviction guard) disabled - single replica would otherwise block node drains on cluster upgrade
-  enablePDB: false
+  # PDB (voluntary-eviction guard) enabled - drains wait for failover, only safe at instances >= 2
+  enablePDB: true
 
   postgresql:
     parameters:

@@ -36,7 +36,8 @@ spec:
   description: "fAIr Production Backend Database"
   imageName: "ghcr.io/cloudnative-pg/postgis:18-3-system-trixie"
   primaryUpdateStrategy: unsupervised
-  enablePDB: false
+  # PDB (voluntary-eviction guard) enabled - drains wait for failover, only safe at instances >= 2
+  enablePDB: true
   postgresql:
     parameters:
       idle_in_transaction_session_timeout: "60s"
