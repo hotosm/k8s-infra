@@ -33,7 +33,7 @@ metadata:
     app.kubernetes.io/version: 18-system-trixie
 
 spec:
-  instances: 1
+  instances: 2
   description: "Hanko Database"
   imageName: "ghcr.io/cloudnative-pg/postgresql:18-system-trixie"
 
