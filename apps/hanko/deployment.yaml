@@ -6,7 +6,12 @@ metadata:
   labels:
     app: hanko
 spec:
-  replicas: 1
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: hanko
@@ -15,6 +20,17 @@ spec:
       labels:
         app: hanko
     spec:
+      # Spread replicas across nodes so a single node event can't take
+      # down every replica at once.
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: hanko
+                topologyKey: kubernetes.io/hostname
       containers:
         - name: hanko
           image: ghcr.io/teamhanko/hanko:v2.5.0
