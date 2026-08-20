@@ -33,7 +33,10 @@ metadata:
     app.kubernetes.io/version: 16-3-system-trixie
 
 spec:
-  instances: 1
+  # Two instances (primary + hot standby) so a node/ENI/AZ fault fails over
+  # automatically instead of taking the API down. CNPG applies pod
+  # anti-affinity by default, so the standby lands on a different node.
+  instances: 2
   description: "DroneTM Database"
   imageName: "ghcr.io/cloudnative-pg/postgis:16-3-system-trixie"
 
