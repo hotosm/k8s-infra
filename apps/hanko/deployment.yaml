@@ -44,6 +44,24 @@ spec:
             - name: http-admin
               containerPort: 8001
               protocol: TCP
+          # /health/ready keeps returning 200 when hanko's DB pool is dead,
+          # so probe an endpoint that actually reads from the database.
+          livenessProbe:
+            httpGet:
+              path: /.well-known/jwks.json
+              port: http-public
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /.well-known/jwks.json
+              port: http-public
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
           volumeMounts:
             - name: config
               mountPath: /etc/config/config.yaml
