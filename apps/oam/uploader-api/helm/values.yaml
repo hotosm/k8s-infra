@@ -47,9 +47,8 @@ env:
 db:
   enabled: false
 
-# Sealed secret instead, to keep credentials out of git
-workflowS3Secret:
-  create: false
+# S3 credentials come from the shared oam-s3-creds sealed secret (chart
+# default), which mosaic-cronjob and tilepack-api already read.
 
 ingress:
   enabled: true

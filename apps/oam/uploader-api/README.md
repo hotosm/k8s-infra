@@ -64,15 +64,14 @@ kubectl create secret generic oam-uploader-secrets \
   | kubeseal -o yaml > ../oam-uploader-secrets.yaml
 ```
 
-Pipeline step S3 credentials (same IAM user is fine):
+The chart default S3 credentials come from `../oam-s3-creds.yaml`, which already
+exist and are already read by mosaic-cronjob and tilepack-api:
 
-```bash
-kubectl create secret generic oam-uploader-s3 \
-  --from-literal=AWS_ACCESS_KEY_ID="xxx" \
-  --from-literal=AWS_SECRET_ACCESS_KEY="xxx" \
-  --from-literal=AWS_DEFAULT_REGION="us-east-1" \
-  --namespace=oam --dry-run=client -o yaml \
-  | kubeseal -o yaml > ../oam-uploader-s3.yaml
+```yaml
+s3Secret:
+  name: oam-s3-creds
+  accessKeyIdKey: S3_ACCESS_KEY
+  secretAccessKeyKey: S3_SECRET_KEY
 ```
 
 Workflow log archiving. ScaleODM's controller sets `artifactRepository.archiveLogs:
