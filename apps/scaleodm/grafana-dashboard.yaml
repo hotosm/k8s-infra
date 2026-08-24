@@ -200,7 +200,7 @@ data:
           "type": "timeseries",
           "title": "Memory: anon vs page cache, per ODM job",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "description": "Working set is anon plus ACTIVE page cache, so a job streaming large files reads high without allocating. texrecon reads every undistorted TIF, and a 12k run peaked at 649 GiB working set while the largest single process reported VmPeak 89.8 GiB with swap untouched. Cache dominating here means the peak is reclaimable and the memory table is over-calibrated; anon dominating means it is real demand. container_memory_swap is dropped by the chart, so read the node swap panel alongside.",
+          "description": "Working set counts ACTIVE page cache, so a job streaming large files reads high without allocating anything. Cache dominating means the peak is reclaimable and the sizing table is over-calibrated; anon dominating means it is real demand. container_memory_swap is dropped by the chart, so read the node swap panel alongside.",
           "gridPos": { "h": 8, "w": 12, "x": 0, "y": 34 },
           "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 }, "overrides": [] },
           "targets": [
@@ -228,7 +228,7 @@ data:
           "type": "timeseries",
           "title": "Workspace disk: utilisation and queue depth",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "description": "node-exporter, so the cAdvisor drop rules do not apply. Container CPU excludes iowait, which means a job blocked on disk and a job running two threads both look like idle cores; only this panel separates them. Utilisation 1.0 is saturated, and gp3 with no iops parameter caps at 3000 IOPS. instanceStorePolicy RAID0 makes the instance store nvme too, so expect several devices and pick the workspace EBS by matching its write curve against the workspace used panel.",
+          "description": "node-exporter, so the cAdvisor drop rules do not apply. Container CPU excludes iowait, which means a job blocked on disk and a job running two threads both look like idle cores; only this panel separates them. Utilisation 1.0 is saturated. instanceStorePolicy RAID0 makes the instance store nvme too, so expect several devices.",
           "gridPos": { "h": 8, "w": 12, "x": 12, "y": 34 },
           "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
           "targets": [
@@ -256,7 +256,7 @@ data:
           "type": "timeseries",
           "title": "Workspace disk: throughput",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "description": "gp3 with no throughput parameter is 125 MiB/s at any volume size. A 12k run wrote 303 GiB of undistorted TIFs over ~104 min, so 40 MiB/s sustained: not capped. Read it against the utilisation panel, since IOPS can cap long before throughput does. Do not derive rates from the workspace used panel instead: that metric resolves to 0.1%, which is 1.9 GiB on a 1.9 TiB volume, so its deltas are quantisation steps rather than real bursts.",
+          "description": "gp3 with no throughput parameter is 125 MiB/s at any volume size, and no iops parameter is 3000 IOPS. Read against the utilisation panel: IOPS can cap long before throughput does. Do not derive rates from the workspace used panel, which only resolves to 0.1% of volume size.",
           "gridPos": { "h": 8, "w": 24, "x": 0, "y": 42 },
           "fieldConfig": { "defaults": { "unit": "Bps", "min": 0 }, "overrides": [] },
           "targets": [

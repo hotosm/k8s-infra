@@ -92,6 +92,22 @@ Compare with `kube_pod_container_resource_requests` to judge ScaleODM's sizing, 
 `kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}` for kills.
 Allowlisted node labels give instance type and spot/on-demand via `kube_node_labels`.
 
+### Reading a peak off a timeseries
+
+Grafana asks Prometheus for one sample per step, so on a 24h range at a 2-min step a
+2-minute spike is a coin flip. Every gauge panel on the ScaleODM dashboard therefore
+wraps its query:
+
+```promql
+max_over_time( ( <the query> )[$__interval:] )
+```
+
+Keep that wrapper on anything you add. Without it the memory panels understate the
+peak, which is the number ScaleODM's sizing table is built from.
+
+How to read an individual panel (anon vs page cache, disk saturation, what a pinned
+limit means) is in its own description: hover the panel title in Grafana.
+
 ### When the controller panels are empty
 
 The four panels in the collapsed **Argo controller** row are the only ones fed by the
