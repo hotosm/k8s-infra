@@ -49,7 +49,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "expr": "max by (label_workflows_argoproj_io_workflow) (\n  container_memory_working_set_bytes{namespace=\"odm\", container!=\"\"}\n  * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n    kube_pod_labels{namespace=\"odm\"}\n)",
+              "expr": "max_over_time(\n  (\n  max by (label_workflows_argoproj_io_workflow) (\n    container_memory_working_set_bytes{namespace=\"odm\", container!=\"\"}\n    * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n      kube_pod_labels{namespace=\"odm\"}\n  )\n  )[$__interval:]\n)",
               "legendFormat": "{{label_workflows_argoproj_io_workflow}}",
               "refId": "A"
             }
@@ -65,7 +65,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "expr": "100 * max by (label_workflows_argoproj_io_workflow) (\n  container_memory_working_set_bytes{namespace=\"odm\", container!=\"\"}\n  * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n    kube_pod_labels{namespace=\"odm\"}\n)\n/ on (label_workflows_argoproj_io_workflow) max by (label_workflows_argoproj_io_workflow) (\n  kube_pod_container_resource_limits{namespace=\"odm\", resource=\"memory\"}\n  * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n    kube_pod_labels{namespace=\"odm\"}\n)",
+              "expr": "max_over_time(\n  (\n  100 * max by (label_workflows_argoproj_io_workflow) (\n    container_memory_working_set_bytes{namespace=\"odm\", container!=\"\"}\n    * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n      kube_pod_labels{namespace=\"odm\"}\n  )\n  / on (label_workflows_argoproj_io_workflow) max by (label_workflows_argoproj_io_workflow) (\n    kube_pod_container_resource_limits{namespace=\"odm\", resource=\"memory\"}\n    * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n      kube_pod_labels{namespace=\"odm\"}\n  )\n  )[$__interval:]\n)",
               "legendFormat": "{{label_workflows_argoproj_io_workflow}}",
               "refId": "A"
             }
@@ -103,7 +103,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "expr": "sum by (label_workflows_argoproj_io_workflow) (\n  rate(container_cpu_usage_seconds_total{namespace=\"odm\", container!=\"\"}[5m])\n  * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n    kube_pod_labels{namespace=\"odm\"}\n)",
+              "expr": "max_over_time(\n  (\n  sum by (label_workflows_argoproj_io_workflow) (\n    rate(container_cpu_usage_seconds_total{namespace=\"odm\", container!=\"\"}[5m])\n    * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n      kube_pod_labels{namespace=\"odm\"}\n  )\n  )[$__interval:]\n)",
               "legendFormat": "{{label_workflows_argoproj_io_workflow}} used",
               "refId": "A"
             },
@@ -125,19 +125,19 @@ data:
           "targets": [
             {
               "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "expr": "sum(container_memory_working_set_bytes{namespace=\"odm\", container!=\"\"})",
+              "expr": "max_over_time(\n  (\n  sum(container_memory_working_set_bytes{namespace=\"odm\", container!=\"\"})\n  )[$__interval:]\n)",
               "legendFormat": "used",
               "refId": "A"
             },
             {
               "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "expr": "sum(kube_pod_container_resource_requests{namespace=\"odm\", resource=\"memory\"})",
+              "expr": "max_over_time(\n  (\n  sum(kube_pod_container_resource_requests{namespace=\"odm\", resource=\"memory\"})\n  )[$__interval:]\n)",
               "legendFormat": "requested",
               "refId": "B"
             },
             {
               "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "expr": "sum(kube_pod_container_resource_limits{namespace=\"odm\", resource=\"memory\"})",
+              "expr": "max_over_time(\n  (\n  sum(kube_pod_container_resource_limits{namespace=\"odm\", resource=\"memory\"})\n  )[$__interval:]\n)",
               "legendFormat": "limit",
               "refId": "C"
             }
@@ -153,7 +153,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "expr": "100 * kubelet_volume_stats_used_bytes{namespace=\"odm\"}\n  / kubelet_volume_stats_capacity_bytes{namespace=\"odm\"}",
+              "expr": "max_over_time(\n  (\n  100 * kubelet_volume_stats_used_bytes{namespace=\"odm\"}\n    / kubelet_volume_stats_capacity_bytes{namespace=\"odm\"}\n  )[$__interval:]\n)",
               "legendFormat": "{{persistentvolumeclaim}}",
               "refId": "A"
             }
@@ -197,16 +197,94 @@ data:
           ]
         },
         {
+          "type": "timeseries",
+          "title": "Memory: anon vs page cache, per ODM job",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "description": "Working set is anon plus ACTIVE page cache, so a job streaming large files reads high without allocating. texrecon reads every undistorted TIF, and a 12k run peaked at 649 GiB working set while the largest single process reported VmPeak 89.8 GiB with swap untouched. Cache dominating here means the peak is reclaimable and the memory table is over-calibrated; anon dominating means it is real demand. container_memory_swap is dropped by the chart, so read the node swap panel alongside.",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 34 },
+          "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 }, "overrides": [] },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "max_over_time(\n  (\n  max by (label_workflows_argoproj_io_workflow) (\n        container_memory_rss{namespace=\"odm\", container=\"process\"}\n        * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n          kube_pod_labels{namespace=\"odm\"}\n      )\n  )[$__interval:]\n)",
+              "legendFormat": "{{label_workflows_argoproj_io_workflow}} anon (rss)",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "max_over_time(\n  (\n  max by (label_workflows_argoproj_io_workflow) (\n        container_memory_cache{namespace=\"odm\", container=\"process\"}\n        * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n          kube_pod_labels{namespace=\"odm\"}\n      )\n  )[$__interval:]\n)",
+              "legendFormat": "{{label_workflows_argoproj_io_workflow}} page cache",
+              "refId": "B"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "max_over_time(\n  (\n  max by (label_workflows_argoproj_io_workflow) (\n        container_memory_working_set_bytes{namespace=\"odm\", container=\"process\"}\n        * on (namespace, pod) group_left(label_workflows_argoproj_io_workflow)\n          kube_pod_labels{namespace=\"odm\"}\n      )\n  )[$__interval:]\n)",
+              "legendFormat": "{{label_workflows_argoproj_io_workflow}} working set",
+              "refId": "C"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Workspace disk: utilisation and queue depth",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "description": "node-exporter, so the cAdvisor drop rules do not apply. Container CPU excludes iowait, which means a job blocked on disk and a job running two threads both look like idle cores; only this panel separates them. Utilisation 1.0 is saturated, and gp3 with no iops parameter caps at 3000 IOPS. instanceStorePolicy RAID0 makes the instance store nvme too, so expect several devices and pick the workspace EBS by matching its write curve against the workspace used panel.",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 34 },
+          "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "rate(node_disk_io_time_seconds_total{device=~\"nvme[0-9]+n[0-9]+\"}[5m])\n  * on (namespace, pod) group_left(node) kube_pod_info{namespace=\"monitoring\"}\n  and on (node) kube_node_labels{label_karpenter_sh_nodepool=\"scaleodm\"}",
+              "legendFormat": "{{node}} {{device}} utilisation",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "rate(node_disk_io_time_weighted_seconds_total{device=~\"nvme[0-9]+n[0-9]+\"}[5m])\n  * on (namespace, pod) group_left(node) kube_pod_info{namespace=\"monitoring\"}\n  and on (node) kube_node_labels{label_karpenter_sh_nodepool=\"scaleodm\"}",
+              "legendFormat": "{{node}} {{device}} avg queue depth",
+              "refId": "B"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "(\n  rate(node_disk_reads_completed_total{device=~\"nvme[0-9]+n[0-9]+\"}[5m])\n  + rate(node_disk_writes_completed_total{device=~\"nvme[0-9]+n[0-9]+\"}[5m])\n)\n  * on (namespace, pod) group_left(node) kube_pod_info{namespace=\"monitoring\"}\n  and on (node) kube_node_labels{label_karpenter_sh_nodepool=\"scaleodm\"}",
+              "legendFormat": "{{node}} {{device}} IOPS",
+              "refId": "C"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Workspace disk: throughput",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "description": "gp3 with no throughput parameter is 125 MiB/s at any volume size. A 12k run wrote 303 GiB of undistorted TIFs over ~104 min, so 40 MiB/s sustained: not capped. Read it against the utilisation panel, since IOPS can cap long before throughput does. Do not derive rates from the workspace used panel instead: that metric resolves to 0.1%, which is 1.9 GiB on a 1.9 TiB volume, so its deltas are quantisation steps rather than real bursts.",
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 42 },
+          "fieldConfig": { "defaults": { "unit": "Bps", "min": 0 }, "overrides": [] },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "rate(node_disk_read_bytes_total{device=~\"nvme[0-9]+n[0-9]+\"}[5m])\n  * on (namespace, pod) group_left(node) kube_pod_info{namespace=\"monitoring\"}\n  and on (node) kube_node_labels{label_karpenter_sh_nodepool=\"scaleodm\"}",
+              "legendFormat": "{{node}} {{device}} read",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "${datasource}" },
+              "expr": "rate(node_disk_written_bytes_total{device=~\"nvme[0-9]+n[0-9]+\"}[5m])\n  * on (namespace, pod) group_left(node) kube_pod_info{namespace=\"monitoring\"}\n  and on (node) kube_node_labels{label_karpenter_sh_nodepool=\"scaleodm\"}",
+              "legendFormat": "{{node}} {{device}} write",
+              "refId": "B"
+            }
+          ]
+        },
+        {
           "type": "row",
           "title": "Nodes and swap (ScaleODM pool)",
-          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 34 }
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 50 }
         },
         {
           "type": "table",
           "title": "ODM nodes: shape, capacity type, jobs per node",
           "description": "Value is the number of odm pods on that node. The swap panels beside this assume one job owns a node - anything above 1 here means they are blurred together.",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 35 },
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 51 },
           "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
           "targets": [
             {
@@ -223,7 +301,7 @@ data:
           "title": "Swap in use vs total, per node",
           "description": "Per-container swap is unavailable (the chart drops container_memory_swap; see apps/monitoring/README.md to re-enable). The pool is dedicated, so node swap is job swap when one ODM pod owns the node. Under LimitedSwap a Burstable container only gets request/nodeRAM of total swap, so a job can exhaust its own allowance well below the node ceiling.",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 35 },
+          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 51 },
           "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 }, "overrides": [] },
           "targets": [
             {
@@ -245,7 +323,7 @@ data:
           "title": "Swap read rate (thrashing)",
           "description": "Full swap is expected by design. A sustained swap-in rate is the signal that swapRatio is too aggressive - or, paired with a flat 100%-of-limit job, that the job is stalled rather than working.",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 35 },
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 51 },
           "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
           "targets": [
             {
@@ -260,14 +338,14 @@ data:
           "type": "row",
           "title": "Argo controller",
           "collapsed": true,
-          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 43 },
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 59 },
           "panels": [
             {
               "type": "timeseries",
               "title": "Workflows by phase (cluster-wide)",
               "description": "argo_workflows_gauge is a controller-level gauge with no namespace attribute, so this covers ScaleODM and OAM uploader together. Empty means the workflow-controller-metrics target is not being scraped - see apps/monitoring/README.md.",
               "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "gridPos": { "h": 8, "w": 12, "x": 0, "y": 44 },
+              "gridPos": { "h": 8, "w": 12, "x": 0, "y": 60 },
               "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
               "targets": [
                 {
@@ -282,7 +360,7 @@ data:
               "type": "timeseries",
               "title": "ODM workflows entering each phase (per hour)",
               "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "gridPos": { "h": 8, "w": 12, "x": 12, "y": 44 },
+              "gridPos": { "h": 8, "w": 12, "x": 12, "y": 60 },
               "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
               "targets": [
                 {
@@ -298,7 +376,7 @@ data:
               "title": "Mean ODM job duration by status",
               "description": "sum/count of the workflow_duration_seconds histogram declared in apps/scaleodm/helm/values.yaml. Mean, not percentiles: at a handful of multi-hour jobs a day a p95 is noise. Only moves when a workflow completes.",
               "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "gridPos": { "h": 8, "w": 12, "x": 0, "y": 52 },
+              "gridPos": { "h": 8, "w": 12, "x": 0, "y": 68 },
               "fieldConfig": { "defaults": { "unit": "s", "min": 0 }, "overrides": [] },
               "targets": [
                 {
@@ -313,7 +391,7 @@ data:
               "type": "timeseries",
               "title": "Controller queue depth",
               "datasource": { "type": "prometheus", "uid": "${datasource}" },
-              "gridPos": { "h": 8, "w": 12, "x": 12, "y": 52 },
+              "gridPos": { "h": 8, "w": 12, "x": 12, "y": 68 },
               "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
               "targets": [
                 {
