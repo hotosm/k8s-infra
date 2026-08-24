@@ -17,6 +17,34 @@ kubectl create secret generic grafana-admin-creds -n monitoring \
   --dry-run=client -o yaml | kubeseal -o yaml > apps/monitoring/grafana-admin-creds.yaml
 ```
 
+## Alertmanager Slack
+
+### Create the Slack app
+
+At <https://api.slack.com/apps>, create an app from scratch, enable **Incoming
+Webhooks**, add a webhook for `#devops-coord`, and copy its URL.
+
+### Create the secret
+
+```bash
+kubectl create secret generic alertmanager-slack -n monitoring \
+  --from-literal=webhook-url='https://hooks.slack.com/services/...' \
+  --dry-run=client -o yaml | kubeseal -o yaml > apps/monitoring/alertmanager-slack.yaml
+```
+
+Create this before syncing; Alertmanager mounts it at startup.
+
+### Test
+
+```bash
+kubectl -n monitoring port-forward svc/monitoring-kube-prometheus-alertmanager 9093:9093
+curl -X POST localhost:9093/api/v2/alerts \
+  -H 'Content-Type: application/json' \
+  -d '[{"labels":{"alertname":"SlackIntegrationTest","severity":"critical"},"annotations":{"summary":"Alertmanager Slack test"}}]'
+```
+
+Confirm the test alert appears in `#devops-coord`.
+
 ## Access
 
 Grafana is a Tailscale LoadBalancer (`tailscale.com/hostname: grafana`) - reach it

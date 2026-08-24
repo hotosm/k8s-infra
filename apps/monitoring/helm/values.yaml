@@ -22,14 +22,41 @@ prometheus:
           resources: { requests: { storage: 50Gi } }
 
 alertmanager:
-  # Enabled with no receivers yet - add Slack/email routing when ready
   alertmanagerSpec:
+    secrets:
+      - alertmanager-slack
     storage:
       volumeClaimTemplate:
         spec:
           storageClassName: gp3
           accessModes: ["ReadWriteOnce"]
           resources: { requests: { storage: 5Gi } }
+
+  # Route critical alerts to Slack and leave other alerts in the UI.
+  config:
+    global:
+      resolve_timeout: 5m
+      slack_api_url_file: /etc/alertmanager/secrets/alertmanager-slack/webhook-url
+    route:
+      group_by: ["alertname", "namespace"]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      receiver: "null"
+      routes:
+        # Discard the chart's always-firing heartbeat alert.
+        - receiver: "null"
+          matchers:
+            - alertname = "Watchdog"
+        - receiver: "slack-critical"
+          matchers:
+            - severity = "critical"
+    receivers:
+      - name: "null"
+      - name: "slack-critical"
+        slack_configs:
+          - channel: "#devops-coord"
+            send_resolved: true
 
 grafana:
   # Admin creds from a sealed secret, avoids a random chart-generated password

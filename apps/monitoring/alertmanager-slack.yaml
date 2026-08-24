@@ -1,0 +1,15 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: alertmanager-slack
+  namespace: monitoring
+spec:
+  encryptedData:
+    webhook-url: AgBMrLQPqxZpm8F5vn0p+RjdxYcsx/WEAp57ToNlj7J0WdoP4i/JyhOk3vqL8pV0SCJc2j0mswGkvo46MPOYi8exwv+EtsZw02cpmDH04fME28Rr9wp5rAkI0muQjlkPbR/SnQ0epTRm4tGYf34ysOh+KPGEhAXS+hNRMjCLLhcHBgIKQsEAF0H9UhqeHo6y1GoHuhNARaPLsvB7g9UMGsb/bN+nFK/LfaUFycX4cfS7aDQazMLPPqjiHLs/y2hAIPfU4NQGFZvke1krdN6Fz48lqttHlKe6qHVIpVmyXO1bk3qvqnoiwHDhe/3elkRoLzhWopL5gqT1eOu4p9AQxz3TuDSQEGz4HycGElI92b31MJFhZuDoRUdd3b2twqYvZ7kHO5ubXOHuc17UbRxrtNPRtAaEhaeuZALYpMjvQu7mRuSv3PPGv5zr21hgGMKSSXfHkT8wyD3Rrb5wY+zCaJO5pJoeBvBSwh1yK2u11ADuolHv7rdwwXSOhPCyBj2V1mEtFK7leUPHlnkdAa+kXarpuNh8RGm6z0fMI7q8j0GJ0xp5sAK0A4tzlWR3dZEQOFUPL3+MmHQuW1a4DoS/WFQ9ZcETUFR5iA0IqNxiy2TUc1oU640lrq6k15JKOAjFKPxUbWYc4hZG7DUYAJPobQKw+onEcKoawXgGRHJu7NzSpL4VlWEE5jbflEctd66aWc9QkgPcqCCCahLu05vo9fhJiDnM3iUKR55Pesab5IkAEm8x9zIfhpjSx0n/OCcrY15ngBAOe0KmC4nbXkqhmCooetsGScFOlBUPbF2B1Fgk
+  template:
+    metadata:
+      creationTimestamp: null
+      name: alertmanager-slack
+      namespace: monitoring

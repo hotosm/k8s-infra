@@ -1,0 +1,101 @@
+# Alerts covering the database and workload failures seen during the 2026-08-19 outage.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: database-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: cloudnativepg
+      rules:
+        # Page when WAL segments remain queued for archiving.
+        - alert: CNPGWALArchiveBacklog
+          expr: cnpg_collector_pg_wal_archive_status{value="ready"} > 0
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: "WAL segments waiting to be archived on {{ $labels.pod }}"
+            description: >-
+              WAL has been queued for archiving for 15m. Postgres cannot recycle these
+              segments, so the WAL volume will fill. Check egress from the pod to the
+              API server and to S3.
+
+        # Page when WAL archive attempts keep failing.
+        - alert: CNPGWALArchiveFailing
+          expr: increase(cnpg_pg_stat_archiver_failed_count[30m]) > 0
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "WAL archive attempts failing on {{ $labels.pod }}"
+
+        # Page when the Barman Cloud plugin's latest backup failed.
+        - alert: CNPGBackupFailed
+          expr: >-
+            barman_cloud_cloudnative_pg_io_last_failed_backup_timestamp
+              > barman_cloud_cloudnative_pg_io_last_available_backup_timestamp
+          for: 30m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Last CNPG backup failed for {{ $labels.pod }}"
+            description: >-
+              The most recent backup failed more recently than the last successful one.
+
+        # Page when the CNPG exporter cannot reach Postgres.
+        - alert: CNPGInstanceDown
+          expr: cnpg_collector_up == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "CNPG instance {{ $labels.pod }} is down"
+
+        # Page when Prometheus cannot scrape a Postgres target.
+        - alert: CNPGTargetUnreachable
+          expr: up{namespace="postgres"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Prometheus cannot scrape {{ $labels.pod }} in postgres ns"
+            description: >-
+              Scrape failing. If the pod is Running and Ready, suspect pod-level network
+              reachability rather than the database itself.
+
+    - name: workload-availability
+      rules:
+        - alert: DeploymentNoReplicasAvailable
+          expr: kube_deployment_status_replicas_available == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ $labels.namespace }}/{{ $labels.deployment }} has NO available replicas"
+
+        # Page when a multi-replica deployment falls below half availability.
+        - alert: DeploymentMostReplicasUnavailable
+          expr: |
+            (
+              kube_deployment_status_replicas_available
+                / kube_deployment_spec_replicas
+            ) < 0.5
+            and kube_deployment_status_replicas_available > 0
+            and kube_deployment_spec_replicas > 1
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ $labels.namespace }}/{{ $labels.deployment }} below half its replicas"
+
+        # Keep partial replica unavailability in the UI only.
+        - alert: DeploymentReplicasUnavailable
+          expr: kube_deployment_status_replicas_available < kube_deployment_spec_replicas
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.namespace }}/{{ $labels.deployment }} has unavailable replicas"
