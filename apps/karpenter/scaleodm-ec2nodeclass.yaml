@@ -167,6 +167,8 @@ spec:
   tags:
     Name: karpenter-scaleodm
     karpenter.sh/discovery: hotosm-production-cluster
+    project: dronetm
+    tool: scaleodm
 
   # Pin the AL2023 AMI release for prod (matches the shared autoscale class).
   # AL2023 release_version: 1.34.9-20260625. Update on cluster upgrades.
