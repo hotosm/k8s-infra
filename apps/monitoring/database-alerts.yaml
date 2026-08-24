@@ -68,8 +68,11 @@ spec:
 
     - name: workload-availability
       rules:
+        # spec_replicas > 0 skips deliberate scale-to-zero, e.g. KEDA windmill workers
         - alert: DeploymentNoReplicasAvailable
-          expr: kube_deployment_status_replicas_available == 0
+          expr: |
+            kube_deployment_status_replicas_available == 0
+            and kube_deployment_spec_replicas > 0
           for: 5m
           labels:
             severity: critical

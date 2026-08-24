@@ -49,14 +49,34 @@ Confirm the test alert appears in `#devops-coord`.
 
 Grafana is a Tailscale LoadBalancer (`tailscale.com/hostname: grafana`) - reach it
 at `http://grafana.<tailnet>` on the tailnet, like `kubeview`/`kube-ops-view`.
+Alertmanager and Prometheus are on the tailnet too, via `tailscale-services.yaml`
+(the chart's Service templates have no `loadBalancerClass` field). Their
+`externalUrl` in `helm/values.yaml` is what makes the links in Slack alerts
+resolve - change both together if the tailnet name changes.
+
 Note **http**, not https: a `loadBalancerClass: tailscale` Service publishes only
 the ports it declares (here 80) and does not terminate TLS. HTTPS would need a
 Tailscale `Ingress` instead, which provisions a tailnet cert.
-Prometheus/Alertmanager stay ClusterIP (port-forward when needed).
 
 Grafana uses `deploymentStrategy: Recreate` on purpose - see the comment in
 `helm/values.yaml`. A RollingUpdate against its ReadWriteOnce PVC deadlocks on
 volume attach and leaves the Service with no endpoints.
+
+## Triaging a Slack alert
+
+A new rule fires against pre-existing state, so the first burst after adding
+alerts is usually a backlog, not a new incident.
+
+```bash
+# Deployments behind DeploymentNoReplicasAvailable
+kubectl get deploy -A -o json | jq -r '.items[]
+  | select(.spec.replicas > 0 and (.status.availableReplicas // 0) == 0)
+  | "\(.metadata.namespace)/\(.metadata.name)"'
+
+# Why a CNPG cluster cannot archive WAL
+kubectl -n postgres logs <cluster>-1 -c postgres | grep -i archive | tail -20
+kubectl -n postgres exec <cluster>-1 -c postgres -- psql -tAc 'select * from pg_stat_archiver'
+```
 
 ## Hooking an app in
 

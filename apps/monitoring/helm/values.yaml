@@ -3,6 +3,8 @@
 
 prometheus:
   prometheusSpec:
+    # Base URL for links Prometheus emits; see ../tailscale-services.yaml
+    externalUrl: http://prometheus.banded-armadillo.ts.net
     # Discover monitors/rules cluster-wide, not just this release's
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
@@ -23,6 +25,8 @@ prometheus:
 
 alertmanager:
   alertmanagerSpec:
+    # Base URL for the links Alertmanager puts in Slack messages
+    externalUrl: http://alertmanager.banded-armadillo.ts.net
     secrets:
       - alertmanager-slack
     storage:
@@ -91,6 +95,14 @@ nodeExporter:
   enabled: true
 kubeStateMetrics:
   enabled: true
+
+# EKS-managed control plane: nothing to scrape, so their *Down alerts always fire
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeEtcd:
+  enabled: false
 
 kube-state-metrics:
   # cAdvisor only labels container metrics with `pod`, so on its own you can't
