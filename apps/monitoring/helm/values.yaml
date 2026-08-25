@@ -59,7 +59,7 @@ alertmanager:
       - name: "null"
       - name: "slack-critical"
         slack_configs:
-          - channel: "#devops-coord"
+          - channel: "#hot-tech-alerts"
             send_resolved: true
 
 grafana:

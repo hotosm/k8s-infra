@@ -22,7 +22,7 @@ kubectl create secret generic grafana-admin-creds -n monitoring \
 ### Create the Slack app
 
 At <https://api.slack.com/apps>, create an app from scratch, enable **Incoming
-Webhooks**, add a webhook for `#devops-coord`, and copy its URL.
+Webhooks**, add a webhook for `#hot-tech-alerts`, and copy its URL.
 
 ### Create the secret
 
@@ -43,7 +43,7 @@ curl -X POST localhost:9093/api/v2/alerts \
   -d '[{"labels":{"alertname":"SlackIntegrationTest","severity":"critical"},"annotations":{"summary":"Alertmanager Slack test"}}]'
 ```
 
-Confirm the test alert appears in `#devops-coord`.
+Confirm the test alert appears in `#hot-tech-alerts`.
 
 ## Access
 
