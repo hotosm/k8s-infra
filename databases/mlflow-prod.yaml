@@ -56,6 +56,8 @@ spec:
       isWALArchiver: true
       parameters:
         barmanObjectName: mlflow-prod-db-store
+        # Fresh archiveas old one was permanently broken
+        serverName: mlflow-prod-db-v2
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
