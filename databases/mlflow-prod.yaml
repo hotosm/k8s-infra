@@ -6,11 +6,11 @@ metadata:
 spec:
   retentionPolicy: "60d"
   configuration:
-    destinationPath: s3://hotosm-k8s-db-backup/mlflow-prod # Updated path
+    destinationPath: s3://hotosm-k8s-db-backup/mlflow-prod
     endpointURL: https://s3.amazonaws.com
     s3Credentials:
       accessKeyId:
-        name: s3-creds # Assuming these AWS creds can access the prod path
+        name: s3-creds
         key: access-key-id
       secretAccessKey:
         name: s3-creds
@@ -26,12 +26,11 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: mlflow-prod-db # New isolated cluster name
+  name: mlflow-prod-db
   namespace: postgres
   labels:
     app.kubernetes.io/component: database
 spec:
-  # Two instances (primary + hot standby) so a node fault fails over instead of causing an outage
   instances: 2
   description: "MLflow Production Database"
   imageName: "ghcr.io/cloudnative-pg/postgresql:18-system-trixie"
@@ -43,13 +42,13 @@ spec:
       database: mlflow
       owner: mlflow
       secret:
-        name: mlflow-prod-db-creds # New secret for prod DB
+        name: mlflow-prod-db-creds
   storage:
     storageClass: gp3
-    size: 50Gi # Adjust for prod capacity
+    size: 50Gi
   walStorage:
     storageClass: gp3
-    size: 20Gi
+    size: 32Gi
   monitoring:
     enablePodMonitor: true
   plugins:

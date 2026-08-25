@@ -52,9 +52,45 @@ alertmanager:
         - receiver: "null"
           matchers:
             - alertname = "Watchdog"
+        # Staging is per-PR and churns by design - UI only, never Slack.
+        - receiver: "null"
+          matchers:
+            - namespace =~ ".*-staging"
         - receiver: "slack-critical"
           matchers:
             - severity = "critical"
+
+    # Drop duplicates of one condition. Never mutes an availability alert on an
+    # assumed cause - that is how a real outage goes unnoticed.
+    inhibit_rules:
+      # Backlog is the archive failure restated. `job` is the CNPG cluster.
+      - source_matchers:
+          - alertname = "CNPGWALArchiveFailing"
+        target_matchers:
+          - alertname = "CNPGWALArchiveBacklog"
+        equal: ["namespace", "job"]
+
+      # Same pod, same meaning.
+      - source_matchers:
+          - alertname = "CNPGInstanceDown"
+        target_matchers:
+          - alertname = "CNPGTargetUnreachable"
+        equal: ["namespace", "pod"]
+
+      # Zero replicas also trips the partial-availability rules.
+      - source_matchers:
+          - alertname = "DeploymentNoReplicasAvailable"
+        target_matchers:
+          - alertname =~ "DeploymentMostReplicasUnavailable|DeploymentReplicasUnavailable"
+        equal: ["namespace", "deployment"]
+
+      # Keep the critical, drop the warning twin.
+      - source_matchers:
+          - severity = "critical"
+        target_matchers:
+          - severity = "warning"
+        equal: ["alertname", "namespace"]
+
     receivers:
       - name: "null"
       - name: "slack-critical"

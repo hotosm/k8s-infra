@@ -66,6 +66,31 @@ spec:
               Scrape failing. If the pod is Running and Ready, suspect pod-level network
               reachability rather than the database itself.
 
+    - name: storage
+      rules:
+        # Nothing in Postgres bounds an archive backlog, so this is the only guard.
+        - alert: PVCAlmostFull
+          expr: |
+            kubelet_volume_stats_available_bytes
+              / kubelet_volume_stats_capacity_bytes < 0.10
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} under 10% free"
+            description: "gp3 allows online expansion - grow the PVC."
+
+        # Early warning, UI only.
+        - alert: PVCFillingUp
+          expr: |
+            kubelet_volume_stats_available_bytes
+              / kubelet_volume_stats_capacity_bytes < 0.20
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} under 20% free"
+
     - name: workload-availability
       rules:
         # spec_replicas > 0 skips deliberate scale-to-zero, e.g. KEDA windmill workers

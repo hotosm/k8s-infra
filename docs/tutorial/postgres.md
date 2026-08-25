@@ -130,3 +130,25 @@ aws s3 rm --recursive s3://hotosm-k8s-db-backup/zenml-prod/
 ```
 
 Remove `databases/zenml-prod.yaml` and `databases/zenml-db-prod-creds.yaml`.
+
+## Verifying backups and WAL archiving
+
+A successful base backup does not prove WAL archiving works, and a base backup
+without its WAL is unrestorable. `scripts/verify-cnpg-backups.sh` checks both —
+its header comment explains why status pages can read green while archiving is
+completely broken.
+
+```bash
+bash scripts/verify-cnpg-backups.sh                  # audit every cluster
+bash scripts/verify-cnpg-backups.sh mlflow-prod-db   # prove one really archives
+```
+
+Run it after provisioning a cluster, and after changing an `ObjectStore` or
+`s3-creds`. On failure the S3 error is in the `plugin-barman-cloud` sidecar.
+
+### Sizing note
+
+WAL volume size is unrelated to database size — `pg_wal` recycles within
+`max_wal_size`, so steady state is 1–3Gi. A WAL volume needing tens of
+gigabytes is a retention failure (broken archiver, or an inactive replication
+slot pinning segments), not a busy database.
