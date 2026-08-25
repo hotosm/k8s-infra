@@ -70,10 +70,6 @@ spec:
     storageClass: gp3
     size: 20Gi
 
-  # prometheus
-  monitoring:
-    enablePodMonitor: true
-
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
@@ -113,3 +109,18 @@ spec:
 #   - name: postgis_topology
 #   - name: fuzzystrmatch
 #   - name: postgis_tiger_geocoder
+---
+# Scrape metrics into Prometheus. Manual, as spec.monitoring.enablePodMonitor
+# is deprecated; same labels and port the operator used to generate.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: dronetm-db-prod-podmonitor
+  namespace: postgres
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: dronetm-db-prod
+      cnpg.io/podRole: instance
+  podMetricsEndpoints:
+    - port: metrics

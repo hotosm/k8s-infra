@@ -63,9 +63,6 @@ spec:
     storageClass: gp3
     size: 40Gi
 
-  monitoring:
-    enablePodMonitor: true
-
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
@@ -89,3 +86,18 @@ spec:
   method: plugin
   pluginConfiguration:
     name: barman-cloud.cloudnative-pg.io
+---
+# Scrape metrics into Prometheus. Manual, as spec.monitoring.enablePodMonitor
+# is deprecated; same labels and port the operator used to generate.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: zenml-db-production-podmonitor
+  namespace: postgres
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: zenml-db-production
+      cnpg.io/podRole: instance
+  podMetricsEndpoints:
+    - port: metrics

@@ -65,10 +65,6 @@
 #     storageClass: gp3
 #     size: 3Gi
 #
-#   # prometheus
-#   monitoring:
-#     enablePodMonitor: true
-#
 #   plugins:
 #     - name: barman-cloud.cloudnative-pg.io
 #       isWALArchiver: true

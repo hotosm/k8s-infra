@@ -60,8 +60,6 @@ spec:
   walStorage:
     storageClass: gp3
     size: 20Gi
-  monitoring:
-    enablePodMonitor: false
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
@@ -81,3 +79,18 @@ spec:
   method: plugin
   pluginConfiguration:
     name: barman-cloud.cloudnative-pg.io
+---
+# Scrape metrics into Prometheus. Manual, as spec.monitoring.enablePodMonitor
+# is deprecated; same labels and port the operator used to generate.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: fair-prod-db-podmonitor
+  namespace: postgres
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: fair-prod-db
+      cnpg.io/podRole: instance
+  podMetricsEndpoints:
+    - port: metrics
