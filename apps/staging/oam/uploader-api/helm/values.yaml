@@ -1,0 +1,109 @@
+# Chart: https://github.com/hotosm/openaerialmap/tree/main/backend/uploader-api/chart
+# Prod equivalent: apps/oam/uploader-api/helm/values.yaml
+# image.tag and env.PIPELINE_IMAGE_TAG are set by the ApplicationSet.
+
+# Sealed secret in ../../ - COOKIE_SECRET, PGSTAC_DB_PASSWORD.
+existingSecret:
+  name: oam-uploader-staging-secrets
+
+env:
+  # Verbose on staging; prod runs INFO.
+  LOG_LEVEL: DEBUG
+  # Auth and cookies identical to prod, so that is what gets tested.
+  ENVIRONMENT: production
+  AUTH_PROVIDER: hotosm
+  HANKO_API_URL: https://login.hotosm.org
+  LOGIN_URL: https://login.hotosm.org/app
+
+  # S3_ENDPOINT, S3_EXTERNAL_ENDPOINT and PUBLIC_ASSET_BASE_URL are derived
+  # from s3.rustfs below.
+  S3_BUCKET: oam-staging
+  S3_REGION: us-east-1
+
+  # Workflows are created here; the cluster-wide ScaleODM controller runs them.
+  ARGO_NAMESPACE: oam-staging
+  ARGO_WORKFLOW_TEMPLATE: geotiff-processing-template
+  PIPELINE_IMAGE_TAG: main
+
+  # /stac, not the bare host - the eoAPI ingress rewrites that prefix.
+  STAC_URL: https://api.stage.imagery.hotosm.org/stac
+  STAC_COLLECTION: openaerialmap
+
+  # ../../pgstac.yaml, shared with eoAPI. Must match oam-stac-db-creds there.
+  PGSTAC_DB_HOST: oam-stac-db.oam-staging.svc.cluster.local
+  PGSTAC_DB_PORT: "5432"
+  PGSTAC_DB_USER: oam_stac
+  PGSTAC_DB_NAME: postgis
+
+# The uploader's own DB, ephemeral. Prod points at a CNPG cluster instead.
+db:
+  enabled: true
+  auth:
+    username: oam
+    password: oam
+    database: oam_uploader
+  primary:
+    resources:
+      requests: { cpu: 100m, memory: 256Mi }
+      limits: { cpu: 500m, memory: 1Gi }
+    # Chart default is on, and a PVC would outlive the PR.
+    persistence:
+      enabled: false
+
+# In-cluster S3; the chart's bucket-init hook sets the bucket up on every sync.
+s3:
+  rustfs:
+    enabled: true
+    ingress:
+      enabled: true
+      className: nginx
+      host: s3.stage.imagery.hotosm.org
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        external-dns.alpha.kubernetes.io/hostname: s3.stage.imagery.hotosm.org
+        external-dns.alpha.kubernetes.io/ttl: "300"
+        # Imagery is PUT straight here, so no small-body limit applies.
+        nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      tls:
+        enabled: true
+        secretName: oam-s3-staging-tls
+
+# Credentials come from the oam-s3-creds sealed secret, as they do in prod.
+rustfs:
+  storageclass:
+    # reclaimPolicy: Delete, so closing the PR releases the volume too.
+    name: gp3-ephemeral
+    # seed.maxGiB, plus room for uploads (original + COG) and tilepacks.
+    dataStorageSize: 20Gi
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { cpu: 500m, memory: 1Gi }
+
+# Copies items from prod's public STAC API on every sync, and creates the
+# openaerialmap collection that the first upload needs. maxGiB fits the volume
+# above, which is EBS-provisioned for as long as the PR is open.
+seed:
+  enabled: true
+  maxItems: 100
+  maxGiB: 10
+
+resources:
+  requests: { cpu: 100m, memory: 256Mi }
+  limits: { cpu: 500m, memory: 512Mi }
+
+ingress:
+  enabled: true
+  className: nginx
+  host: upload.stage.imagery.hotosm.org
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: upload.stage.imagery.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+  tls:
+    enabled: true
+    secretName: uploader-api-staging-tls
+
+# ScaleODM's cluster-wide controller watches all namespaces, this one included.
+argo:
+  enabled: false

@@ -1,0 +1,111 @@
+# One staging deploy per staging->main PR on hotosm/openaerialmap, in
+# `oam-staging` with its own throwaway databases and object store. Namespace and
+# bootstrap resources carry Prune=false,Delete=false so they survive teardown.
+# See oam/README.md.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: oam-staging
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - pullRequest:
+        github:
+          owner: hotosm
+          repo: openaerialmap
+        # Public repo -> anonymous GitHub API, ~60 req/hr is fine at this rate.
+        requeueAfterSeconds: 300
+        filters:
+          - branchMatch: "^staging$"
+            targetBranchMatch: "^main$"
+  template:
+    metadata:
+      name: "oam-staging-pr-{{ .number }}"
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      sources:
+        # Chart from the PR commit too; prod pulls the published OCI chart.
+        - repoURL: https://github.com/hotosm/openaerialmap.git
+          targetRevision: "{{ .head_sha }}"
+          path: backend/uploader-api/chart
+          helm:
+            # WF_CALLBACK_URL default is derived from this release name.
+            releaseName: uploader-api
+            valueFiles:
+              - $k8s-infra/apps/staging/oam/uploader-api/helm/values.yaml
+            parameters:
+              # Immutable per-commit tags from CI.
+              - name: image.tag
+                value: "sha-{{ .head_sha }}"
+              - name: env.PIPELINE_IMAGE_TAG
+                value: "sha-{{ .head_sha }}"
+
+        # Tilepack packager.
+        - repoURL: https://github.com/hotosm/openaerialmap.git
+          targetRevision: "{{ .head_sha }}"
+          path: backend/tilepack-api/chart
+          helm:
+            releaseName: tilepack-api
+            valueFiles:
+              - $k8s-infra/apps/staging/oam/tilepack-api/helm/values.yaml
+            parameters:
+              - name: api.image.tag
+                value: "sha-{{ .head_sha }}"
+              - name: worker.image.tag
+                value: "sha-{{ .head_sha }}"
+
+        # GeoTIFF pipeline WorkflowTemplate.
+        - repoURL: https://github.com/hotosm/openaerialmap.git
+          targetRevision: "{{ .head_sha }}"
+          path: backend/uploader-api/pipeline
+          directory:
+            include: workflow-template.yaml
+
+        # Same chart version as prod (apps/oam.yaml); keep them in lockstep.
+        - repoURL: https://devseed.com/eoapi-k8s
+          chart: eoapi
+          targetRevision: 0.15.0
+          helm:
+            releaseName: eoapi
+            skipCrds: false
+            passCredentials: false
+            valueFiles:
+              - $k8s-infra/apps/staging/oam/eoapi/helm/values.yaml
+            parameters:
+              - name: stac.image.tag
+                value: "sha-{{ .head_sha }}"
+
+        # Referenced by $k8s-infra in the valueFiles above.
+        - repoURL: https://github.com/hotosm/k8s-infra.git
+          targetRevision: HEAD
+          ref: k8s-infra
+
+        # Browse UI. Kustomize, not a directory, so the image tag can be pinned.
+        - repoURL: https://github.com/hotosm/k8s-infra.git
+          targetRevision: HEAD
+          path: apps/staging/oam/frontend
+          kustomize:
+            images:
+              - "ghcr.io/hotosm/openaerialmap/frontend:sha-{{ .head_sha }}"
+
+        # Quota/limits, pgstac, sealed secrets. Non-recursive: no values files.
+        - repoURL: https://github.com/hotosm/k8s-infra.git
+          targetRevision: HEAD
+          path: apps/staging/oam
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: oam-staging
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+        managedNamespaceMetadata:
+          labels:
+            environment: staging
+            app: oam

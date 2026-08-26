@@ -1,0 +1,45 @@
+# Chart: https://github.com/hotosm/openaerialmap/tree/main/backend/tilepack-api/chart
+# Prod equivalent: apps/oam/tilepack-api/helm/values.yaml
+# api.image.tag and worker.image.tag are set by the ApplicationSet.
+
+# In-namespace pgstac from ../../pgstac.yaml, never the prod CNPG cluster.
+pgstac:
+  secretName: oam-stac-db-creds
+  uriKey: uri
+
+config:
+  stacBaseURL: https://api.stage.imagery.hotosm.org/stac
+  stacCollection: openaerialmap
+  # The uploader-api chart's bundled store, not AWS. The public base URL goes on
+  # the STAC asset, so it is the store's ingress rather than its Service.
+  s3Bucket: oam-staging
+  s3PublicBaseURL: https://s3.stage.imagery.hotosm.org/oam-staging
+  s3Endpoint: http://uploader-api-rustfs-svc.oam-staging.svc.cluster.local:9000
+  # One tester at a time; prod allows 5.
+  maxConcurrentJobs: 2
+
+# Throwaway value in git, as in pgstac.yaml.
+internalTokenSecret:
+  create: true
+  token: "3f9c1d7ae4b28650fd1c04e7a9b3628d5417ecf0a2b69d83c5107fae4b96d2c1"
+
+# S3 credentials default to the oam-s3-creds sealed secret in this namespace.
+
+ingress:
+  host: packager.stage.imagery.hotosm.org
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: packager.stage.imagery.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+  tls:
+    enabled: true
+    secretName: oam-tilepack-api-staging-tls
+
+resources:
+  requests: { cpu: 100m, memory: 128Mi }
+  limits: { cpu: 500m, memory: 512Mi }
+
+worker:
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits: { cpu: "1", memory: 1Gi }

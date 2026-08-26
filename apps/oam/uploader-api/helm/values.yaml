@@ -27,7 +27,8 @@ env:
   ARGO_WORKFLOW_TEMPLATE: geotiff-processing-template
   PIPELINE_IMAGE_TAG: main
 
-  STAC_URL: https://api.imagery.hotosm.org
+  # /stac, not the bare host - the eoAPI ingress rewrites that prefix.
+  STAC_URL: https://api.imagery.hotosm.org/stac
   STAC_COLLECTION: openaerialmap
 
   # pgstac catalog - databases/oam-eoapi-pgstac-prod.yaml

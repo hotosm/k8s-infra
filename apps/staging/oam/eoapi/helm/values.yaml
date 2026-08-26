@@ -1,0 +1,123 @@
+# Staging eoAPI, kept as close to apps/oam/eoapi/helm/values.yaml as possible:
+# only the hostname, the database and the trimmed service list differ.
+ingress:
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/enable-access-log: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: api.stage.imagery.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+  host: "api.stage.imagery.hotosm.org"
+  tls:
+    enabled: true
+    secretName: eoapi-staging-tls
+
+# In-namespace pgstac from ../../pgstac.yaml, never the prod catalog.
+postgresql:
+  type: "external-secret"
+  external:
+    existingSecret:
+      name: "oam-stac-db-creds"
+      keys:
+        username: "username"
+        password: "password"
+        host: "host"
+        port: "port"
+        database: "database"
+
+# The Crunchy pgo operator. Never enabled here - see ../../README.md.
+postgrescluster:
+  enabled: false
+
+pgstacBootstrap:
+  enabled: true
+  # ArgoCD ignores the chart's helm.sh/hook, so use waves after pgstac's -9.
+  configMaps:
+    pgstacSettings: &bootstrapHook
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-7"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    initdbSql: *bootstrapHook
+    initdbJson: *bootstrapHook
+    pgstacQueryables: *bootstrapHook
+    initdb:
+      annotations: {}
+  jobs:
+    pgstacMigrate:
+      annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/sync-wave: "-5"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+  settings:
+    loadSamples: false
+    queryables: []
+
+# All the uploader flow needs: register items, preview the COG.
+apiServices:
+  - stac
+  - raster
+
+stac:
+  image:
+    # Overridden to sha-<head_sha> by the ApplicationSet.
+    name: ghcr.io/hotosm/openaerialmap/stac-api
+    tag: main
+  command:
+    - "uvicorn"
+    - "app.main:app"
+    - "--host=$(HOST)"
+    - "--port=$(PORT)"
+  settings:
+    envVars:
+      HOST: "0.0.0.0"
+      PORT: "8080"
+      # Fewer workers than prod - staging serves one tester at a time.
+      WEB_CONCURRENCY: "2"
+      DB_MIN_CONN_SIZE: "1"
+      DB_MAX_CONN_SIZE: "5"
+      # The uploader writes to pgstac directly, same as prod.
+      ENABLE_TRANSACTIONS_EXTENSIONS: "false"
+      STAC_FASTAPI_TITLE: "STAC FastAPI for OpenAerialMap (staging)"
+      STAC_FASTAPI_DESCRIPTION: "Staging STAC FastAPI deployment for OpenAerialMap."
+    resources:
+      requests: { cpu: 100m, memory: 512Mi }
+      limits: { cpu: "1", memory: 1Gi }
+
+raster:
+  # No autoscaling on staging (prod scales to 6).
+  autoscaling:
+    enabled: false
+  settings:
+    resources:
+      requests: { cpu: 250m, memory: 1Gi }
+      limits: { cpu: "1", memory: 2Gi }
+
+# Prod serves this from its own Ingress (apps/oam/browser-ingress.yaml).
+browser:
+  enabled: false
+vector:
+  enabled: false
+multidim:
+  enabled: false
+stac-auth-proxy:
+  enabled: false
+eoapi-notifier:
+  enabled: false
+docServer:
+  enabled: false
+
+# apps/monitoring already runs these cluster-wide.
+monitoring:
+  metricsServer:
+    enabled: false
+  prometheus:
+    enabled: false
+observability:
+  grafana:
+    enabled: false
+metrics-server:
+  apiService:
+    create: false

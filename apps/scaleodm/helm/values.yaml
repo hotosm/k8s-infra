@@ -102,7 +102,6 @@ config:
     ephemeralGiBPerGiBRAM: 0.3
     ephemeralLimitMultiplier: 1.2
     fastOrthoMemoryMultiplier: 0.5
-    dsmDtmMemoryMultiplier: 1.5
     # Swap-aware sizing: request = peak / (1 + swapRatio), swap absorbs the peak.
     # Needs the swap-enabled pool (apps/karpenter/scaleodm-ec2nodeclass.yaml),
     # which the nodeSelector above pins pods to.

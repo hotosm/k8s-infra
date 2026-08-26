@@ -10,7 +10,7 @@ namespace.
 | stac-map | `/map` on the same host | `stac-map-deployment.yaml` |
 | tilepack-api | tilepack downloads | `tilepack-api/helm/values.yaml` |
 | global-tms | global PMTiles layer | chart defaults + `mosaic-cronjob.yaml` |
-| uploader-api | upload.imagery.hotosm.org | `uploader-api/` - commented out in `apps/oam.yaml` |
+| uploader-api | upload.imagery.hotosm.org | `uploader-api/helm/values.yaml`, see `uploader-api/README.md` |
 | ingest CronJobs | populate pgstac | `sync-oam.yaml`, `sync-maxar.yaml` |
 
 `browser-ingress.yaml` exists because of an upstream chart bug: on nginx,
@@ -25,3 +25,5 @@ Databases are not here: `databases/oam-eoapi-pgstac-prod.yaml` and
 
 Staging is a separate, fully self-contained stack in `oam-staging` with no
 external databases - `apps/staging/oam.yaml` and `apps/staging/oam/README.md`.
+
+Remaining release steps for both prod and staging: `../../oam-release.md`.

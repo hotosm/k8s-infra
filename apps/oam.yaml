@@ -19,7 +19,7 @@ spec:
 
     - repoURL: oci://ghcr.io/hotosm/charts/openaerialmap/tilepack-api
       chart: tilepack-api
-      targetRevision: 0.4.3
+      targetRevision: 0.5.0
       helm:
         releaseName: tilepack-api
         valueFiles:
@@ -34,7 +34,7 @@ spec:
 
     - repoURL: oci://ghcr.io/hotosm/charts/openaerialmap/uploader-api
       chart: uploader-api
-      targetRevision: 0.3.0
+      targetRevision: 0.5.0
       helm:
         # WF_CALLBACK_URL default is derived from this release name.
         releaseName: uploader-api

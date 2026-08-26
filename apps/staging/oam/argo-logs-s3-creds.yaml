@@ -1,0 +1,18 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: argo-logs-s3-creds
+  namespace: oam-staging
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  encryptedData:
+    AWS_ACCESS_KEY_ID: AgBflV3b8TcnV4q4llUZVaLOJhieP8x9/wrQjPm/3S7T6uTuv1M50urHknOAMW/Y0D6FSN7usQA5nMY0gyNJllKZxyn6OOtqkCBQQD2nd526O68fiJ3B6/X9z6XN2Szk0j9DxQJof5PIRulCZlKeatZuyK7+uaP8ctBqf4BVRSpuR5e9ldfHmiF37kSj96398J9MnqW+SrzG5X2zTKEUhRB7O7HPfv5y5XHxnqiJx+M/uUF/hTSL/XpLPQiCMFfPi85PUD5B81x9NpNsgKsYnM4LFxMJNCHvEiZlX758bYgt+0sKWT1QJiVRV8TOd8nof0N2Ki9lR3LD00zri324tWspkieT4SVsUyCnLVerZ9AO6FHCR7rvFlV0FLB2+mYhUXEY7AATnfLs6UhkCzP35rC5Wlm8aGS5XPrjd0UEV9sjXXR/7RwATbsHAanMQ7GZ1RmrtIT7iLweg3wpzGmmpWqiTwkN2LFLu0/naqyWH/wwxm5HiY9PGziAdAp/vzvkFGD/3TYOXe8LCwAEdUuP1fwVcAWVHgCNI+t3q4CDCB7QlSZPBBCPVYw/SWEoNxJqBEWD5ar7IJEuv7mQl/e0YgS88hd1D3/CdBnxFfsHrmH8/Q9F7UtArB4SafQ6JHU/YYZVDhD8n+/P2l+9vkX9cxJqhr688BuCgStgdWwO4FouG3bHd/bzy8N2U1q0YBb/UggN8OqH3eABvjgtzEGgpsnlRx6lnQ==
+    AWS_SECRET_ACCESS_KEY: AgCNlPNXH3FySpTaAZI+9I6FGpyv3sqqD6X6qzju/kowFqeSYAS9dvWjn9r/fOg5bnzkOugkdYDNGoF4DPrbSStYrr/NLPLc/uMNOzkCL1xkuELthaRZY9ULLhOPZUSukhkY1zzJdqUIsmlFYVqpgDEZxHnkGDnVvca3GrhZB2sSR7joKBOBHeaOcvIXaVRpLj1vqcomz5jMj7Bfde/IpSTVppSBoaAMehJXww15inHKFiacggAmgyWndOmt3AwpniWNocSGqmRWQySgQHbiuDp3PyOCculyIgEoG+QYRWy3NdCQMv9e4NPdAsoTO0BPufbHC1asY7Ko9Jc0MF6AzbtsUZTEuYnVAgXivrIwokOvqocKzxZ1nAHwBD3iYIXFlRWxHJyc0+wIrd/dtl3V2PfovZJ1QR+7A3G1WxELnonsi9jc64FpYAiSeifBnJSTiyytMj2JtJRr/WIgjW0PSC/0OTZIObB1teBl2zzxYZqG+NNwo6SnShkwFBiD1KrFKSDrEMA0LmmIVPeeMDRnBzjQMx8Y2hwQnn0phRHiPSEXiLsqfudzeQ7tmAlRruhsv50rO+XTCCU7xD5lQEWo/7ZrlB/ihT/pHX1hQJC8QsVBdzq1bK/BMHzA5SB4Xy+j7iVuG0mD3lMxwh6WWlBcUDJbdiSHE80+ZaT8i+I+idr2nuu1hyodtMPor1ZF7lbedDmjEB3w6Kdlg6GpLHlzYHKOeVW1dqpjuNGWe9CQdv+bK/JxiDbrkHhp
+  template:
+    metadata:
+      creationTimestamp: null
+      name: argo-logs-s3-creds
+      namespace: oam-staging

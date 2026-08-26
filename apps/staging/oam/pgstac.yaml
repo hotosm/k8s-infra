@@ -1,0 +1,153 @@
+# Single-pod pgstac catalogue, so no PR deploy touches the prod CNPG cluster
+# (databases/oam-eoapi-pgstac-prod.yaml). Why this image and not the eoAPI
+# chart's Crunchy cluster: README.md.
+#
+# This image's pgstac must be <= the eoAPI chart's pypgstac, whose migrate job is
+# forward-only: v0.9.6 here against v0.10.0 in eoapi 0.15.0. Re-check on a bump:
+#   helm template eoapi eoapi/eoapi --version 0.15.0 \
+#     -f eoapi/helm/values.yaml | grep -B20 'pypgstac migrate' | grep 'image:'
+#
+# Throwaway credentials, hence a plain Secret in git; eoAPI's external-secret
+# type errors unless all five keys are present.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: oam-stac-db-creds
+  namespace: oam-staging
+  labels:
+    app.kubernetes.io/name: oam-stac-db
+    app.kubernetes.io/component: db
+  annotations:
+    # Ahead of the wave -9 StatefulSet that mounts it, else the sync deadlocks.
+    argocd.argoproj.io/sync-wave: "-10"
+type: Opaque
+stringData:
+  username: oam_stac
+  password: oam_stac
+  host: oam-stac-db.oam-staging.svc.cluster.local
+  port: "5432"
+  database: postgis
+  # tilepack-api reads a libpq URI rather than discrete fields.
+  uri: postgresql://oam_stac:oam_stac@oam-stac-db.oam-staging.svc.cluster.local:5432/postgis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oam-stac-db
+  namespace: oam-staging
+  labels:
+    app.kubernetes.io/name: oam-stac-db
+    app.kubernetes.io/component: db
+  annotations:
+    # Before the eoAPI hooks at wave -7/-5, which resolve this name.
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  type: ClusterIP
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: oam-stac-db
+    app.kubernetes.io/component: db
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: oam-stac-db
+  namespace: oam-staging
+  labels:
+    app.kubernetes.io/name: oam-stac-db
+    app.kubernetes.io/component: db
+  annotations:
+    # Ahead of the eoAPI pgstacBootstrap hooks, which start at wave -7.
+    argocd.argoproj.io/sync-wave: "-9"
+spec:
+  serviceName: oam-stac-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: oam-stac-db
+      app.kubernetes.io/component: db
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: oam-stac-db
+        app.kubernetes.io/component: db
+    spec:
+      # Runs as uid/gid 999 directly, skipping the entrypoint's gosu step.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: pgstac
+          image: ghcr.io/stac-utils/pgstac:v0.9.6
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          # Pinned to this pod's limits, not the node's RAM - see README.md.
+          args:
+            - -c
+            - max_connections=200
+            - -c
+            - shared_buffers=512MB
+            - -c
+            - effective_cache_size=1536MB
+            - -c
+            - maintenance_work_mem=128MB
+            - -c
+            - work_mem=8MB
+          ports:
+            - name: postgres
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef: { name: oam-stac-db-creds, key: username }
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: oam-stac-db-creds, key: password }
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef: { name: oam-stac-db-creds, key: database }
+            # The image's initdb calls bare `psql` - see README.md.
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef: { name: oam-stac-db-creds, key: username }
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef: { name: oam-stac-db-creds, key: password }
+            - name: PGDATABASE
+              valueFrom:
+                secretKeyRef: { name: oam-stac-db-creds, key: database }
+            # Below the mount, so lost+found does not trip Postgres' init check.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          readinessProbe:
+            exec:
+              command: ["/bin/sh", "-c", 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"']
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["/bin/sh", "-c", 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"']
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { cpu: "1", memory: 2Gi }
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      # Ephemeral: a PVC here would outlive the PR that created it.
+      volumes:
+        - name: data
+          emptyDir: {}

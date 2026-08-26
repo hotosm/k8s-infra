@@ -1,0 +1,18 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: oam-s3-creds
+  namespace: oam-staging
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  encryptedData:
+    S3_ACCESS_KEY: AgA6mdORZgYPblsAruwYnrA22jVAWrQKU5wE1CMKwD9ZIf/cmO9PzAkwnvgB3++nkJhUHNl9qva3fbGqa4hU1sfeipI0jlDE7DuhCs39oDHIsOw94WlkHEUNPqlVN47KsbFCGOHNd/psoxk9dPil4piEqoiVViq+lvAD4BLSk+fd0mp78jcm4IBUdlHgkkCc9m5J92g7+mDhaLASo9CXjqJLkfYCRJwUXnk3CzlQme8PYKPn16bUY+nBIsUzsu04Z6fxyhGtk14GM5+mJwYZnxrLwrnIu6PHRJeWQk3WnM7rgv13F/EKnx9aROBXyufRORnuVYrvfTd7kFUbtb40OEbCDxFBE/jVbBz0GeOVbc8SIkQOYpmgMcmVS9KD0sPRpN9UKWdx0Kp+t54hhzBTQaf6ybaonyN6Fg7O+ehk6V8pSFCUTT+B/mXiza/u/cmijQd00XC3rEUi1Ga3YTOjwBgbk8xOgJ430fM3aFeU4LwMDLmnzZikhLuePBKyxRl+J9XNTKj4LXiT4UGsXNGjAKd/43Qw1s4YPtY/Gr23f2jsVlkDw9eqK7BPSjvkHleKKcUk37j6DWXtOdzD6uvAo4g/jHtFLspTS5pi3DOjVVojZRhurFDsI+LDu4He1+1vWdtVMmR0QZ/CI2s+x5IoLmUcHsVbXtbOBpHxA0en3QYgg75xNRKhV2COQyYwGuGdaJ/Z5YdeXw39riT4+lRLnsVrCcJi2w==
+    S3_SECRET_KEY: AgAvUFqIKIQr88jmbgXeMXLkGUX0CgYtqLUAdJX8YgxkxtDcm0/o5UxxpOx5OpUr9+0EvsnpTLLJD0mSoC5yX/LpNCW0yLoBDJY+qhszirookz4Q/hE5p5z7yFuZCACWM4x6jT1ACJuB5AZ17l2b/UpATnUPk0raiY5exMP2BUgIf/qFVkQN2c4Lm2hI00ORcwF7U04c65z6H3PAoAs2pefs59GfUfwpiwAAjBLEt8VaNQ6LLZmrIBrdi+o3hpS3PuzPEnYeT/UFAVNGp1N7f5+2GE5mePn/ZGO7uNHvT0IFlIAMWS2rdbPvbRBfFL1pp733zt5aovjvgS4YpkNaIMCTX5aDBfue4mTvT9hfnbxY2bryKQ62urkD5qcFpKZJtzT3ljhucoJhpy8ppWsLSRhT/9vVYx7U37m+CmdKQmDMJPPMV3dSd+AVllJGbDxCJbuG6inMBhd8Knrk8A3fAN0twMY82rqR+KTOl8U9mCy8W2GJoB4sE9yjCxMdQASXzTfMf7kKMXIpe1bT8nhCixWObBRsIYrUhk2aCgGmO+/HLRnH+8rbrNB/UyfWiUKX3Ggg2ZPuH7zZGMD3YTCnClwBnr7qxtMSZFKeeLAtmHpV8vsgrPJRJKPUq1yPT/eE69gFA/+5nt+0W1GZuA3/UtAq6Mn6JwQy1WOr9vuM5suUFYPo6SUy+YZMRK/zMVCkrH4AlH/blfsa5tlCkphBC3vqnTjktvDhhruOa55uryw0NhdGfBEODMyH
+  template:
+    metadata:
+      creationTimestamp: null
+      name: oam-s3-creds
+      namespace: oam-staging

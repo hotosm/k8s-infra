@@ -1,0 +1,110 @@
+# OAM browse UI. config.js is generated from these env vars at container start,
+# so repointing it needs no rebuild.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: oam-staging
+  labels:
+    app.kubernetes.io/name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: frontend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: frontend
+          image: ghcr.io/hotosm/openaerialmap/frontend:main
+          # The appset pins an immutable sha tag, so nothing to re-pull.
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: VITE_STAC_URL
+              value: https://api.stage.imagery.hotosm.org/stac
+            - name: VITE_STAC_TITILER_URL
+              value: https://api.stage.imagery.hotosm.org/raster
+            # Prod's: disabled in the staging eoAPI, and #/external/ browses ours.
+            - name: VITE_STAC_BROWSER_URL
+              value: https://api.imagery.hotosm.org/browser
+            - name: VITE_UPLOADER_URL
+              value: https://upload.stage.imagery.hotosm.org
+            - name: VITE_PACKAGER_URL
+              value: https://packager.stage.imagery.hotosm.org
+            # From prod: global-mosaic does not run in staging.
+            - name: VITE_PMTILES_URL
+              value: https://s3.amazonaws.com/oin-hotosm-temp/global-data.pmtiles
+            - name: VITE_DENSITY_PMTILES_URL
+              value: https://s3.amazonaws.com/oin-hotosm-temp/global-coverage.pmtiles
+          readinessProbe:
+            httpGet: { path: /index.html, port: http }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /index.html, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 200m, memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: oam-staging
+  labels:
+    app.kubernetes.io/name: frontend
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: frontend
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend
+  namespace: oam-staging
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: stage.imagery.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - stage.imagery.hotosm.org
+      secretName: frontend-staging-tls
+  rules:
+    - host: stage.imagery.hotosm.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  name: http
