@@ -46,32 +46,46 @@ spec:
       # Kill idle-in-transaction sessions after 60s to release locks held by abandoned txns.
       idle_in_transaction_session_timeout: "60s"
 
+  # Recreating this Cluster restores from S3, instead of starting empty.
+  # A rebuild also needs a fresh archiver serverName - docs/tutorial/postgres.md
   bootstrap:
-    initdb:
-      database: fair-stac
-      owner: fair-stac
-      secret:
-        # Kubernetes basic-auth convention has keys:
-        # - username
-        # - password
-        name: fair-stac-db-creds
-      # Enable PostGIS and pgSTAC prerequisites
-      # https://github.com/stac-utils/pgstac/blob/main/docs/src/pypgstac.md
-      postInitApplicationSQL:
-        - CREATE EXTENSION IF NOT EXISTS postgis;
-        - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder CASCADE;
-        - CREATE EXTENSION IF NOT EXISTS postgis_topology CASCADE;
-        - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
-        - CREATE EXTENSION IF NOT EXISTS btree_gist;
-        - CREATE EXTENSION IF NOT EXISTS unaccent;
-        - CREATE ROLE pgstac_admin;
-        - CREATE ROLE pgstac_read;
-        - CREATE ROLE pgstac_ingest;
-        - ALTER ROLE "fair-stac" WITH CREATEROLE;
-        - ALTER ROLE "fair-stac" SET search_path TO pgstac, public;
-        - GRANT pgstac_read TO "fair-stac" WITH ADMIN OPTION;
-        - GRANT pgstac_ingest TO "fair-stac" WITH ADMIN OPTION;
-        - GRANT pgstac_admin TO "fair-stac" WITH ADMIN OPTION;
+    recovery:
+      source: fair-stac-db
+  externalClusters:
+    - name: fair-stac-db
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: fair-stac-db-store
+          serverName: fair-stac-db
+
+  # How this database was first created, kept for a from-scratch rebuild:
+  # bootstrap:
+  #   initdb:
+  #     database: fair-stac
+  #     owner: fair-stac
+  #     secret:
+  #       # Kubernetes basic-auth convention has keys:
+  #       # - username
+  #       # - password
+  #       name: fair-stac-db-creds
+  #     # Enable PostGIS and pgSTAC prerequisites
+  #     # https://github.com/stac-utils/pgstac/blob/main/docs/src/pypgstac.md
+  #     postInitApplicationSQL:
+  #       - CREATE EXTENSION IF NOT EXISTS postgis;
+  #       - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder CASCADE;
+  #       - CREATE EXTENSION IF NOT EXISTS postgis_topology CASCADE;
+  #       - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+  #       - CREATE EXTENSION IF NOT EXISTS btree_gist;
+  #       - CREATE EXTENSION IF NOT EXISTS unaccent;
+  #       - CREATE ROLE pgstac_admin;
+  #       - CREATE ROLE pgstac_read;
+  #       - CREATE ROLE pgstac_ingest;
+  #       - ALTER ROLE "fair-stac" WITH CREATEROLE;
+  #       - ALTER ROLE "fair-stac" SET search_path TO pgstac, public;
+  #       - GRANT pgstac_read TO "fair-stac" WITH ADMIN OPTION;
+  #       - GRANT pgstac_ingest TO "fair-stac" WITH ADMIN OPTION;
+  #       - GRANT pgstac_admin TO "fair-stac" WITH ADMIN OPTION;
 
   storage:
     storageClass: gp3

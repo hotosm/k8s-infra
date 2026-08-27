@@ -39,29 +39,44 @@ spec:
   postgresql:
     parameters:
       idle_in_transaction_session_timeout: "60s"
+  # Recreating this Cluster restores from S3, instead of starting empty.
+  # A rebuild also needs a fresh archiver serverName - docs/tutorial/postgres.md
   bootstrap:
-    initdb:
-      database: oam-eoapi-pgstac-prod
-      owner: oam_stac
-      secret:
-        name: oam-eoapi-pgstac-prod-db-creds
-      postInitApplicationSQL:
-        - CREATE EXTENSION IF NOT EXISTS postgis;
-        - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder CASCADE;
-        - CREATE EXTENSION IF NOT EXISTS postgis_topology CASCADE;
-        - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
-        - CREATE EXTENSION IF NOT EXISTS btree_gist;
-        - CREATE EXTENSION IF NOT EXISTS unaccent;
-        - CREATE ROLE pgstac_admin;
-        - CREATE ROLE pgstac_read;
-        - CREATE ROLE pgstac_ingest;
-        - ALTER ROLE "oam_stac" WITH CREATEROLE;
-        - ALTER ROLE "oam_stac" SET search_path TO pgstac, public;
-        # pgstac calls PostGIS unqualified, so every role needs it on the path
-        - ALTER DATABASE "oam-eoapi-pgstac-prod" SET search_path TO pgstac, public;
-        - GRANT pgstac_read TO "oam_stac" WITH ADMIN OPTION;
-        - GRANT pgstac_ingest TO "oam_stac" WITH ADMIN OPTION;
-        - GRANT pgstac_admin TO "oam_stac" WITH ADMIN OPTION;
+    recovery:
+      source: oam-eoapi-pgstac-prod-db
+  externalClusters:
+    - name: oam-eoapi-pgstac-prod-db
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: oam-eoapi-pgstac-prod-db-store
+          serverName: oam-eoapi-pgstac-prod-db
+
+  # How this database was first created, kept for a from-scratch rebuild:
+  # bootstrap:
+  #   initdb:
+  #     database: oam-eoapi-pgstac-prod
+  #     owner: oam_stac
+  #     secret:
+  #       name: oam-eoapi-pgstac-prod-db-creds
+  #     postInitApplicationSQL:
+  #       - CREATE EXTENSION IF NOT EXISTS postgis;
+  #       - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder CASCADE;
+  #       - CREATE EXTENSION IF NOT EXISTS postgis_topology CASCADE;
+  #       - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+  #       - CREATE EXTENSION IF NOT EXISTS btree_gist;
+  #       - CREATE EXTENSION IF NOT EXISTS unaccent;
+  #       - CREATE ROLE pgstac_admin;
+  #       - CREATE ROLE pgstac_read;
+  #       - CREATE ROLE pgstac_ingest;
+  #       - ALTER ROLE "oam_stac" WITH CREATEROLE;
+  #       - ALTER ROLE "oam_stac" SET search_path TO pgstac, public;
+  #       # pgstac calls PostGIS unqualified, so every role needs it on the path
+  #       - ALTER DATABASE "oam-eoapi-pgstac-prod" SET search_path TO pgstac, public;
+  #       - GRANT pgstac_read TO "oam_stac" WITH ADMIN OPTION;
+  #       - GRANT pgstac_ingest TO "oam_stac" WITH ADMIN OPTION;
+  #       - GRANT pgstac_admin TO "oam_stac" WITH ADMIN OPTION;
+
   storage:
     storageClass: gp3
     size: 50Gi

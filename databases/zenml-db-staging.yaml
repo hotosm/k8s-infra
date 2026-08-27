@@ -45,13 +45,18 @@ spec:
     parameters:
       idle_in_transaction_session_timeout: "60s"
 
+  # Recreating this Cluster restores from S3, instead of starting empty.
+  # A rebuild also needs a fresh archiver serverName - docs/tutorial/postgres.md
+  bootstrap:
+    recovery:
+      source: zenml-db-staging
   externalClusters:
-    - name: zenml-db-prod
+    - name: zenml-db-staging
       plugin:
         name: barman-cloud.cloudnative-pg.io
         parameters:
-          barmanObjectName: zenml-db-prod-store
-          serverName: zenml-db-prod
+          barmanObjectName: zenml-db-staging-store
+          serverName: zenml-db-staging
 
   storage:
     storageClass: gp3

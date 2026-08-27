@@ -1,5 +1,64 @@
 # CloudNativePG
 
+## Restoring a cluster from its S3 archive
+
+Every `Cluster` in `databases/` bootstraps with `recovery`, not `initdb`:
+
+```yaml
+  bootstrap:
+    recovery:
+      source: fieldtm-db-prod
+  externalClusters:
+    - name: fieldtm-db-prod
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: fieldtm-db-prod-store
+          serverName: fieldtm-db-prod
+```
+
+`bootstrap` is read **only at Cluster creation**, so this is inert on a running
+cluster. It matters on a rebuild, or after an accidental delete: ArgoCD applies
+these manifests and each database restores instead of coming up empty. The
+original `initdb` stays commented below it in each file.
+
+> Never restore Postgres from Velero. It copies files from a live database, and
+> `walStorage` is a separate PVC - so data and WAL come from different instants,
+> which Postgres cannot reconcile. The S3 archive is the only restore path.
+
+### serverName
+
+Barman writes to `<destinationPath>/<serverName>/`, and `serverName` defaults to
+the Cluster name. A restored cluster reads from that prefix and then wants to
+write its own WAL there, so CNPG stops it at bootstrap with `Expected empty
+archive`. That means recovery worked and the write target needs changing - bump
+the archiver's `serverName`, leaving `externalClusters` on the old one:
+
+```yaml
+  externalClusters:
+    - name: fieldtm-db-prod
+      plugin:
+        parameters:
+          serverName: fieldtm-db-prod       # read: unchanged
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        serverName: fieldtm-db-prod-v2      # write: bumped
+```
+
+Both prefixes share one `ObjectStore`; drop the old one once the new cluster has
+a successful `ScheduledBackup`. `mlflow-prod-db` already runs this way.
+
+**Never bump `serverName` on a running cluster** - it starts an empty chain and
+orphans every base backup, leaving it unrestorable until the next one completes.
+
+A recovery that reports no backup found usually has the wrong `serverName`.
+Check with `aws s3 ls s3://hotosm-k8s-db-backup/fieldtm-prod/`, then confirm the
+new prefix archives with `bash scripts/verify-cnpg-backups.sh fieldtm-db-prod`.
+To rehearse, recover into a scratch Cluster with its own `ObjectStore`, then
+delete it.
+
 ## Renaming a cluster + its S3 archive
 
 Renames `zenml-db-prod` → `zenml-db-staging`, archive prefix

@@ -41,19 +41,34 @@ spec:
   postgresql:
     parameters:
       idle_in_transaction_session_timeout: "60s"
+  # Recreating this Cluster restores from S3, instead of starting empty.
+  # A rebuild also needs a fresh archiver serverName - docs/tutorial/postgres.md
   bootstrap:
-    initdb:
-      database: fair_prod
-      owner: fair_prod_rw
-      secret:
-        name: fair-prod-db-creds
-      postInitApplicationSQL:
-        - CREATE EXTENSION IF NOT EXISTS postgis;
-        - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder CASCADE;
-        - CREATE EXTENSION IF NOT EXISTS postgis_topology CASCADE;
-        - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
-        - CREATE EXTENSION IF NOT EXISTS btree_gist;
-        - CREATE EXTENSION IF NOT EXISTS unaccent;
+    recovery:
+      source: fair-prod-db
+  externalClusters:
+    - name: fair-prod-db
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: fair-prod-db-store
+          serverName: fair-prod-db
+
+  # How this database was first created, kept for a from-scratch rebuild:
+  # bootstrap:
+  #   initdb:
+  #     database: fair_prod
+  #     owner: fair_prod_rw
+  #     secret:
+  #       name: fair-prod-db-creds
+  #     postInitApplicationSQL:
+  #       - CREATE EXTENSION IF NOT EXISTS postgis;
+  #       - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder CASCADE;
+  #       - CREATE EXTENSION IF NOT EXISTS postgis_topology CASCADE;
+  #       - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+  #       - CREATE EXTENSION IF NOT EXISTS btree_gist;
+  #       - CREATE EXTENSION IF NOT EXISTS unaccent;
+
   storage:
     storageClass: gp3
     size: 50Gi

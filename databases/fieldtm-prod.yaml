@@ -46,22 +46,36 @@ spec:
       # Kill idle-in-transaction sessions after 60s to release locks held by abandoned txns.
       idle_in_transaction_session_timeout: "60s"
 
+  # Recreating this Cluster restores from S3, instead of starting empty.
+  # A rebuild also needs a fresh archiver serverName - docs/tutorial/postgres.md
   bootstrap:
-    initdb:
-      database: field_tm_prod
-      owner: field_tm_prod_rw
-      secret:
-        # Kubernetes basic-auth convention has keys:
-        # - username
-        # - password
-        name: fieldtm-db-prod-creds
-      # Required to enable PostGIS & StraightSkeleton area-splitter
-      postInitApplicationSQL:
-        - CREATE EXTENSION IF NOT EXISTS postgis;
-        - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder CASCADE;
-        - CREATE EXTENSION IF NOT EXISTS postgis_topology CASCADE;
-        - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
-        - CREATE EXTENSION IF NOT EXISTS postgis_sfcgal;
+    recovery:
+      source: fieldtm-db-prod
+  externalClusters:
+    - name: fieldtm-db-prod
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: fieldtm-db-prod-store
+          serverName: fieldtm-db-prod
+
+  # How this database was first created, kept for a from-scratch rebuild:
+  # bootstrap:
+  #   initdb:
+  #     database: field_tm_prod
+  #     owner: field_tm_prod_rw
+  #     secret:
+  #       # Kubernetes basic-auth convention has keys:
+  #       # - username
+  #       # - password
+  #       name: fieldtm-db-prod-creds
+  #     # Required to enable PostGIS & StraightSkeleton area-splitter
+  #     postInitApplicationSQL:
+  #       - CREATE EXTENSION IF NOT EXISTS postgis;
+  #       - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder CASCADE;
+  #       - CREATE EXTENSION IF NOT EXISTS postgis_topology CASCADE;
+  #       - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+  #       - CREATE EXTENSION IF NOT EXISTS postgis_sfcgal;
 
   storage:
     storageClass: gp3

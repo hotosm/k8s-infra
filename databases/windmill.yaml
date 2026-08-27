@@ -46,34 +46,48 @@ spec:
       # Kill idle-in-transaction sessions after 60s to release locks held by abandoned txns.
       idle_in_transaction_session_timeout: "60s"
 
+  # Recreating this Cluster restores from S3, instead of starting empty.
+  # A rebuild also needs a fresh archiver serverName - docs/tutorial/postgres.md
   bootstrap:
-    initdb:
-      database: windmill
-      owner: windmill
-      secret:
-        # Kubernetes basic-auth convention has keys:
-        # - username
-        # - password
-        name: windmill-db-creds
-      # Windmill's migrations GRANT to roles windmill_admin / windmill_user
-      # and expect them to already exist (see init-db-as-superuser.sql in
-      # the windmill repo). Runs as superuser against the windmill db.
-      postInitApplicationSQL:
-        - CREATE ROLE windmill_user;
-        - CREATE ROLE windmill_admin WITH BYPASSRLS;
-        - GRANT windmill_user TO windmill_admin;
-        - GRANT windmill_admin TO windmill;
-        - GRANT windmill_user TO windmill;
-        # Migrations run as the `windmill` user, so default privileges must
-        # be set FOR ROLE windmill - otherwise tables created during migration
-        # are owned by `windmill` and the SET ROLE windmill_admin/windmill_user
-        # that Windmill uses per-request (for RLS) has no access.
-        - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON TABLES TO windmill_admin;
-        - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON SEQUENCES TO windmill_admin;
-        - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON FUNCTIONS TO windmill_admin;
-        - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON TABLES TO windmill_user;
-        - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON SEQUENCES TO windmill_user;
-        - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON FUNCTIONS TO windmill_user;
+    recovery:
+      source: windmill-db
+  externalClusters:
+    - name: windmill-db
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: windmill-db-store
+          serverName: windmill-db
+
+  # How this database was first created, kept for a from-scratch rebuild:
+  # bootstrap:
+  #   initdb:
+  #     database: windmill
+  #     owner: windmill
+  #     secret:
+  #       # Kubernetes basic-auth convention has keys:
+  #       # - username
+  #       # - password
+  #       name: windmill-db-creds
+  #     # Windmill's migrations GRANT to roles windmill_admin / windmill_user
+  #     # and expect them to already exist (see init-db-as-superuser.sql in
+  #     # the windmill repo). Runs as superuser against the windmill db.
+  #     postInitApplicationSQL:
+  #       - CREATE ROLE windmill_user;
+  #       - CREATE ROLE windmill_admin WITH BYPASSRLS;
+  #       - GRANT windmill_user TO windmill_admin;
+  #       - GRANT windmill_admin TO windmill;
+  #       - GRANT windmill_user TO windmill;
+  #       # Migrations run as the `windmill` user, so default privileges must
+  #       # be set FOR ROLE windmill - otherwise tables created during migration
+  #       # are owned by `windmill` and the SET ROLE windmill_admin/windmill_user
+  #       # that Windmill uses per-request (for RLS) has no access.
+  #       - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON TABLES TO windmill_admin;
+  #       - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON SEQUENCES TO windmill_admin;
+  #       - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON FUNCTIONS TO windmill_admin;
+  #       - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON TABLES TO windmill_user;
+  #       - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON SEQUENCES TO windmill_user;
+  #       - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON FUNCTIONS TO windmill_user;
 
   storage:
     storageClass: gp3

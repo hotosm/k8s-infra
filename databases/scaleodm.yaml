@@ -47,15 +47,29 @@ spec:
       # Kill idle-in-transaction sessions after 60s to release locks held by abandoned txns.
       idle_in_transaction_session_timeout: "60s"
 
+  # Recreating this Cluster restores from S3, instead of starting empty.
+  # A rebuild also needs a fresh archiver serverName - docs/tutorial/postgres.md
   bootstrap:
-    initdb:
-      database: scaleodm
-      owner: scaleodm
-      secret:
-        # Kubernetes basic-auth convention has keys:
-        # - username
-        # - password
-        name: scaleodm-db-creds
+    recovery:
+      source: scaleodm-db
+  externalClusters:
+    - name: scaleodm-db
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: scaleodm-db-store
+          serverName: scaleodm-db
+
+  # How this database was first created, kept for a from-scratch rebuild:
+  # bootstrap:
+  #   initdb:
+  #     database: scaleodm
+  #     owner: scaleodm
+  #     secret:
+  #       # Kubernetes basic-auth convention has keys:
+  #       # - username
+  #       # - password
+  #       name: scaleodm-db-creds
 
   storage:
     storageClass: gp3

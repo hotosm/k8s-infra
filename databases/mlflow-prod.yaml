@@ -37,12 +37,27 @@ spec:
   primaryUpdateStrategy: unsupervised
   # PDB (voluntary-eviction guard) enabled - drains wait for failover, only safe at instances >= 2
   enablePDB: true
+  # Recreating this Cluster restores from S3, instead of starting empty.
+  # A rebuild also needs a fresh archiver serverName - docs/tutorial/postgres.md
   bootstrap:
-    initdb:
-      database: mlflow
-      owner: mlflow
-      secret:
-        name: mlflow-prod-db-creds
+    recovery:
+      source: mlflow-prod-db
+  externalClusters:
+    - name: mlflow-prod-db
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: mlflow-prod-db-store
+          serverName: mlflow-prod-db-v2
+
+  # How this database was first created, kept for a from-scratch rebuild:
+  # bootstrap:
+  #   initdb:
+  #     database: mlflow
+  #     owner: mlflow
+  #     secret:
+  #       name: mlflow-prod-db-creds
+
   storage:
     storageClass: gp3
     size: 50Gi
