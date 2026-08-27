@@ -108,11 +108,15 @@ grafana:
     enabled: true
     storageClassName: gp3
     size: 10Gi
-  # The chart defaults to RollingUpdate, which deadlocks against the RWO PVC
-  # above: the new pod can't attach the volume until the old one releases it,
-  # and the old one isn't torn down until the new one is Ready. Replace instead.
+  # The chart default (25% maxSurge) deadlocks against the RWO PVC above: the new
+  # pod can't attach the volume until the old one releases it. maxSurge: 0 tears
+  # the old pod down first. `type: Recreate` would too, but the API server rejects
+  # the patch while the live Deployment still carries defaulted rollingUpdate keys.
   deploymentStrategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   # On the tailnet (no public ingress)
   service:
     type: LoadBalancer

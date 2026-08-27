@@ -2,8 +2,10 @@
 # to grant / revoke access to contractors.
 contractorNamespaces:
   - login
-  - zenml
-  - fair
-  - zenml-pipelines
-  - mlflow
+  - fair-prod
+  - fair-staging
+  - mlflow-prod
+  - zenml-prod
+  - zenml-pipelines-prod
   - knative
+  - knative-serving

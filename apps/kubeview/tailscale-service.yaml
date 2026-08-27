@@ -1,0 +1,20 @@
+# Standalone because the chart's Service is hardcoded to name `kubeview` with no
+# loadBalancerClass; defining ours under the same name made Argo try to patch an
+# immutable field. The chart Service stays ClusterIP (loadBalancer.enabled: false).
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubeview-tailscale
+  namespace: kubeview
+  annotations:
+    tailscale.com/hostname: "kubeview"
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  selector:
+    app.kubernetes.io/name: kubeview
+    app.kubernetes.io/instance: kubeview
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000

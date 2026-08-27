@@ -1,14 +1,8 @@
 # apps/kubeview/helm/values.yaml
 
-rbac:
-  create: true
-
-serviceAccount:
-  create: true
-
-service:
-  type: ClusterIP
-  port: 80
+# Chart Service stays internal; tailscale-service.yaml exposes it on the tailnet.
+loadBalancer:
+  enabled: false
 
 resources:
   requests:
