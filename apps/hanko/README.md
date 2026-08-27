@@ -75,11 +75,17 @@ server:
   public:
     cors:
       allow_origins:
+        - "https://login.hotosm.org"
         - "https://portal.hotosm.org"
-        - "https://demo.login.hotosm.org"
-        - "https://ui.hotosm.org"
-        - "https://fmtm.hotosm.org"
-        - "https://hotosm.github.io/openaerialmap"
+        - "https://drone.hotosm.org"
+        - "https://fair.hotosm.org"
+        - "https://chatmap.hotosm.org"
+        - "https://umap.hotosm.org"
+        - "https://umap-dev.hotosm.org"
+        - "https://export.hotosm.org"
+        - "https://field.hotosm.org"
+        - "https://upload.imagery.hotosm.org"
+        - "https://upload.stage.imagery.hotosm.org"
 # Login methods
 password:
   enabled: true
