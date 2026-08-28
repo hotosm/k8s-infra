@@ -1,6 +1,11 @@
 # kube-prometheus-stack: one Operator for the whole cluster
 # Apps opt in with a ServiceMonitor/PodMonitor in any namespace (see README)
 
+defaultRules:
+  disabled:
+    # Replaced by the critical JobFailed rule in ../cronjob-alerts.yaml.
+    KubeJobFailed: true
+
 prometheus:
   prometheusSpec:
     # Base URL for links Prometheus emits; see ../tailscale-services.yaml

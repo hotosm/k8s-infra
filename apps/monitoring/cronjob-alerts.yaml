@@ -1,0 +1,40 @@
+# Alert on retained failed Jobs and CronJobs missing their schedules.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cronjob-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: cronjobs
+      rules:
+        # Replace the chart's warning rule and ignore retained failures older than 6h.
+        - alert: JobFailed
+          expr: |
+            kube_job_failed > 0
+            and on (namespace, job_name)
+              (time() - kube_job_status_start_time) < 21600
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Job {{ $labels.namespace }}/{{ $labels.job_name }} failed"
+            description: >-
+              kubectl -n {{ $labels.namespace }} logs job/{{ $labels.job_name }}
+              while the Job is still within its failedJobsHistoryLimit.
+
+        # Use each CronJob's next due time so the rule works for every interval.
+        - alert: CronJobNotScheduling
+          expr: |
+            (time() - kube_cronjob_next_schedule_time) > 600
+            and on (namespace, cronjob) kube_cronjob_spec_suspend == 0
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "CronJob {{ $labels.namespace }}/{{ $labels.cronjob }} is overdue"
+            description: >-
+              More than 20m past its due time; check for a previous run holding
+              concurrencyPolicy: Forbid.

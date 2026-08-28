@@ -9,6 +9,12 @@ metadata:
 spec:
   # Every 30 minutes
   schedule: "*/30 * * * *"
+  # Prevent overlapping 30-minute ingests.
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  # Retain failed Jobs so their logs remain available for alert triage.
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 10
   jobTemplate:
     spec:
       template:
@@ -40,7 +46,9 @@ spec:
                   # Environment variables are already set by the container
 
                   echo "Beginning sync"
-                  hotosm sync-oam --uploaded-since 2100
+                  # Overlap 3hrs for 30min scheduled cronjob
+                  # IGNORE keeps one bad legacy item from blocking the window
+                  hotosm sync-oam --uploaded-since 86400 --handle-exceptions IGNORE
 
                   echo "Job complete"
               env:
@@ -69,4 +77,6 @@ spec:
                     secretKeyRef:
                       key: database
                       name: oam-eoapi-pgstac-prod-db-creds
-      backoffLimit: 3
+      # The next overlapping run provides recovery without an in-Job retry.
+      backoffLimit: 0
+      activeDeadlineSeconds: 1500
