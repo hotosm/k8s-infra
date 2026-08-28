@@ -20,18 +20,41 @@ namespace.
 carries the flag. Upstream fix is to add `(not .skipStripPrefix)` to `$stripPath`
 in `eoapi.ingressPaths` and flag the browser entry; then this file can go.
 
-## Adding a third-party catalogue
+## Ingest CronJobs
 
-Add the provider to `stac-ingester` first; each `sync-<provider>.yaml` runs its
-`hotosm sync-<provider>` command from that image. Before the first sync, create
-its Collection with `hotosm sync-collection --catalog=<Name>` (a temporary Job
-copied from its CronJob works); otherwise its Items are orphaned. Repeat when
-the upstream Collection changes.
+| CronJob | Source | Schedule |
+| --- | --- | --- |
+| `stac-ingest-oam` | legacy openaerialmap.org API | every 30 min |
+| `stac-ingest-maxar` | Maxar open data | daily |
+| `stac-ingest-vantor` | Vantor open data | daily |
 
-Prefer a wide sync window because existing Items are skipped. Maxar filters
-events by `event_info.json` date; Vantor filters Items by `published`. To update
-existing metadata, `dump-<provider>` to NDJSON and run
-`pypgstac load items --method upsert`.
+All three run the `stac-ingester` image, which is built from
+[hotosm/openaerialmap](https://github.com/hotosm/openaerialmap/tree/main/backend/stac-ingester)
+and tracks `main`.
+
+How the windows behave, and what to do when imagery is missing, is documented
+once in the OAM docs:
+
+- [Ingestion overview](https://docs.imagery.hotosm.org/dev/ingest/)
+- [Backfill](https://docs.imagery.hotosm.org/dev/ingest/backfill/)
+- [Add a data provider](https://docs.imagery.hotosm.org/dev/ingest/new-provider/)
+
+### Adding a catalogue
+
+1. Merge the provider to `openaerialmap` `main`, so the image has it.
+2. Add `sync-<provider>.yaml` here, copying `sync-vantor.yaml`.
+3. Create its Collection once, or every Item lands orphaned:
+
+```bash
+kubectl -n oam create job vantor-collection --from=cronjob/stac-ingest-vantor \
+  --dry-run=client --output yaml > job.yaml
+# swap the `hotosm sync-vantor ...` line for `hotosm sync-collection --catalog=Vantor`
+kubectl create -f job.yaml
+kubectl -n oam logs -f job/vantor-collection
+kubectl -n oam delete job vantor-collection
+```
+
+It upserts, so repeat it whenever the upstream Collection changes.
 
 Databases are not here: `databases/oam-eoapi-pgstac-prod.yaml` and
 `databases/oam-uploader-prod.yaml`, both running in the `postgres` namespace.
