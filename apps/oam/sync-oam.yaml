@@ -46,7 +46,7 @@ spec:
                   # Environment variables are already set by the container
 
                   echo "Beginning sync"
-                  # Overlap 3hrs for 30min scheduled cronjob
+                  # 24h overlap on a 30min schedule; existing Items are skipped
                   # IGNORE keeps one bad legacy item from blocking the window
                   hotosm sync-oam --uploaded-since 86400 --handle-exceptions IGNORE
 

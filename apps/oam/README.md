@@ -11,7 +11,7 @@ namespace.
 | tilepack-api | tilepack downloads | `tilepack-api/helm/values.yaml` |
 | global-tms | global PMTiles layer | chart defaults + `mosaic-cronjob.yaml` |
 | uploader-api | upload.imagery.hotosm.org | `uploader-api/helm/values.yaml`, see `uploader-api/README.md` |
-| ingest CronJobs | populate pgstac | `sync-oam.yaml`, `sync-maxar.yaml` |
+| ingest CronJobs | populate pgstac | `sync-oam.yaml`, `sync-maxar.yaml`, `sync-vantor.yaml` |
 
 `browser-ingress.yaml` exists because of an upstream chart bug: on nginx,
 `templates/networking/ingress.yaml` never honours `skipStripPrefix`, so
@@ -19,6 +19,19 @@ namespace.
 `SB_pathPrefix=/browser/` and 404s on `/`. The chart's Traefik template already
 carries the flag. Upstream fix is to add `(not .skipStripPrefix)` to `$stripPath`
 in `eoapi.ingressPaths` and flag the browser entry; then this file can go.
+
+## Adding a third-party catalogue
+
+Add the provider to `stac-ingester` first; each `sync-<provider>.yaml` runs its
+`hotosm sync-<provider>` command from that image. Before the first sync, create
+its Collection with `hotosm sync-collection --catalog=<Name>` (a temporary Job
+copied from its CronJob works); otherwise its Items are orphaned. Repeat when
+the upstream Collection changes.
+
+Prefer a wide sync window because existing Items are skipped. Maxar filters
+events by `event_info.json` date; Vantor filters Items by `published`. To update
+existing metadata, `dump-<provider>` to NDJSON and run
+`pypgstac load items --method upsert`.
 
 Databases are not here: `databases/oam-eoapi-pgstac-prod.yaml` and
 `databases/oam-uploader-prod.yaml`, both running in the `postgres` namespace.

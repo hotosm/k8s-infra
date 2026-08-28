@@ -1,14 +1,15 @@
-# Sync the current Maxar STAC catalog into pgstac db
+# Sync the Vantor open data STAC catalog into pgstac db.
+# Needs `hotosm sync-collection --catalog=Vantor` run once first, see README.md.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: stac-ingest-maxar
+  name: stac-ingest-vantor
   namespace: oam
   labels:
-    app: stac-ingest-maxar
+    app: stac-ingest-vantor
 spec:
-  # Daily at midnight
-  schedule: "0 0 * * *"
+  # Daily at 02:00, clear of the midnight Maxar sync.
+  schedule: "0 2 * * *"
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 600
   # Retain failed Jobs so their logs remain available for alert triage.
@@ -19,20 +20,20 @@ spec:
       template:
         metadata:
           labels:
-            app: stac-ingest-maxar
+            app: stac-ingest-vantor
         spec:
           restartPolicy: Never
           containers:
-            - name: stac-ingest-maxar
+            - name: stac-ingest-vantor
               image: ghcr.io/hotosm/openaerialmap/stac-ingester:main
               imagePullPolicy: Always
               resources:
                 limits:
-                  cpu: "768m"
-                  memory: "4096Mi"
+                  cpu: "500m"
+                  memory: "1Gi"
                 requests:
-                  cpu: "256m"
-                  memory: "3072Mi"
+                  cpu: "100m"
+                  memory: "512Mi"
               command:
                 - "/bin/sh"
                 - "-c"
@@ -45,10 +46,9 @@ spec:
                   # Environment variables are already set by the container
 
                   echo "Beginning sync"
-                  # The window filters whole events by their event_info.json date,
-                  # so 24h missed every event Maxar listed later than it happened.
-                  # Items already in pgstac are skipped, so 90 days is cheap.
-                  hotosm sync-maxar --uploaded-since 7776000 --handle-exceptions IGNORE
+                  # Vantor has no index, so every run reads the whole catalogue
+                  # regardless of window, and Items already in pgstac are skipped.
+                  hotosm sync-vantor --uploaded-after 2020-01-01 --handle-exceptions IGNORE
 
                   echo "Job complete"
               env:
@@ -79,4 +79,4 @@ spec:
                       name: oam-eoapi-pgstac-prod-db-creds
       # The next daily run provides recovery without an in-Job retry.
       backoffLimit: 0
-      activeDeadlineSeconds: 7200
+      activeDeadlineSeconds: 3600
