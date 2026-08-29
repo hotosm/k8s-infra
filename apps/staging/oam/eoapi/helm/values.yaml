@@ -33,6 +33,12 @@ postgrescluster:
 
 pgstacBootstrap:
   enabled: true
+  image:
+    # The chart default is v0.10.0, which is not a pgstac release: that image
+    # is built from 79b8b0e5, the v0.9.10 release commit, and ships pypgstac
+    # 0.9.10. Without pinning this, OAM imports are broken.
+    # FIXME remove this once eoapi-k8s helm chart is updated to latest.
+    tag: v0.9.11
   # ArgoCD ignores the chart's helm.sh/hook, so use waves after pgstac's -9.
   configMaps:
     pgstacSettings: &bootstrapHook

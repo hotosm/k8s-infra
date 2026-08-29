@@ -38,7 +38,7 @@ kubectl run pypgstac -n postgres --restart=Never --image=python:3.12-slim \
 
 kubectl exec -n postgres pypgstac -- sh -c \
   'apt-get update -qq && apt-get install -y -qq --no-install-recommends postgresql-client'
-kubectl exec -n postgres pypgstac -- pip install -q "pypgstac[psycopg]==0.9.10"
+kubectl exec -n postgres pypgstac -- pip install -q "pypgstac[psycopg]==0.9.11"
 ```
 
 `read_json` collapses `\\` to `\` twice per line, so any item containing a
