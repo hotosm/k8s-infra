@@ -18,6 +18,7 @@ outside the cluster:
 | pgstac | `pgstac.yaml`, single-pod `ghcr.io/stac-utils/pgstac`, ephemeral |
 | eoAPI raster | upstream chart 0.15.0 |
 | eoAPI stac | upstream chart, our `stac-api` image at `sha-<head_sha>` |
+| eoAPI root landing page | upstream chart's `docServer`, so the bare host is not a 404 |
 | tilepack-api + worker | its chart, from the PR commit, images `sha-<head_sha>` |
 | frontend | `frontend/`, image `sha-<head_sha>`, config injected at runtime |
 | GeoTIFF WorkflowTemplate | `backend/uploader-api/pipeline`, from the PR commit |
@@ -29,18 +30,24 @@ Read-only from prod, so there is nothing to stage:
 | Thing | Why |
 | --- | --- |
 | coverage PMTiles | `global-mosaic` output in `oin-hotosm-temp`, public GET |
-| STAC Browser | static SPA at `api.imagery.hotosm.org/browser`, browses staging items via its `#/external/` route |
+| global TMS | third-party image, chart only; the landing page links prod's |
+| STAC Browser | static SPA; prod's copy browses this catalogue via `/browser/external/api.stage.imagery.hotosm.org/stac` |
+| STAC Map | static SPA; prod's copy browses this catalogue via `/map/?href=https://api.stage.imagery.hotosm.org/stac` |
 
-Not deployed: `stac-map` (its `2.1.0` image bakes the prod STAC URL, so the
-`/map` link 404s here), `global-mosaic` and `stac-ingester` (prod catalogue
-jobs), `global-tms` (third-party image, chart only).
+Not deployed: `global-mosaic` and `stac-ingester` (prod catalogue jobs).
+
+Neither viewer needs deploying: both take a catalogue at runtime, and the
+staging eoAPI ingress already sends `Access-Control-Allow-Origin: *` so prod's
+copies can read this one cross-origin. `frontend/frontend.yaml` points
+`VITE_STAC_BROWSER_URL` and `VITE_STAC_MAP_URL` at prod; the frontend builds the
+steering links. The `/browser` row on the root landing page is a dead link here.
 
 Hostnames, all under `imagery.hotosm.org` so external-dns already covers them:
 
 | Host | Serves |
 | --- | --- |
 | `stage.imagery.hotosm.org` | frontend |
-| `api.stage.imagery.hotosm.org` | eoAPI `/stac` and `/raster` |
+| `api.stage.imagery.hotosm.org` | eoAPI `/stac`, `/raster` and the root landing page |
 | `upload.stage.imagery.hotosm.org` | uploader-api |
 | `packager.stage.imagery.hotosm.org` | tilepack-api |
 | `s3.stage.imagery.hotosm.org` | the object store's S3 API |

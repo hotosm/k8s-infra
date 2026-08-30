@@ -37,13 +37,18 @@ spec:
               containerPort: 8080
               protocol: TCP
           env:
+            # eoAPI root, linked from the header's API tab.
+            - name: VITE_API_URL
+              value: https://api.stage.imagery.hotosm.org
             - name: VITE_STAC_URL
               value: https://api.stage.imagery.hotosm.org/stac
             - name: VITE_STAC_TITILER_URL
               value: https://api.stage.imagery.hotosm.org/raster
-            # Prod's: disabled in the staging eoAPI, and #/external/ browses ours.
+            # Prod's static viewers; the frontend steers them at this catalogue.
             - name: VITE_STAC_BROWSER_URL
               value: https://api.imagery.hotosm.org/browser
+            - name: VITE_STAC_MAP_URL
+              value: https://api.imagery.hotosm.org/map
             - name: VITE_UPLOADER_URL
               value: https://upload.stage.imagery.hotosm.org
             - name: VITE_PACKAGER_URL

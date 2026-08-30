@@ -101,7 +101,7 @@ raster:
       requests: { cpu: 250m, memory: 1Gi }
       limits: { cpu: "1", memory: 2Gi }
 
-# Prod serves this from its own Ingress (apps/oam/browser-ingress.yaml).
+# Prod's static copy browses this catalogue over /external/; see ../../README.md.
 browser:
   enabled: false
 vector:
@@ -111,8 +111,6 @@ multidim:
 stac-auth-proxy:
   enabled: false
 eoapi-notifier:
-  enabled: false
-docServer:
   enabled: false
 
 # apps/monitoring already runs these cluster-wide.

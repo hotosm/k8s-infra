@@ -25,8 +25,9 @@ env:
   ARGO_WORKFLOW_TEMPLATE: geotiff-processing-template
   PIPELINE_IMAGE_TAG: main
 
-  # Staging's own frontend, not prod
+  # Staging's own frontend and eoAPI, not prod
   OAM_FRONTEND_URL: https://stage.imagery.hotosm.org
+  OAM_API_URL: https://api.stage.imagery.hotosm.org
 
   # /stac, not the bare host - the eoAPI ingress rewrites that prefix.
   STAC_URL: https://api.stage.imagery.hotosm.org/stac
