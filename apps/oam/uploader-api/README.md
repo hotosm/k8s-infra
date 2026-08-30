@@ -55,6 +55,21 @@ s3Secret:
 That IAM user needs read **and** write on `oin-hotosm-temp`; the mosaic cronjob
 that shares it only needs read, so it is worth confirming after any rotation.
 
+### Bucket CORS
+
+`oin-hotosm-temp` predates these repos and has no IaC, so its CORS rules are
+kept here as `bucket-cors.json` and applied by hand:
+
+```bash
+aws s3api put-bucket-cors --bucket oin-hotosm-temp \
+  --cors-configuration file://bucket-cors.json
+aws s3api get-bucket-cors --bucket oin-hotosm-temp   # confirm
+```
+
+Staging's bundled RustFS bucket gets the equivalent rules from the chart's
+`bucket-init` hook (`scripts/init_bucket.py`), which does not run here because
+prod points at real AWS rather than the in-cluster store.
+
 **`argo-logs-s3-creds`** (`../argo-logs-s3-creds.yaml`). ScaleODM's controller
 sets `artifactRepository.archiveLogs: true` with
 `accessKeySecret.name: argo-logs-s3-creds`, and Argo resolves that
