@@ -77,19 +77,20 @@ rustfs:
   storageclass:
     # reclaimPolicy: Delete, so closing the PR releases the volume too.
     name: gp3-ephemeral
-    # seed.maxGiB, plus room for uploads (original + COG) and tilepacks.
-    dataStorageSize: 20Gi
+    # seed.maxGiB, plus room for uploads (original + COG) and tilepacks
+    dataStorageSize: 30Gi
   resources:
-    requests: { cpu: 100m, memory: 256Mi }
-    limits: { cpu: 500m, memory: 1Gi }
+    requests: { cpu: 200m, memory: 1Gi }
+    limits: { cpu: 1000m, memory: 2Gi }
 
 # Copies items from prod's public STAC API on every sync, and creates the
-# openaerialmap collection that the first upload needs. maxGiB fits the volume
-# above, which is EBS-provisioned for as long as the PR is open.
+# openaerialmap collection that the first upload needs
 seed:
   enabled: true
   maxItems: 100
   maxGiB: 10
+  # Don't cancel before the job completes
+  activeDeadlineSeconds: 7200
 
 resources:
   requests: { cpu: 100m, memory: 256Mi }

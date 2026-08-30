@@ -98,11 +98,12 @@ cleanup. Two things it rests on:
   releases the volume, not just the claim. ArgoCD ignores the
   `helm.sh/resource-policy: keep` the subchart puts on the PVC
   ([argo-cd#17819][]), which is what makes prune work here at all.
-- **Storage is sized by hand.** 20Gi against `seed.maxGiB: 10` leaves ~10Gi for
+- **Storage is sized by hand.** 30Gi against `seed.maxGiB: 10` leaves ~20Gi for
   testers, and an upload costs roughly twice its size - the pipeline keeps both
-  the original and its COG, and tilepacks land in the same bucket. Raise the seed
-  without the volume and it fills mid-copy; the `ResourceQuota` caps CPU, memory
-  and pods but not storage, so nothing else will stop you.
+  the original and its COG, and tilepacks land in the same bucket. `maxGiB` caps
+  one run, not the bucket. Raise the seed without the volume and it fills
+  mid-copy; the `ResourceQuota` caps CPU, memory and pods but not storage, so
+  nothing else will stop you.
 
 The S3 API is public because it has to be: the browser PUTs straight to it and
 STAC asset hrefs are absolute. That second part is worth checking first on a new
