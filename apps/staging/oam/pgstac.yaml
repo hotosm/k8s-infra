@@ -95,11 +95,11 @@ spec:
           # Pinned to this pod's limits, not the node's RAM - see README.md.
           args:
             - -c
-            - max_connections=200
+            - max_connections=50
             - -c
-            - shared_buffers=512MB
+            - shared_buffers=256MB
             - -c
-            - effective_cache_size=1536MB
+            - effective_cache_size=768MB
             - -c
             - maintenance_work_mem=128MB
             - -c
@@ -142,8 +142,8 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
           resources:
-            requests: { cpu: 250m, memory: 512Mi }
-            limits: { cpu: "1", memory: 2Gi }
+            requests: { cpu: 250m, memory: 384Mi }
+            limits: { cpu: "1", memory: 1Gi }
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data

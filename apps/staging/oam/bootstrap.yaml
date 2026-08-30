@@ -6,12 +6,22 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
 spec:
-  # Whole stack plus a couple of 2-CPU workflow pods. Bump if syncs go pending.
+  # Limits, not requests, are what binds here, and the budget is steady state
+  # plus one burst. Steady state is ~5.5Gi of limits.memory across the nine
+  # long-running pods, all of them sized for this deploy's handful of users
+  # rather than copied from prod. The burst on top is a GeoTIFF workflow (steps
+  # are sequential, so one 4Gi/4-CPU step at a time), one tilepack worker Job,
+  # the bucket-init and seed hooks, and a rolling replacement pod per
+  # Deployment mid-sync.
+  #
+  # The 4Gi step is the ceiling and it is deliberately not trimmed: GDAL's
+  # footprint follows the raster, not the user count, and that template is
+  # shared with prod. Bump if syncs go pending.
   hard:
     requests.cpu: "6"
-    requests.memory: 6Gi
-    limits.cpu: "10"
-    limits.memory: 10Gi
+    requests.memory: 8Gi
+    limits.cpu: "14"
+    limits.memory: 16Gi
     pods: "50"
 ---
 apiVersion: v1

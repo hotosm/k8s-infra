@@ -48,8 +48,8 @@ db:
     database: oam_uploader
   primary:
     resources:
-      requests: { cpu: 100m, memory: 256Mi }
-      limits: { cpu: 500m, memory: 1Gi }
+      requests: { cpu: 100m, memory: 192Mi }
+      limits: { cpu: 250m, memory: 512Mi }
     # Chart default is on, and a PVC would outlive the PR.
     persistence:
       enabled: false
@@ -80,8 +80,8 @@ rustfs:
     # seed.maxGiB, plus room for uploads (original + COG) and tilepacks
     dataStorageSize: 30Gi
   resources:
-    requests: { cpu: 200m, memory: 1Gi }
-    limits: { cpu: 1000m, memory: 2Gi }
+    requests: { cpu: 200m, memory: 512Mi }
+    limits: { cpu: 500m, memory: 1Gi }
 
 # Copies items from prod's public STAC API on every sync, and creates the
 # openaerialmap collection that the first upload needs

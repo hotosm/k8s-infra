@@ -89,8 +89,8 @@ stac:
       STAC_FASTAPI_TITLE: "STAC FastAPI for OpenAerialMap (staging)"
       STAC_FASTAPI_DESCRIPTION: "Staging STAC FastAPI deployment for OpenAerialMap."
     resources:
-      requests: { cpu: 100m, memory: 512Mi }
-      limits: { cpu: "1", memory: 1Gi }
+      requests: { cpu: 100m, memory: 256Mi }
+      limits: { cpu: 500m, memory: 768Mi }
 
 raster:
   # No autoscaling on staging (prod scales to 6).
@@ -98,8 +98,8 @@ raster:
     enabled: false
   settings:
     resources:
-      requests: { cpu: 250m, memory: 1Gi }
-      limits: { cpu: "1", memory: 2Gi }
+      requests: { cpu: 100m, memory: 256Mi }
+      limits: { cpu: 500m, memory: 1Gi }
 
 # Prod's static copy browses this catalogue over /external/; see ../../README.md.
 browser:

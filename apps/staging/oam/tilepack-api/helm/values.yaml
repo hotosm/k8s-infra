@@ -16,7 +16,7 @@ config:
   s3PublicBaseURL: https://s3.stage.imagery.hotosm.org/oam-staging
   s3Endpoint: http://uploader-api-rustfs-svc.oam-staging.svc.cluster.local:9000
   # One tester at a time; prod allows 5.
-  maxConcurrentJobs: 2
+  maxConcurrentJobs: 1
 
 # Throwaway value in git, as in pgstac.yaml.
 internalTokenSecret:
@@ -37,7 +37,7 @@ ingress:
 
 resources:
   requests: { cpu: 100m, memory: 128Mi }
-  limits: { cpu: 500m, memory: 512Mi }
+  limits: { cpu: 250m, memory: 256Mi }
 
 worker:
   resources:
