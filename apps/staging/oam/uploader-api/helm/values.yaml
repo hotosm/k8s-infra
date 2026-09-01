@@ -25,6 +25,9 @@ env:
   ARGO_WORKFLOW_TEMPLATE: geotiff-processing-template
   PIPELINE_IMAGE_TAG: main
 
+  # Cleanup after runs
+  WORKSPACE_STORAGE_CLASS: gp3-ephemeral
+
   # Staging's own frontend and eoAPI, not prod
   OAM_FRONTEND_URL: https://stage.imagery.hotosm.org
   OAM_API_URL: https://api.stage.imagery.hotosm.org
