@@ -4,6 +4,11 @@ kind: SealedSecret
 metadata:
   name: mlflow-prod-db-creds
   namespace: mlflow-prod
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/sync-wave: "-5"
+    argocd.argoproj.io/hook-delete-policy: HookFailed
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
 spec:
   encryptedData:
     password: AgBBHhfgPXJmyPyaTlWSXOGQLzikK6h/bvKXSnQvF3ISRqdpI05m++ImE4lCXqiNiABUKmYKubq8zLByL8ayWNF+8IiLZI2y8+rmShLBuXk0cSSpOy+pdqym3CfAZE1GADszFHXzHx/f3jBPtWNWh/aArg19Oohi98X1zcrVshCZhzwi9EwDllongISM5mEL1WcRw24ERQcxlnfvwoce7dVtqx2vDpDWo8/lyftnZuREPh6NuPXbUGagQvVhduS4oPQuJVl+HF9KzpHhcAV3gj/QcrSYUUUkk5bRquRTd705NcHbGd4HCoZSqQ6m7yC+GEq+rvfZdMokVWLQGwEVeHRdA6d31QjgnsFNjuK2A3a5RoHQIwTlwRI+7cAKzsMCC42TdQLxpwe6EO0iPQ47a4xYJYaSkteB4eAfTPFukmxTdTUqFhZK4tngpMwEGc9arJ32GZD/QM/bZvnBHXcfOz7sVDkpnVG/MeqXBoiQnC+KRQVMlWjbRFGMgRxVMG9+OdDaBCx1wIlZtvc+nGPsydJs5iPjasr2pFm+afgBnJjj33NaHTp/TFeN/lnhH8bSCmb5dKSUNQxxScsptNsdQkrmLSUt8HyBtPVscg3i8kz9W0NAqB9zwSLfOjAlS+rAcg3SOpXAVWNykrJwe9F3f0ErogQ8JyK/54xZqb+Petg9J9vGVOTmdtDkj5bBK/zcXTy0Q4oPgUwuxGKopipoRwG/H09hliO8+MplnP4rloRTew==
