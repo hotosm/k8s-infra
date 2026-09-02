@@ -4,6 +4,11 @@ kind: SealedSecret
 metadata:
   name: fair-stac-prod-db-creds
   namespace: fair-prod
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/sync-wave: "-5"
+    argocd.argoproj.io/hook-delete-policy: HookFailed
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
 spec:
   encryptedData:
     password: AgA0PUdYNNeO5oq21a10kYEl5spnuq8kURr4v/wfqZ+4ZDyDcclvt15mBNED249sOomQJN4gk0BgoS1CVK1Rlx/0ypo8ogcECOmUlscweDpVLLRQ7kdxvVFDpyMwGsXDuK+9s/pxps13FOkl1RDktgx84mZTVYLtdY0Do/kN9i2GIQiOtS2RgY7bKFCrpBTO7SSA4n5Xcz3JdIpKF6XZ3H14XOvdRr1KbxJDEraZK1MDxmGa+UBVqHwAXWimGDUSLBOjzB+OcqXg8uKV1n2sMvq+09Vao2P5HFD4ENKZhjiejWotQmLHe0ITx6wuPCNBOJA1WbeLnItrwWoJNpEBtFz66x92Z//vx5eZFj8QNZd5CHpN5PaC0rAQaKhNd9StzCzEp7UguxRwk/HOSQCnoWnUHICfzynCF8LDuFdfcpCeOyZyYGU8BZQtotlegHV8v0oMrB2fgMNVF0inyQuiRPZruLhzD8idpMElqKPwJA1e3D3kDbhctDymZE6QokhrRR6m46xbC6lDwvl/Lhgb2M/nOdX5bxPI/aYMWeLzHw2ddlLdEUBKz4TZEEEahC2a8e7DH29w9GERz7ZRcyKwSISe/XD8dzopDEP/1XQ/yw1okpmv0p3gS1jcMt8LVKOBr2MHuu/W4DYd8vNFWqFzXmv/HiJhpts+wLVfOmZbNYkh1mOn93jH1LF3M3kyoCPu9oolYGviSdfeAhOIZB4jk2SXaJGFhjdpIpOjRtP066S7Qw==
