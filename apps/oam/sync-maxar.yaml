@@ -7,8 +7,8 @@ metadata:
   labels:
     app: stac-ingest-maxar
 spec:
-  # Daily at midnight
-  schedule: "0 0 * * *"
+  # Every three hours, starting at midnight UTC.
+  schedule: "0 */3 * * *"
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 600
   # Retain failed Jobs so their logs remain available for alert triage.
@@ -77,6 +77,6 @@ spec:
                     secretKeyRef:
                       key: database
                       name: oam-eoapi-pgstac-prod-db-creds
-      # The next daily run provides recovery without an in-Job retry.
+      # The next three-hourly run provides recovery without an in-Job retry.
       backoffLimit: 0
       activeDeadlineSeconds: 7200

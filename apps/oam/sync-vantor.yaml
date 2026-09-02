@@ -8,8 +8,8 @@ metadata:
   labels:
     app: stac-ingest-vantor
 spec:
-  # Daily at 02:00, clear of the midnight Maxar sync.
-  schedule: "0 2 * * *"
+  # Every three hours from 02:00 UTC, clear of the Maxar sync.
+  schedule: "0 2-23/3 * * *"
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 600
   # Retain failed Jobs so their logs remain available for alert triage.
@@ -77,6 +77,6 @@ spec:
                     secretKeyRef:
                       key: database
                       name: oam-eoapi-pgstac-prod-db-creds
-      # The next daily run provides recovery without an in-Job retry.
+      # The next three-hourly run provides recovery without an in-Job retry.
       backoffLimit: 0
       activeDeadlineSeconds: 3600

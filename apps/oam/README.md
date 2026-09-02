@@ -25,8 +25,8 @@ in `eoapi.ingressPaths` and flag the browser entry; then this file can go.
 | CronJob | Source | Schedule |
 | --- | --- | --- |
 | `stac-ingest-oam` | legacy openaerialmap.org API | every 30 min |
-| `stac-ingest-maxar` | Maxar open data | daily |
-| `stac-ingest-vantor` | Vantor open data | daily |
+| `stac-ingest-maxar` | Maxar open data | every 3 hours |
+| `stac-ingest-vantor` | Vantor open data | every 3 hours |
 
 All three run the `stac-ingester` image, which is built from
 [hotosm/openaerialmap](https://github.com/hotosm/openaerialmap/tree/main/backend/stac-ingester)
