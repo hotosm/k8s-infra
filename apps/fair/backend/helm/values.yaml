@@ -3,7 +3,7 @@ global:
 
 image:
   repository: ghcr.io/hotosm/fair/api
-  tag: main
+  tag: "sha-e6e5786232ae30ebe1e4ee4b3c77104b839809d2"
   pullPolicy: Always
 
 env:
