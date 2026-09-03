@@ -1,0 +1,19 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: zenml-db-production-creds
+  namespace: fair-prod
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/sync-wave: "-5"
+    argocd.argoproj.io/hook-delete-policy: HookFailed
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  encryptedData:
+    password: AgB1UKj/VHZ0Bw7mJNC39mlQZwZ4W7NjFbMaBhRONiXQBBFGZNnejtnDB1TA3B5ZsHmLs/UQ96+fHFcgxhrb6AR7yieNEDwxVLTM7ZzFYwg2q/TWkXD4bt+bLyogC5C+hlrR10MCgTRbE4MaCVnvU8t0ySNs1Adxqk7C0XZ41ni1fpws57DaaZWeK1n/59VzjV7djZzlwfxDuX5VJJX0YPkyXRkvfXzRhcvK9V2SZUMDTQ8iosv14Qkzxyk6lFeynjcHv2JSTy5I7vFAabVqp8d6BlwreFnA1QeyjVFg2QFJET19hlGRA8HOoHSsVOq9u8aMGL9D5dttDOhLh6PQxNEgSKLmarJB3P344jrid+n7QUEEH6kh9d6P8vONCbDYiZ52S4tyuULI6bXXV8tI4U/qjs5UWLP1JJ3x9VDJTcIczLpjV0yjuArGjwnD/bm9GA1U6IjTRgjv6MMeADW8JqNsbzZ2jdNYxfiuD15FwqWu6sJaGyi4JHpErW/SvtTgcu+R9Vz/tMM1T0xfCfnw2TDS8WLm1w9SxIekqcUCXgTPjkJQpZScgGZWU2eJQ9BQZzPCL4/YBok7q7/pXVQpqCN+2jYTsPe3bmgYitdt04emsPVJnbYKFqhkXgOnVET85gC+HQ8NL0x5LzrhZQ2EhHTrV/iATaN/7bRTod/mGFx4BvkmKiIZwzVRx/YEQry/fYSpYvu1T0kJuZc744BHegvQUSqGxgUMN57Npw817C0KUQ==
+    username: AgA71FU30kZ8qytpoJXLwUALcUN1UNOSfonkEnxc0VJ5lj4qRjsQRx06z2Z0fQRRwIIrfHCUN4kB6a7GSQ9D+ti8c5rYGlhfyWGQXsuAnj1lnDMdc4RJmAseG0J5gmoJw2XalJ/PVXolPiOQ/joqvyz/mDF+jyctJdudmneEsLYLJYTJNZbsPRq3r4lDd5tKh6wSGpebwoObAQu26No46xg66Wp/g6Np28uwjKpyaRCAv1NhKwj87o5PJAnlNNYQRwvxbtEHLuxqDPI4AAVdm7b2GjxJtKvecfbMpV4fVCdB6aqLzpWs4RrwZWn7tLyaiCzrwvR00a6khy43uXfNOdc4xTZUPPrKjeDLnVwUJICbGK57WlO9qcsqn9jLSB5cPG2yDI2JJXz8lpaqqm8wF5kBNkiN5/O75N0TUBSf54ignWVBWNOs82gNymfev72z/qiaOIxNjOJBHqm+S5MmAkrbTv1euUYUEo0nRi1gpnU6XiZefSXGqKRFPGpq+chGFLsQt4O6Q13iV9/27ECtFiZi/TPUB+VK3CVMS0pf1fJ1MxelbaLkkmdWSrPE/CwgcC9GRwRiTP0RwCHA00/jBhxw+mSOOulUDG17dL9emZxGO8BeNwACuvyz1jKC4wnLNkw08f0tbVZPePlAHtxxyL+oEKjaK5iyphxZAm2X//NmaUIRHP9snznWgN+mTBbqFn0v3i6oLQ==
+  template:
+    metadata:
+      name: zenml-db-production-creds
+      namespace: fair-prod
