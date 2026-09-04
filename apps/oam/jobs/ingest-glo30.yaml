@@ -1,0 +1,81 @@
+# One-off GLO-30 import into production pgstac. Not synced by ArgoCD.
+# Run manually:
+#
+#   kubectl create -f apps/oam/jobs/ingest-glo30.yaml
+#   kubectl -n oam logs -f job/stac-ingest-glo30
+#   kubectl -n oam delete job stac-ingest-glo30
+#
+# Reruns are safe because the import upserts, and because the Collection is
+# synced before the Items - pgstac slims Items against the Collection, so the
+# other order leaves them reporting stale asset metadata. Renaming Items is the
+# one case that needs a delete first; see docs.imagery.hotosm.org/dev/ingest/elevation/.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: stac-ingest-glo30
+  namespace: oam
+  labels:
+    app: stac-ingest-glo30
+spec:
+  # Stop stalled imports after one hour.
+  activeDeadlineSeconds: 3600
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: stac-ingest-glo30
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: stac-ingest-glo30
+          image: ghcr.io/hotosm/openaerialmap/stac-ingester:main
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          command:
+            - "/bin/sh"
+            - "-c"
+          args:
+            - |
+              set -e
+
+              # Create the Collection before importing Items.
+              echo "Creating the GLO-30 Collection"
+              hotosm sync-collection --catalog=GLO30
+
+              echo "Beginning sync"
+              # Add `--bbox MINX MINY MAXX MAXY` to limit the import.
+              hotosm sync-glo30
+
+              echo "Job complete"
+          env:
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: oam-eoapi-pgstac-prod-db-creds
+            - name: PGPORT
+              valueFrom:
+                secretKeyRef:
+                  key: port
+                  name: oam-eoapi-pgstac-prod-db-creds
+            - name: PGHOST
+              valueFrom:
+                secretKeyRef:
+                  key: host
+                  name: oam-eoapi-pgstac-prod-db-creds
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: oam-eoapi-pgstac-prod-db-creds
+            - name: PGDATABASE
+              valueFrom:
+                secretKeyRef:
+                  key: database
+                  name: oam-eoapi-pgstac-prod-db-creds

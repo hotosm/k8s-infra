@@ -12,6 +12,7 @@ namespace.
 | global-tms | global PMTiles layer | chart defaults + `mosaic-cronjob.yaml` |
 | uploader-api | upload.imagery.hotosm.org | `uploader-api/helm/values.yaml`, see `uploader-api/README.md` |
 | ingest CronJobs | populate pgstac | `sync-oam.yaml`, `sync-maxar.yaml`, `sync-vantor.yaml` |
+| ingest Jobs | manually run catalogue loads | `jobs/` |
 
 `browser-ingress.yaml` exists because of an upstream chart bug: on nginx,
 `templates/networking/ingress.yaml` never honours `skipStripPrefix`, so
@@ -55,6 +56,21 @@ kubectl -n oam delete job vantor-collection
 ```
 
 It upserts, so repeat it whenever the upstream Collection changes.
+
+## One-off Jobs
+
+ArgoCD does not sync `jobs/`. Run these manually with `kubectl create`; reruns
+need a fresh Job because Job specs are immutable.
+
+| Job | Loads | Run |
+| --- | --- | --- |
+| `jobs/ingest-glo30.yaml` | Copernicus GLO-30 elevation, 26,450 Items | once |
+
+GLO-30 is a static 2021 dataset used for DroneTM terrain following. Reruns
+converge: both steps upsert, and the Job syncs the Collection before the Items,
+which is the order pgstac's Item slimming requires. See:
+
+- [Elevation](https://docs.imagery.hotosm.org/dev/ingest/elevation/)
 
 Databases are not here: `databases/oam-eoapi-pgstac-prod.yaml` and
 `databases/oam-uploader-prod.yaml`, both running in the `postgres` namespace.

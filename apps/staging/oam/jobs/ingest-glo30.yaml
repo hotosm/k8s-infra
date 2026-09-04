@@ -1,0 +1,81 @@
+# Nepal-scoped GLO-30 test against staging. Not synced by ArgoCD.
+# Replace the image SHA and run manually:
+#
+#   sed 's/REPLACE_HEAD_SHA/'"$HEAD_SHA"'/' \
+#     apps/staging/oam/jobs/ingest-glo30.yaml | kubectl create -f -
+#   kubectl -n oam-staging logs -f job/stac-ingest-glo30
+#
+# Verify a seam-crossing crop:
+#
+#   curl -o dem.tif "https://api.stage.imagery.hotosm.org/raster/collections\
+#   /cop-dem-glo-30/bbox/85.9398611111,27.5998611111,86.0601388889,27.7001388889\
+#   .tif?assets=data&width=433&height=361&return_mask=false"
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: stac-ingest-glo30
+  namespace: oam-staging
+  labels:
+    app: stac-ingest-glo30
+spec:
+  activeDeadlineSeconds: 900
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: stac-ingest-glo30
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: stac-ingest-glo30
+          image: ghcr.io/hotosm/openaerialmap/stac-ingester:sha-REPLACE_HEAD_SHA
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          command:
+            - "/bin/sh"
+            - "-c"
+          args:
+            - |
+              set -e
+
+              # Create the Collection before importing Items.
+              echo "Creating the GLO-30 Collection"
+              hotosm sync-collection --catalog=GLO30
+
+              echo "Beginning sync"
+              # Nepal only. Drop --bbox to harvest the whole globe.
+              hotosm sync-glo30 --bbox 85.0 27.0 88.0 29.0
+
+              echo "Job complete"
+          env:
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: oam-stac-db-creds
+            - name: PGPORT
+              valueFrom:
+                secretKeyRef:
+                  key: port
+                  name: oam-stac-db-creds
+            - name: PGHOST
+              valueFrom:
+                secretKeyRef:
+                  key: host
+                  name: oam-stac-db-creds
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: oam-stac-db-creds
+            - name: PGDATABASE
+              valueFrom:
+                secretKeyRef:
+                  key: database
+                  name: oam-stac-db-creds

@@ -34,7 +34,9 @@ Read-only from prod, so there is nothing to stage:
 | STAC Browser | static SPA; prod's copy browses this catalogue via `/browser/external/api.stage.imagery.hotosm.org/stac` |
 | STAC Map | static SPA; prod's copy browses this catalogue via `/map/?href=https://api.stage.imagery.hotosm.org/stac` |
 
-Not deployed: `global-mosaic` and `stac-ingester` (prod catalogue jobs).
+Not deployed: `global-mosaic` and the `stac-ingester` CronJobs. The unsynced
+`jobs/ingest-glo30.yaml` is a manual, Nepal-scoped test. See
+`../../oam/README.md`.
 
 Neither viewer needs deploying: both take a catalogue at runtime, and the
 staging eoAPI ingress already sends `Access-Control-Allow-Origin: *` so prod's
