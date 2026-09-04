@@ -56,6 +56,8 @@ backend:
     # Must match the ml node-pool label-domain (dok8s/main.tf).
     FAIR_LABEL_DOMAIN: "fair-k8s"
     FAIR_UPLOAD_ARTIFACTS: "true"
+    FAIR_KNATIVE_NAMESPACE: "fair-knative"
+    FAIR_PREDICT_DOMAIN: "predict.ai.hotosm.org"
     FAIR_STAC_API_URL: "https://stac.stage.ai.hotosm.org/stac"
     BUCKET_NAME: "hotosm-fair-models-staging"
     PARENT_BUCKET_FOLDER: "backend"
@@ -95,10 +97,7 @@ postgres:
       cpu: 500m
       memory: 512Mi
 
-backend:
-  serviceAccount:
-    create: false
-    name: "fair-model-deployer"
-  env:
-    KNATIVE_NAMESPACE: "fair-knative"
-    KNATIVE_PREDICT_DOMAIN: "predict.ai.hotosm.org"
+# Name is fixed: the fair-knative RoleBindings (../../fair-knative/rbac.yaml)
+# reference it.
+serviceAccount:
+  name: "fair-model-deployer"
