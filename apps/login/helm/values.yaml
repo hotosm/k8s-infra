@@ -16,7 +16,7 @@ env:
   LOG_LEVEL: "INFO"
   ADMIN_EMAILS: "hernangigena@gmail.com,justina@animus.com.ar,andreatchirillano@hotmail.com,emilio.mariscal@hotosm.org,dakota.benjamin@hotosm.org,sam.woodcock@hotosm.org"
   DRONETM_BACKEND_URL: "https://api.drone.hotosm.org"
-  FAIR_BACKEND_URL: "https://fair.hotosm.org"
+  FAIR_BACKEND_URL: "https://api.ai.hotosm.org"
   PORTAL_BACKEND_URL: "https://portal.hotosm.org"
   OAM_BACKEND_URL: "https://openaerialmap.org"
   UMAP_BACKEND_URL: "https://umap.hotosm.org"
