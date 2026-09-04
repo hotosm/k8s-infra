@@ -109,6 +109,12 @@ resource "aws_cloudfront_distribution" "frontend" {
     environment = var.environment
     project     = "fair"
   })
+
+  # The fAIr chart's deploy Job owns `origin_path`, repointing this at
+  # s3://<bucket>/<appVersion>/ each release; an apply would reset it to "".
+  lifecycle {
+    ignore_changes = [origin]
+  }
 }
 
 # 7. S3 Bucket Policy (Restricts S3 Access EXCLUSIVELY to CloudFront)
@@ -201,4 +207,94 @@ resource "aws_iam_role_policy" "github_oidc_frontend_policy" {
   name   = "fAIr-Frontend-Deploy-Policy-${var.environment}"
   role   = data.aws_iam_role.github_oidc_role.name
   policy = data.aws_iam_policy_document.frontend_ci_policy.json
+}
+
+# 11. IRSA role for the fAIr chart's in-cluster frontend deploy Job.
+# No CreateDistribution/CreateOriginAccessControl/PutBucketPolicy on purpose:
+# the infra above is managed here, so a failed lookup errors rather than duplicates.
+data "aws_iam_policy_document" "fair_frontend_deploy_assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.cluster_oidc.arn]
+    }
+
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(aws_iam_openid_connect_provider.cluster_oidc.url, "https://", "")}:sub"
+      values   = ["system:serviceaccount:fair-prod:fair-model-deployer"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(aws_iam_openid_connect_provider.cluster_oidc.url, "https://", "")}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "fair_frontend_deploy" {
+  statement {
+    sid    = "FrontendS3Sync"
+    effect = "Allow"
+    actions = [
+      "s3:ListBucket",
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:DeleteObject"
+    ]
+    resources = [
+      aws_s3_bucket.frontend.arn,
+      "${aws_s3_bucket.frontend.arn}/*"
+    ]
+  }
+
+  statement {
+    sid    = "CloudFrontOriginPathAndInvalidate"
+    effect = "Allow"
+    actions = [
+      "cloudfront:GetDistribution",
+      "cloudfront:GetDistributionConfig",
+      "cloudfront:UpdateDistribution",
+      "cloudfront:CreateInvalidation"
+    ]
+    resources = [aws_cloudfront_distribution.frontend.arn]
+  }
+
+  statement {
+    sid    = "CloudFrontLookup"
+    effect = "Allow"
+    actions = [
+      "cloudfront:ListDistributions",
+      "cloudfront:ListOriginAccessControls"
+    ]
+    # List commands require the wildcard resource in AWS
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role" "fair_frontend_deploy" {
+  name                 = "${local.cluster_prefix}-fair-frontend-deploy"
+  assume_role_policy   = data.aws_iam_policy_document.fair_frontend_deploy_assume_role.json
+  permissions_boundary = var.permissions_boundary
+
+  tags = merge(var.tags, {
+    environment = var.environment
+    project     = "fair"
+  })
+}
+
+resource "aws_iam_role_policy" "fair_frontend_deploy" {
+  name   = "${local.cluster_prefix}-fair-frontend-deploy"
+  role   = aws_iam_role.fair_frontend_deploy.name
+  policy = data.aws_iam_policy_document.fair_frontend_deploy.json
+}
+
+output "fair_frontend_deploy_role_arn" {
+  value       = aws_iam_role.fair_frontend_deploy.arn
+  description = "IRSA role assumed by the fAIr chart's CloudFront deploy Job"
 }
