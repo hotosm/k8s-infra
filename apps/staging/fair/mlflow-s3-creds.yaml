@@ -8,8 +8,6 @@ metadata:
   name: mlflow-s3-creds
   namespace: fair-staging
   annotations:
-    argocd.argoproj.io/hook: PreSync
-    argocd.argoproj.io/hook-delete-policy: HookFailed
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
     argocd.argoproj.io/sync-wave: "-5"
 spec:
