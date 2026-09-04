@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: config-domain
-  namespace: knative-serving
-data:
-  predict.ai.hotosm.org: |
-    selector:
-      app.kubernetes.io/namespace: fair-knative

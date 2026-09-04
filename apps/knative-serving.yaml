@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/hotosm/k8s-infra'
     targetRevision: main
-    path: apps/knative-serving-config 
+    path: apps/knative-serving 
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: knative-serving

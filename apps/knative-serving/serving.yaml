@@ -11,6 +11,8 @@ spec:
   config:
     network:
       ingress-class: "kourier.ingress.networking.knative.dev"
+    # The one fAIr-specific value here: KnativeServing is a single
+    # cluster-wide CR, so the domain cannot be split per-app
     domain:
       "predict.ai.hotosm.org": ""
   # Run 2 replicas for HA so single-node drains don't cause traffic outages.
