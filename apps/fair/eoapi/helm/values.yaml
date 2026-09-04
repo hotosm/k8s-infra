@@ -30,6 +30,16 @@ postgresql:
 postgrescluster:
   enabled: false
 
+# Only the STAC API is used
+raster:
+  enabled: false
+vector:
+  enabled: false
+browser:
+  enabled: false
+docServer:
+  enabled: false
+
 pgstacBootstrap:
   enabled: true
   configMaps:
