@@ -48,7 +48,7 @@ Confirm the test alert appears in `#hot-tech-alerts`.
 ## Access
 
 Grafana is a Tailscale LoadBalancer (`tailscale.com/hostname: grafana`) - reach it
-at `http://grafana.<tailnet>` on the tailnet, like `kubeview`/`kube-ops-view`.
+at `http://grafana.<tailnet>` on the tailnet`.
 Alertmanager and Prometheus are on the tailnet too, via `tailscale-services.yaml`
 (the chart's Service templates have no `loadBalancerClass` field). Their
 `externalUrl` in `helm/values.yaml` is what makes the links in Slack alerts
