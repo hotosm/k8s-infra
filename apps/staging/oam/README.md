@@ -22,6 +22,7 @@ outside the cluster:
 | tilepack-api + worker | its chart, from the PR commit, images `sha-<head_sha>` |
 | frontend | `frontend/`, image `sha-<head_sha>`, config injected at runtime |
 | GeoTIFF WorkflowTemplate | `backend/uploader-api/pipeline`, from the PR commit |
+| GLO-30 elevation | `jobs/`, image `sha-<head_sha>`, PostSync hook on every sync |
 | GeoTIFF step images | `sha-<head_sha>` |
 | Argo controller | cluster-wide, from ScaleODM, watches this namespace |
 

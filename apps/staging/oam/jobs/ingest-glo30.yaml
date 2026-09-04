@@ -1,15 +1,19 @@
-# Nepal-scoped GLO-30 test against staging. Not synced by ArgoCD.
-# Replace the image SHA and run manually:
+# Nepal-scoped GLO-30 ingest for staging, run on every sync.
 #
-#   sed 's/REPLACE_HEAD_SHA/'"$HEAD_SHA"'/' \
-#     apps/staging/oam/jobs/ingest-glo30.yaml | kubectl create -f -
-#   kubectl -n oam-staging logs -f job/stac-ingest-glo30
+# A PostSync hook, so ArgoCD deletes the previous Job before creating the next
+# one - Job specs are immutable, and a plain Job would fail to sync as soon as
+# the image tag moved. Same shape as the uploader chart's seed Job, which
+# repopulates the throwaway catalogue on every sync for the same reason.
 #
-# Verify a seam-crossing crop:
+# --bbox keeps this to 12 Items rather than 26,450, which is enough to exercise
+# the HREF rewrite, the Collection and a seam-crossing mosaic crop:
 #
 #   curl -o dem.tif "https://api.stage.imagery.hotosm.org/raster/collections\
 #   /cop-dem-glo-30/bbox/85.9398611111,27.5998611111,86.0601388889,27.7001388889\
 #   .tif?assets=data&width=433&height=361&return_mask=false"
+#
+# The image tag below is a placeholder: the appset pins it to sha-<head_sha>
+# through kustomize, the same way it pins the frontend. See ../../oam.yaml.
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -17,6 +21,10 @@ metadata:
   namespace: oam-staging
   labels:
     app: stac-ingest-glo30
+  annotations:
+    # After the Sync phase, so pgstac is up and its schema migrated.
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
   activeDeadlineSeconds: 900
   backoffLimit: 0
@@ -26,9 +34,10 @@ spec:
         app: stac-ingest-glo30
     spec:
       restartPolicy: Never
+      automountServiceAccountToken: false
       containers:
         - name: stac-ingest-glo30
-          image: ghcr.io/hotosm/openaerialmap/stac-ingester:sha-REPLACE_HEAD_SHA
+          image: ghcr.io/hotosm/openaerialmap/stac-ingester:main
           imagePullPolicy: Always
           resources:
             requests:

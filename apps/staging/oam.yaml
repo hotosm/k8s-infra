@@ -91,6 +91,15 @@ spec:
             images:
               - "ghcr.io/hotosm/openaerialmap/frontend:sha-{{ .head_sha }}"
 
+        # GLO-30 elevation ingest. Kustomize, not a directory, so the image tag
+        # can be pinned; a PostSync hook, so the immutable Job is recreated.
+        - repoURL: https://github.com/hotosm/k8s-infra.git
+          targetRevision: HEAD
+          path: apps/staging/oam/jobs
+          kustomize:
+            images:
+              - "ghcr.io/hotosm/openaerialmap/stac-ingester:sha-{{ .head_sha }}"
+
         # Quota/limits, pgstac, sealed secrets. Non-recursive: no values files.
         - repoURL: https://github.com/hotosm/k8s-infra.git
           targetRevision: HEAD

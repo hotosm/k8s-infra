@@ -1,0 +1,3 @@
+# Kustomize rather than a plain directory, so the appset can pin the image tag.
+resources:
+  - ingest-glo30.yaml
