@@ -56,11 +56,11 @@ export ZENML_API_KEY='xxx'
 ### 3. Pipeline namespace
 
 OpenTofu configures components to run pipelines in a dedicated
-namespace (`zenml-pipelines` by default, set via
+namespace (`zenml-pipelines-stage` by default, set via
 `zenml_pipeline_namespace` variable). Create it if it doesn't exist:
 
 ```bash
-kubectl create namespace zenml-pipelines
+kubectl create namespace zenml-pipelines-stage
 ```
 
 ### 4. Sensitive variables
@@ -100,7 +100,7 @@ Kubernetes components (orchestrator, step operator, image builder) use
 
 All components are configured in `main.tf`:
 
-- **Orchestrator**: Kubernetes, in-cluster (`zenml-pipelines` namespace)
+- **Orchestrator**: Kubernetes, in-cluster (`zenml-pipelines-stage` namespace)
 - **Artifact Store**: S3
 - **Container Registry**: GitHub (GHCR `ghcr.io/hotosm`)
 - **Step Operator**: Kubernetes (for specific GPU steps)

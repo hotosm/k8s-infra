@@ -111,5 +111,5 @@ variable "zenml_pipeline_namespace" {
   Kubernetes namespace where ZenML pipelines and jobs run
   EOT
   type        = string
-  default     = "zenml-pipelines"
+  default     = "zenml-pipelines-stage"
 }

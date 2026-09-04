@@ -4,8 +4,7 @@ contractorNamespaces:
   - login
   - fair-prod
   - fair-staging
-  - mlflow-prod
-  - zenml-prod
+  - fair-knative
   - zenml-pipelines-prod
-  - knative
+  - zenml-pipelines-stage
   - knative-serving

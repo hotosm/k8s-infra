@@ -7,4 +7,4 @@ tags = {
   tool    = "fair"
 }
 zenml_server             = "https://zenml.ai.hotosm.org"
-zenml_pipeline_namespace = "zenml-pipelines"
+zenml_pipeline_namespace = "zenml-pipelines-stage"
