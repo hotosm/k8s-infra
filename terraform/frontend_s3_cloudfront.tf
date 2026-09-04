@@ -142,6 +142,27 @@ resource "aws_s3_bucket_policy" "frontend_policy" {
   })
 }
 
+# 7b. DNS. external-dns only watches Ingress/Service, so a CloudFront alias has
+# to be declared here (drone.hotosm.org is the same shape, created by hand).
+data "aws_route53_zone" "hotosm" {
+  name         = "hotosm.org."
+  private_zone = false
+}
+
+resource "aws_route53_record" "frontend_alias" {
+  for_each = toset(["A", "AAAA"])
+
+  zone_id = data.aws_route53_zone.hotosm.zone_id
+  name    = one(aws_cloudfront_distribution.frontend.aliases)
+  type    = each.key
+
+  alias {
+    name                   = aws_cloudfront_distribution.frontend.domain_name
+    zone_id                = aws_cloudfront_distribution.frontend.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
 # Outputs
 output "frontend_s3_bucket_name" {
   value       = aws_s3_bucket.frontend.bucket
