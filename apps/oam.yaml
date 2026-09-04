@@ -54,6 +54,11 @@ spec:
       targetRevision: HEAD
       ref: k8s-infra
 
+    # One-off GLO-30 ingest Job.
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/oam/jobs
+
     # Non-recursive: applies apps/oam/*.yaml only, not the values files
     - repoURL: https://github.com/hotosm/k8s-infra.git
       targetRevision: HEAD

@@ -12,7 +12,7 @@ namespace.
 | global-tms | global PMTiles layer | chart defaults + `mosaic-cronjob.yaml` |
 | uploader-api | upload.imagery.hotosm.org | `uploader-api/helm/values.yaml`, see `uploader-api/README.md` |
 | ingest CronJobs | populate pgstac | `sync-oam.yaml`, `sync-maxar.yaml`, `sync-vantor.yaml` |
-| ingest Jobs | manually run catalogue loads | `jobs/` |
+| ingest Jobs | one-off catalogue loads | `jobs/` |
 
 `browser-ingress.yaml` exists because of an upstream chart bug: on nginx,
 `templates/networking/ingress.yaml` never honours `skipStripPrefix`, so
@@ -59,16 +59,17 @@ It upserts, so repeat it whenever the upstream Collection changes.
 
 ## One-off Jobs
 
-ArgoCD does not sync `jobs/`. Run these manually with `kubectl create`; reruns
-need a fresh Job because Job specs are immutable.
+ArgoCD syncs `jobs/` as plain Jobs. Each Job runs once when created. To run one
+again, delete it and selfHeal will recreate it. Delete a Job before changing its
+pod template because Job templates are immutable.
 
-| Job | Loads | Run |
+| Job | Loads | Runs |
 | --- | --- | --- |
-| `jobs/ingest-glo30.yaml` | Copernicus GLO-30 elevation, 26,450 Items | once |
+| `jobs/ingest-glo30.yaml` | Copernicus GLO-30 elevation, 26,450 Items | once, on first sync |
 
-GLO-30 is a static 2021 dataset used for DroneTM terrain following. Reruns
-converge: both steps upsert, and the Job syncs the Collection before the Items,
-which is the order pgstac's Item slimming requires. See:
+GLO-30 is a static 2021 dataset used for DroneTM terrain following. Reruns are
+safe because the Job upserts the Collection before its Items. Staging uses a
+Nepal-only PostSync hook. See:
 
 - [Elevation](https://docs.imagery.hotosm.org/dev/ingest/elevation/)
 

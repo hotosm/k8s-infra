@@ -1,14 +1,11 @@
-# One-off GLO-30 import into production pgstac. Not synced by ArgoCD.
-# Run manually:
+# Imports GLO-30 into production pgstac once.
 #
-#   kubectl create -f apps/oam/jobs/ingest-glo30.yaml
 #   kubectl -n oam logs -f job/stac-ingest-glo30
-#   kubectl -n oam delete job stac-ingest-glo30
 #
-# Reruns are safe because the import upserts, and because the Collection is
-# synced before the Items - pgstac slims Items against the Collection, so the
-# other order leaves them reporting stale asset metadata. Renaming Items is the
-# one case that needs a delete first; see docs.imagery.hotosm.org/dev/ingest/elevation/.
+# Delete the Job to run it again. ArgoCD will recreate it.
+# Do not add a TTL, or ArgoCD will keep recreating the Job.
+# Delete the Job before changing spec.template because it is immutable.
+# Reruns are safe because the commands upsert the Collection before its Items.
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -19,7 +16,8 @@ metadata:
 spec:
   # Stop stalled imports after one hour.
   activeDeadlineSeconds: 3600
-  backoffLimit: 0
+  # Retry temporary API failures.
+  backoffLimit: 2
   template:
     metadata:
       labels:
