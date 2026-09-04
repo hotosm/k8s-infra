@@ -30,15 +30,38 @@ postgresql:
 postgrescluster:
   enabled: false
 
+# Disabled services
+apiServices:
+  # - raster
+  # - multidim
+  - stac
+  # - vector
 # Only the STAC API is used
-raster:
-  enabled: false
-vector:
-  enabled: false
 browser:
   enabled: false
 docServer:
   enabled: false
+raster:
+  enabled: false
+multidim:
+  enabled: false
+stac-auth-proxy:
+  enabled: false
+vector:
+  enabled: false
+eoapi-notifier:
+  enabled: false
+monitoring:
+  metricsServer:
+    enabled: false
+  prometheus:
+    enabled: false
+observability:
+  grafana:
+    enabled: false
+metrics-server:
+  apiService:
+    create: false
 
 pgstacBootstrap:
   enabled: true
