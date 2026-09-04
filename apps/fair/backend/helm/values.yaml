@@ -69,3 +69,6 @@ backend:
   serviceAccount:
     create: false
     name: "fair-model-deployer"
+  env:
+    KNATIVE_NAMESPACE: "fair-knative"
+    KNATIVE_PREDICT_DOMAIN: "predict.ai.hotosm.org"

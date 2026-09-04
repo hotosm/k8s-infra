@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fair-knative
+  labels:
+    kubernetes.io/metadata.name: fair-knative

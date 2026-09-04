@@ -1,0 +1,32 @@
+# apps/fair-knative/knative-dns.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: knative-dns-anchor
+  namespace: fair-knative
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: knative-wildcard-dns
+  namespace: fair-knative
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: "*.predict.ai.hotosm.org"
+    external-dns.alpha.kubernetes.io/ttl: "300"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: "*.predict.ai.hotosm.org"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: knative-dns-anchor
+                port:
+                  number: 80
