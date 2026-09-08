@@ -35,6 +35,7 @@ env:
   # /stac, not the bare host - the eoAPI ingress rewrites that prefix.
   STAC_URL: https://api.stage.imagery.hotosm.org/stac
   STAC_COLLECTION: openaerialmap
+  STAC_BROWSER_URL: https://api.imagery.hotosm.org/browser/external/api.stage.imagery.hotosm.org
 
   # ../../pgstac.yaml, shared with eoAPI. Must match oam-stac-db-creds there.
   PGSTAC_DB_HOST: oam-stac-db.oam-staging.svc.cluster.local
