@@ -81,7 +81,7 @@ rustfs:
     # reclaimPolicy: Delete, so closing the PR releases the volume too.
     name: gp3-ephemeral
     # seed.maxGiB, plus room for uploads (original + COG) and tilepacks
-    dataStorageSize: 30Gi
+    dataStorageSize: 100Gi
   resources:
     requests: { cpu: 200m, memory: 512Mi }
     limits: { cpu: 500m, memory: 1Gi }
