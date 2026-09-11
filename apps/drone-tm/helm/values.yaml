@@ -67,6 +67,9 @@ frontend:
     s3Bucket: dronetm-prod-frontend
     aliases:
       - drone.hotosm.org
+    # Serve the flight planner on its own host instead of /plan - see README.
+    # subdomainApps:
+    #   plan.drone.hotosm.org: plan
     acmCertificateArn: 'arn:aws:acm:us-east-1:670261699094:certificate/e6eaaa9c-0de8-4222-b8f9-0e8c3e56f813'
     priceClass: PriceClass_All
 
