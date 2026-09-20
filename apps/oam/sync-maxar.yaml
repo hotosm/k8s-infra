@@ -48,7 +48,7 @@ spec:
                   # The window filters whole events by their event_info.json date,
                   # so 24h missed every event Maxar listed later than it happened.
                   # Items already in pgstac are skipped, so 90 days is cheap.
-                  hotosm sync-maxar --uploaded-since 7776000 --handle-exceptions IGNORE
+                  hotosm sync-maxar --uploaded-since 7776000 --rebuild --handle-exceptions IGNORE
 
                   echo "Job complete"
               env:

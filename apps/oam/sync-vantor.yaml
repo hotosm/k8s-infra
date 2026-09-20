@@ -48,7 +48,7 @@ spec:
                   echo "Beginning sync"
                   # Vantor has no index, so every run reads the whole catalogue
                   # regardless of window, and Items already in pgstac are skipped.
-                  hotosm sync-vantor --uploaded-after 2020-01-01 --handle-exceptions IGNORE
+                  hotosm sync-vantor --uploaded-after 2020-01-01 --rebuild --handle-exceptions IGNORE
 
                   echo "Job complete"
               env:
