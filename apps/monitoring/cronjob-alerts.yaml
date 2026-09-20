@@ -11,11 +11,18 @@ spec:
     - name: cronjobs
       rules:
         # Replace the chart's warning rule and ignore retained failures older than 6h.
+        # A deadline kill has its own rule below, so exclude it here rather than
+        # alerting twice. The `unless` degrades safely: if kube-state-metrics
+        # stops emitting that reason, this rule simply covers those Jobs again.
         - alert: JobFailed
           expr: |
-            kube_job_failed > 0
-            and on (namespace, job_name)
-              (time() - kube_job_status_start_time) < 21600
+            (
+              kube_job_failed > 0
+              and on (namespace, job_name)
+                (time() - kube_job_status_start_time) < 21600
+            )
+            unless on (namespace, job_name)
+              kube_job_status_failed{reason="DeadlineExceeded"} > 0
           for: 5m
           labels:
             severity: critical
@@ -23,7 +30,28 @@ spec:
             summary: "Job {{ $labels.namespace }}/{{ $labels.job_name }} failed"
             description: >-
               kubectl -n {{ $labels.namespace }} logs job/{{ $labels.job_name }}
-              while the Job is still within its failedJobsHistoryLimit.
+              while the Job is still within its TTLSecondsAfterFinished.
+
+        # Split out because the remediation differs: the job controller DELETES
+        # the pod when ActiveDeadlineSeconds expires, so `kubectl logs` returns
+        # nothing and the run leaves no trace in-cluster. This is a "too big",
+        # not a "broken" - the work never fit in the time it was given.
+        - alert: JobDeadlineExceeded
+          expr: |
+            kube_job_status_failed{reason="DeadlineExceeded"} > 0
+            and on (namespace, job_name)
+              (time() - kube_job_status_start_time) < 21600
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Job {{ $labels.namespace }}/{{ $labels.job_name }} ran out of time"
+            description: >-
+              The pod was deleted by the job controller, so its logs are gone.
+              Check the owning service's own logs instead, and for tilepack
+              workers the failure note at s3://<bucket>/<output key>.lock.error.
+              The work did not fit the deadline; re-running it unchanged will
+              not either.
 
         # Use each CronJob's next due time so the rule works for every interval.
         - alert: CronJobNotScheduling
