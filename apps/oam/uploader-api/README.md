@@ -52,8 +52,9 @@ s3Secret:
   secretAccessKeyKey: S3_SECRET_KEY
 ```
 
-That IAM user needs read **and** write on `oin-hotosm-temp`; the mosaic cronjob
-that shares it only needs read, so it is worth confirming after any rotation.
+That IAM user needs read, write and `s3:PutObjectAcl` on `oin-hotosm-temp`.
+Prod has no public-read bucket policy, so `S3_OBJECT_ACL: public-read` is
+required. The mosaic cronjob that shares the secret only needs read.
 
 ### Bucket CORS
 

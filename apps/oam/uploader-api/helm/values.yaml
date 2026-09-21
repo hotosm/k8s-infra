@@ -22,6 +22,9 @@ env:
   S3_REGION: us-east-1
   PUBLIC_ASSET_BASE_URL: https://oin-hotosm-temp.s3.us-east-1.amazonaws.com
 
+  # Prod relies on per-object ACLs for public access.
+  S3_OBJECT_ACL: public-read
+
   # Workflows are created here; the ScaleODM Argo controller runs them
   ARGO_NAMESPACE: oam
   ARGO_WORKFLOW_TEMPLATE: geotiff-processing-template
