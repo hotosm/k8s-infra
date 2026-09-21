@@ -35,6 +35,10 @@ spec:
                   cpu: "2000m"
                   memory: "2Gi"
               env:
+                # STAC collections included in the browse footprints and density grid.
+                # See openaerialmap MADR 0008.
+                - name: FOOTPRINT_COLLECTIONS
+                  value: "openaerialmap,vantor-opendata"
                 - name: PGUSER
                   valueFrom:
                     secretKeyRef:
