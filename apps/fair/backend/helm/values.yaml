@@ -45,8 +45,7 @@ backend:
     FAIR_ZENML_STORE_URL: "https://zenml.ai.hotosm.org"
     ZENML_STORE_URL: "https://zenml.ai.hotosm.org"
     ZENML_CONFIG_PATH: "/tmp/zenml"
-    # TODO: Set from the `stack_id` OpenTofu output.
-    # ZENML_ACTIVE_STACK_ID: ""
+    ZENML_ACTIVE_STACK_ID: "5a2f0dd7-4207-4863-959a-3374531171e9"
     HOME: "/tmp"
     FAIR_LABEL_DOMAIN: "fair-k8s"
     FAIR_UPLOAD_ARTIFACTS: "true"

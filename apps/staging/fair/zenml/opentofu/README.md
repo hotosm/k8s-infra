@@ -10,7 +10,7 @@
 # We must run in our patched version of zenml for this to work
 docker run --rm -it --entrypoint=bash \
   -v $HOME/.config/zenml:/zenml/.zenconfig \
-  ghcr.io/hotosm/fair/zenml-postgres:0.94.1
+  ghcr.io/hotosm/fair/zenml-postgres:0.94.2
 
 zenml login https://zenml.stage.ai.hotosm.org
 ```
@@ -65,7 +65,7 @@ kubectl create namespace zenml-pipelines-stage
 
 ### 4. Sensitive variables
 
-MLFlow and Sentry credentials are passed as OpenTofu variables.
+MLFlow credentials are passed as OpenTofu variables.
 Either set them in a `*.auto.tfvars` file (git-ignored) or pass
 them at apply time:
 
@@ -73,9 +73,6 @@ them at apply time:
 export TF_VAR_mlflow_tracking_uri="http://mlflow.mlflow.svc.cluster.local:5000"
 export TF_VAR_mlflow_tracking_username="admin"
 export TF_VAR_mlflow_tracking_password="xxx"
-# Sentry OTLP endpoint (not the DSN). The public key is the hex string before @ in the DSN.
-export TF_VAR_sentry_endpoint="https://<org>.ingest.us.sentry.io/api/<project-id>/integration/otlp"
-export TF_VAR_sentry_public_key="<public-key-from-dsn>"
 ```
 
 ## Applying OpenTofu

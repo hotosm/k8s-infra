@@ -17,3 +17,7 @@
 .codex
 plans
 checkpoints
+
+# Saved tofu plans contain sensitive values
+tfplan
+*.tfplan
