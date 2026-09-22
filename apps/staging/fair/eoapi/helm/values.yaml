@@ -131,6 +131,8 @@ stac:
       # Reduce as we don't need many concurrent connection on stage
       # Each takes about ~100Mi, so if increasing, also bump resources
       WEB_CONCURRENCY: "2"
+      # Backend writes to pgstac via FAIR_STAC_DSN.
+      ENABLE_TRANSACTIONS_EXTENSIONS: "false"
       DB_MIN_CONN_SIZE: "1"
       DB_MAX_CONN_SIZE: "5" # Quite intensive (queries, transactions, searches)
       STAC_FASTAPI_TITLE: "fAIr STAC Catalog"

@@ -11,6 +11,10 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 # Create S3 bucket for ZenML artifacts
+locals {
+  models_bucket = aws_s3_bucket.data_stores[var.bucket_names[0]].bucket
+}
+
 resource "aws_s3_bucket" "artifacts" {
   bucket = "${data.aws_caller_identity.current.account_id}-zenml-artifacts-${var.environment}"
 }
@@ -74,7 +78,9 @@ resource "aws_iam_role_policy" "s3_policy" {
         ]
         Resource = [
           aws_s3_bucket.artifacts.arn,
-          "${aws_s3_bucket.artifacts.arn}/*"
+          "${aws_s3_bucket.artifacts.arn}/*",
+          "arn:aws:s3:::${local.models_bucket}",
+          "arn:aws:s3:::${local.models_bucket}/*"
         ]
       }
     ]
@@ -111,12 +117,13 @@ resource "zenml_stack_component" "artifact_store" {
   flavor = "s3"
 
   configuration = {
-    path = "s3://${aws_s3_bucket.artifacts.bucket}/artifacts"
+    # The fAIr backend artifacts proxy only serves <BUCKET_NAME>/backend/zenml/
+    path = "s3://${local.models_bucket}/backend/zenml"
   }
 
   # connector_id = zenml_service_connector.aws.id
   connector_id = "ce2e1b32-1a76-4ee6-be06-6fc42e0ef5f6"
-  connector_resource_id = aws_s3_bucket.artifacts.bucket
+  connector_resource_id = local.models_bucket
 
   labels = {
     environment = var.environment
@@ -145,12 +152,11 @@ resource "zenml_stack_component" "orchestrator" {
   flavor = "kubernetes"
 
   configuration = {
-    # incluster            = "true"
+    incluster            = "true"
     kubernetes_namespace = var.zenml_pipeline_namespace
+    # From ../../zenml-orchestrator-role.yaml
+    service_account_name = "zenml-pod-account"
   }
-
-  # connector_id = zenml_service_connector.aws.id
-  connector_id = "ce2e1b32-1a76-4ee6-be06-6fc42e0ef5f6"
 
   labels = {
     environment = var.environment
@@ -218,37 +224,6 @@ resource "zenml_stack_component" "model_registry" {
   }
 }
 
-# Log Store: OTEL (connected to Sentry)
-resource "zenml_stack_component" "log_store" {
-  name   = "otel-log-store-${var.environment}"
-  type   = "log_store"
-  flavor = "otel"
-
-  configuration = {
-    endpoint = var.sentry_endpoint
-    headers  = jsonencode({"x-sentry-auth": "sentry sentry_key=${var.sentry_public_key}"})
-  }
-
-  labels = {
-    environment = var.environment
-  }
-}
-
-# resource "zenml_stack_component" "log_store" {
-#   name   = "otel-log-store-${var.environment}"
-#   type   = "log_store"
-#   flavor = "otel"
-
-#   configuration = {
-#     endpoint = var.sentry_endpoint
-#     headers  = "{\"Authorization\": \"Bearer ${var.sentry_public_key}\"}"
-#   }
-
-#   labels = {
-#     environment = var.environment
-#   }
-# }
-
 # --- Stack ---
 
 resource "zenml_stack" "aws_stack" {
@@ -262,7 +237,6 @@ resource "zenml_stack" "aws_stack" {
     # image_builder      = zenml_stack_component.image_builder.id
     experiment_tracker = zenml_stack_component.experiment_tracker.id
     model_registry     = zenml_stack_component.model_registry.id
-    log_store          = zenml_stack_component.log_store.id
   }
 
   labels = {

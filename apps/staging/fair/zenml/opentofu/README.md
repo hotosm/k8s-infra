@@ -81,12 +81,15 @@ export TF_VAR_sentry_public_key="<public-key-from-dsn>"
 ## Applying OpenTofu
 
 ```bash
-cd apps/zenml/opentofu
+cd apps/staging/fair/zenml/opentofu
 
-tofu init -var-file=vars/production.tfvars
-tofu validate -var-file=vars/production.tfvars
-tofu plan -var-file=vars/production.tfvars
-tofu apply -var-file=vars/production.tfvars
+tofu init -var-file=vars/staging.tfvars
+# Import only if missing from state
+tofu state list | grep data_stores || tofu import -var-file=vars/staging.tfvars \
+  'aws_s3_bucket.data_stores["hotosm-fair-models-staging"]' hotosm-fair-models-staging
+tofu validate -var-file=vars/staging.tfvars
+tofu plan -var-file=vars/staging.tfvars
+tofu apply -var-file=vars/staging.tfvars
 ```
 
 ### Service Connectors
@@ -108,7 +111,7 @@ All components are configured in `main.tf`:
   Note: https://github.com/zenml-io/zenml/issues/4122
 - **Experiment Tracker**: MLFlow (in-cluster)
 - **Model Registry**: MLFlow (in-cluster)
-- **Log Store**: OTEL (connected to Sentry)
+- **Log Store**: none (ZenML default: logs in the artifact store, fetchable by fAIr)
 
 > **Note**: A Deployer component (e.g. KServe, Seldon) is not yet
 > configured. For now inference jobs run via the orchestrator.

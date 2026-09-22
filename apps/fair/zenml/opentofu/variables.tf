@@ -1,6 +1,6 @@
 variable "environment" {
   type        = string
-  default     = "production" # Changed from "development"
+  default     = "production"
   description = <<-EOT
   Deploy environment
   EOT
@@ -8,7 +8,7 @@ variable "environment" {
 
 variable "region" {
   type        = string
-  default     = "us-east-1" # ADDED DEFAULT
+  default     = "us-east-1"
   description = <<-EOT
   AWS region to perform all our operations in.
   EOT
@@ -16,7 +16,7 @@ variable "region" {
 
 variable "state_bucket" {
   type        = string
-  default     = "hotosm-terraform" # ADDED DEFAULT
+  default     = "hotosm-terraform"
   description = <<-EOT
   S3 bucket for remote state backend
   EOT
@@ -86,7 +86,7 @@ variable "mlflow_tracking_uri" {
   internal URL for the mlflow setup
   EOT
   type        = string
-  default     = "http://mlflow-prod.mlflow-prod.svc.cluster.local:5000" # Updated to production MLflow
+  default     = "http://mlflow.fair-prod.svc.cluster.local:5000"
 }
 
 variable "mlflow_tracking_username" {
@@ -94,7 +94,7 @@ variable "mlflow_tracking_username" {
   mlflow basic auth username
   EOT
   type        = string
-  default     = "admin" # ADDED DEFAULT
+  default     = "admin"
 }
 
 variable "mlflow_tracking_password" {
@@ -111,5 +111,5 @@ variable "zenml_pipeline_namespace" {
   Kubernetes namespace where ZenML pipelines and jobs run
   EOT
   type        = string
-  default     = "zenml-pipelines-prod" # Updated for production workload isolation
+  default     = "zenml-pipelines-prod"
 }

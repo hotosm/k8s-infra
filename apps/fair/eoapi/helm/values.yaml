@@ -1,3 +1,4 @@
+# Keep aligned with staging except for production endpoints and infrastructure.
 ingress:
   className: "nginx"
   annotations:
@@ -10,12 +11,13 @@ ingress:
     external-dns.alpha.kubernetes.io/hostname: stac.ai.hotosm.org
     external-dns.alpha.kubernetes.io/ttl: "300"
   host: "stac.ai.hotosm.org"
-  #rootPath: "/"
+  rootPath: "/"
   tls:
     enabled: true
     secretName: fair-prod-eoapi-tls
 
 postgresql:
+  # Database preparation is handled by fair-stac-prod.yaml.
   type: "external-secret"
   external:
     existingSecret:
@@ -30,41 +32,9 @@ postgresql:
 postgrescluster:
   enabled: false
 
-# Disabled services
-apiServices:
-  # - raster
-  # - multidim
-  - stac
-  # - vector
-# Only the STAC API is used
-browser:
-  enabled: false
-docServer:
-  enabled: false
-raster:
-  enabled: false
-multidim:
-  enabled: false
-stac-auth-proxy:
-  enabled: false
-vector:
-  enabled: false
-eoapi-notifier:
-  enabled: false
-monitoring:
-  metricsServer:
-    enabled: false
-  prometheus:
-    enabled: false
-observability:
-  grafana:
-    enabled: false
-metrics-server:
-  apiService:
-    create: false
-
 pgstacBootstrap:
   enabled: true
+  # Argo CD hooks ensure bootstrap jobs run during sync.
   configMaps:
     pgstacSettings:
       annotations:
@@ -112,37 +82,66 @@ pgstacBootstrap:
   settings:
     loadSamples: false
     queryables: []
+    # Required until the chart can derive these from the external secret.
+    user: fair_stac_prod
+    database: fair-stac-prod
 
-# --- PRODUCTION HARDENING & LATEST TAG ---
 stac:
-  resources:
-    requests:
-      cpu: 250m
-      memory: 512Mi
-    limits:
-      cpu: 1000m
-      memory: 1Gi
-  securityContext:
-    runAsNonRoot: true
-    allowPrivilegeEscalation: false
-  affinity:
-    podAntiAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 100
-          podAffinityTerm:
-            labelSelector:
-              matchLabels:
-                app.kubernetes.io/component: stac
-            topologyKey: topology.kubernetes.io/zone
-  livenessProbe:
-    httpGet:
-      path: /_mgmt/ping
-      port: 8080
-    initialDelaySeconds: 15
-    periodSeconds: 20
-  readinessProbe:
-    httpGet:
-      path: /_mgmt/ping
-      port: 8080
-    initialDelaySeconds: 15
-    periodSeconds: 20
+  enabled: true
+  overrideRootPath: ""
+  ingress:
+    enabled: true
+  settings:
+    labels:
+      project: fair
+      tool: fair
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 512Mi
+    extraEnvFrom: []
+    extraVolumeMounts: []
+    extraVolumes: []
+    envVars:
+      HOST: "0.0.0.0"
+      PORT: "8080"
+      # Each worker uses about 100Mi; adjust memory with concurrency.
+      WEB_CONCURRENCY: "2"
+      # Backend writes to pgstac via FAIR_STAC_DSN.
+      ENABLE_TRANSACTIONS_EXTENSIONS: "false"
+      DB_MIN_CONN_SIZE: "1"
+      DB_MAX_CONN_SIZE: "5"
+      STAC_FASTAPI_TITLE: "fAIr STAC Catalog"
+      STAC_FASTAPI_DESCRIPTION: "STAC FastAPI deployment for fAIr model metadata tracking."
+
+# Disabled services
+apiServices:
+  - stac
+browser:
+  enabled: false
+docServer:
+  enabled: false
+raster:
+  enabled: false
+multidim:
+  enabled: false
+stac-auth-proxy:
+  enabled: false
+vector:
+  enabled: false
+eoapi-notifier:
+  enabled: false
+monitoring:
+  metricsServer:
+    enabled: false
+  prometheus:
+    enabled: false
+observability:
+  grafana:
+    enabled: false
+metrics-server:
+  apiService:
+    create: false

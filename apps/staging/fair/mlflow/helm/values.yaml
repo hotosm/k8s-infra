@@ -43,7 +43,7 @@ backendStore:
 # Mlflow blob storage settings
 artifactRoot:
   # -- Specifies if you want to enable proxied artifact storage access
-  proxiedArtifactStorage: false
+  proxiedArtifactStorage: true
   # -- Specifies the default artifact root.
   defaultArtifactRoot: "./mlruns"
   # -- Specifies the default artifacts destination

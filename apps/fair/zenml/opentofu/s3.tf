@@ -108,3 +108,27 @@ resource "aws_iam_role_policy_attachment" "s3_access" {
   role       = aws_iam_role.bucket_access.name
   policy_arn = local.s3_policy_arn
 }
+
+# fAIr backend keys (fair-api-credentials AWS_*)
+resource "aws_iam_user" "fair_backend" {
+  name = "fair-backend-${var.environment}"
+}
+
+resource "aws_iam_user_policy_attachment" "fair_backend_s3" {
+  count      = length(var.bucket_names) > 0 ? 1 : 0
+  user       = aws_iam_user.fair_backend.name
+  policy_arn = local.s3_policy_arn
+}
+
+resource "aws_iam_access_key" "fair_backend" {
+  user = aws_iam_user.fair_backend.name
+}
+
+output "fair_backend_aws_access_key_id" {
+  value = aws_iam_access_key.fair_backend.id
+}
+
+output "fair_backend_aws_secret_access_key" {
+  value     = aws_iam_access_key.fair_backend.secret
+  sensitive = true
+}

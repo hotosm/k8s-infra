@@ -1,7 +1,8 @@
 # ZenML
 
 Deployed by the `fair-staging` ApplicationSet (`../../fair.yaml`).
-Pipeline pods spawn in `fair-staging` via `../zenml-orchestrator-role.yaml`.
+Pipeline pods run in `zenml-pipelines-stage` (in-cluster orchestrator, RBAC in
+`../zenml-orchestrator-role.yaml`). See `../../../fair/README.md` for the layout.
 DB: `zenml-db-staging` CNPG cluster in `postgres`.
 
 ## Chart notes

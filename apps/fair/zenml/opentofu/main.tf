@@ -1,6 +1,5 @@
 provider "zenml" {
   server_url = var.zenml_server
-  # api_key is taken from the ZENML_API_KEY environment variable
 }
 
 provider "aws" {
@@ -10,7 +9,10 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
-# Create S3 bucket for ZenML artifacts
+locals {
+  models_bucket = aws_s3_bucket.data_stores[var.bucket_names[0]].bucket
+}
+
 resource "aws_s3_bucket" "artifacts" {
   bucket = "${data.aws_caller_identity.current.account_id}-zenml-artifacts-${var.environment}"
 }
@@ -73,16 +75,15 @@ resource "aws_iam_role_policy" "s3_policy" {
         ]
         Resource = [
           aws_s3_bucket.artifacts.arn,
-          "${aws_s3_bucket.artifacts.arn}/*"
+          "${aws_s3_bucket.artifacts.arn}/*",
+          "arn:aws:s3:::${local.models_bucket}",
+          "arn:aws:s3:::${local.models_bucket}/*"
         ]
       }
     ]
   })
 }
 
-# --- Service Connectors ---
-
-# AWS connector for S3 artifact store access
 resource "zenml_service_connector" "aws" {
   name        = "aws-${var.environment}"
   type        = "aws"
@@ -101,28 +102,24 @@ resource "zenml_service_connector" "aws" {
   }
 }
 
-# --- Stack Components ---
-
-# Artifact Store: S3
 resource "zenml_stack_component" "artifact_store" {
   name   = "s3-${var.environment}"
   type   = "artifact_store"
   flavor = "s3"
 
   configuration = {
-    path = "s3://${aws_s3_bucket.artifacts.bucket}/artifacts"
+    # The fAIr backend artifacts proxy only serves <BUCKET_NAME>/backend/zenml/
+    path = "s3://${local.models_bucket}/backend/zenml"
   }
 
-  # Dynamic ID linking to the Service Connector above
   connector_id          = zenml_service_connector.aws.id
-  connector_resource_id = aws_s3_bucket.artifacts.bucket
+  connector_resource_id = local.models_bucket
 
   labels = {
     environment = var.environment
   }
 }
 
-# Container Registry: GitHub (GHCR)
 resource "zenml_stack_component" "container_registry" {
   name   = "ghcr-${var.environment}"
   type   = "container_registry"
@@ -137,25 +134,23 @@ resource "zenml_stack_component" "container_registry" {
   }
 }
 
-# Orchestrator: Kubernetes
 resource "zenml_stack_component" "orchestrator" {
   name   = "kubernetes-orchestrator-${var.environment}"
   type   = "orchestrator"
   flavor = "kubernetes"
 
   configuration = {
+    incluster            = "true"
     kubernetes_namespace = var.zenml_pipeline_namespace
+    # From ../../zenml-orchestrator-role.yaml
+    service_account_name = "zenml-pod-account"
   }
-
-  # Dynamic ID linking to the Service Connector above
-  connector_id = zenml_service_connector.aws.id
 
   labels = {
     environment = var.environment
   }
 }
 
-# Step Operator: Kubernetes (for specific GPU steps)
 resource "zenml_stack_component" "step_operator" {
   name   = "kubernetes-step-operator-${var.environment}"
   type   = "step_operator"
@@ -171,7 +166,6 @@ resource "zenml_stack_component" "step_operator" {
   }
 }
 
-# Experiment Tracker: MLFlow
 resource "zenml_stack_component" "experiment_tracker" {
   name   = "mlflow-experiment-tracker-${var.environment}"
   type   = "experiment_tracker"
@@ -201,22 +195,6 @@ resource "zenml_stack_component" "model_registry" {
   }
 }
 
-# Log Store: OTEL (connected to Sentry)
-resource "zenml_stack_component" "log_store" {
-  name   = "otel-log-store-${var.environment}"
-  type   = "log_store"
-  flavor = "otel"
-
-  configuration = {
-    endpoint = var.sentry_endpoint
-    headers  = jsonencode({"x-sentry-auth": "sentry sentry_key=${var.sentry_public_key}"})
-  }
-
-  labels = {
-    environment = var.environment
-  }
-}
-
 # --- Stack ---
 
 resource "zenml_stack" "aws_stack" {
@@ -229,7 +207,6 @@ resource "zenml_stack" "aws_stack" {
     step_operator      = zenml_stack_component.step_operator.id
     experiment_tracker = zenml_stack_component.experiment_tracker.id
     model_registry     = zenml_stack_component.model_registry.id
-    log_store          = zenml_stack_component.log_store.id
   }
 
   labels = {

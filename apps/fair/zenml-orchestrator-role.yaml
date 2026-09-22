@@ -1,32 +1,34 @@
+# Launched in-cluster by the fAIr backend SA (zenml/opentofu/main.tf).
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zenml-pipelines-prod
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: zenml-service-connector-prod
+  name: zenml-pod-account
   namespace: zenml-pipelines-prod
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: zenml-pod-account-prod
-  namespace: zenml-pipelines-prod
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  name: zenml-orchestrator-service-role
   namespace: zenml-pipelines-prod
-  name: zenml-orchestrator-service-role-prod
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
 rules:
-  # Core API Group: 
   - apiGroups: [""]
     resources: ["pods", "pods/log"]
     verbs: ["get", "list"]
-  
-  # Batch API Group: ZenML runs steps as Jobs and scheduled pipelines as CronJobs
   - apiGroups: ["batch"]
     resources: ["jobs"]
-    verbs: ["get", "create", "patch"]
-
+    verbs: ["get", "list", "create", "patch", "delete"]
   - apiGroups: ["batch"]
     resources: ["cronjobs"]
     verbs: ["create", "patch", "delete"]
@@ -34,48 +36,46 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  namespace: zenml-pipelines-prod 
-  name: zenml-orchestrator-pod-role-prod
+  name: zenml-orchestrator-pod-role
+  namespace: zenml-pipelines-prod
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
 rules:
-  # Core API Group: Manage Pods, read step logs, and use ServiceAccounts
   - apiGroups: [""]
     resources: ["pods", "pods/log"]
     verbs: ["get", "list"]
-  
-  # Batch API Group: ZenML runs steps as Jobs and scheduled pipelines as CronJobs
   - apiGroups: ["batch"]
     resources: ["jobs"]
     verbs: ["get", "list", "create", "patch", "delete"]
-    
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: zenml-service-binding-prod
+  name: zenml-service-binding
   namespace: zenml-pipelines-prod
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  # Must match the new production Role name
-  name: zenml-orchestrator-service-role-prod
+  name: zenml-orchestrator-service-role
 subjects:
   - kind: ServiceAccount
-    # Must match the new production ServiceAccount name
-    name: zenml-service-connector-prod
-    namespace: zenml-pipelines-prod
+    name: fair-model-deployer
+    namespace: fair-prod
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: zenml-pod-binding-prod
+  name: zenml-pod-binding
   namespace: zenml-pipelines-prod
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  # Must match the new production Role name
-  name: zenml-orchestrator-pod-role-prod
+  name: zenml-orchestrator-pod-role
 subjects:
   - kind: ServiceAccount
-    # Must match the new production ServiceAccount name
-    name: zenml-pod-account-prod
+    name: zenml-pod-account
     namespace: zenml-pipelines-prod

@@ -9,14 +9,13 @@ spec:
       enabled: true
       service-type: ClusterIP
   config:
-    network:
-      ingress-class: "kourier.ingress.networking.knative.dev"
-    # The one fAIr-specific value here: KnativeServing is a single
-    # cluster-wide CR, so the domain cannot be split per-app
+    # KnativeServing has one cluster-wide domain configuration.
     domain:
       "predict.ai.hotosm.org": ""
-  # Run 2 replicas for HA so single-node drains don't cause traffic outages.
-  # kourier-gateway is the critical one - all Knative traffic passes through it.
+    network:
+      ingress-class: "kourier.ingress.networking.knative.dev"
+      domain-template: "{{.Name}}.{{.Domain}}"
+  # Keep traffic available during single-node drains.
   deployments:
     - name: activator
       replicas: 2
@@ -24,9 +23,7 @@ spec:
       replicas: 2
     - name: 3scale-kourier-gateway
       replicas: 2
-  # Override the operator's default 80% minAvailable (which blocks all evictions on <5
-  # replicas) with an absolute minAvailable=1. With 2 replicas, this permits 1 disruption
-  # at a time - i.e. node drains work, and users still hit the surviving replica.
+  # Permit one replica disruption at a time.
   podDisruptionBudgets:
     - name: activator-pdb
       minAvailable: 1

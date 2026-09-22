@@ -1,11 +1,9 @@
-# RBAC for ZenML orchestrator to spawn pipeline Jobs/CronJobs in
-# fair-staging. Persistent so re-created SAs don't break in-flight pods.
+# Launched in-cluster by the fAIr backend SA (zenml/opentofu/main.tf).
 ---
 apiVersion: v1
-kind: ServiceAccount
+kind: Namespace
 metadata:
-  name: zenml-service-connector
-  namespace: fair-staging
+  name: zenml-pipelines-stage
   annotations:
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
 ---
@@ -13,7 +11,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: zenml-pod-account
-  namespace: fair-staging
+  namespace: zenml-pipelines-stage
   annotations:
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
 ---
@@ -21,7 +19,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: zenml-orchestrator-service-role
-  namespace: fair-staging
+  namespace: zenml-pipelines-stage
   annotations:
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
 rules:
@@ -30,7 +28,7 @@ rules:
     verbs: ["get", "list"]
   - apiGroups: ["batch"]
     resources: ["jobs"]
-    verbs: ["get", "create", "patch"]
+    verbs: ["get", "list", "create", "patch", "delete"]
   - apiGroups: ["batch"]
     resources: ["cronjobs"]
     verbs: ["create", "patch", "delete"]
@@ -39,7 +37,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: zenml-orchestrator-pod-role
-  namespace: fair-staging
+  namespace: zenml-pipelines-stage
   annotations:
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
 rules:
@@ -54,7 +52,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: zenml-service-binding
-  namespace: fair-staging
+  namespace: zenml-pipelines-stage
   annotations:
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
 roleRef:
@@ -63,14 +61,14 @@ roleRef:
   name: zenml-orchestrator-service-role
 subjects:
   - kind: ServiceAccount
-    name: zenml-service-connector
+    name: fair-model-deployer
     namespace: fair-staging
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: zenml-pod-binding
-  namespace: fair-staging
+  namespace: zenml-pipelines-stage
   annotations:
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
 roleRef:
@@ -80,4 +78,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: zenml-pod-account
-    namespace: fair-staging
+    namespace: zenml-pipelines-stage

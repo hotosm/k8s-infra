@@ -1,6 +1,4 @@
-# fAIr-specific: bridges nginx -> kourier for the model predict domain.
-# Must live in knative-serving, the namespace of the kourier Service it
-# targets, but it is owned here because the host is fAIr's.
+# Bridges nginx to Kourier for fAIr model traffic.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -8,14 +6,20 @@ metadata:
   namespace: knative-serving
   annotations:
     kubernetes.io/ingress.class: nginx
-    # CRITICAL: Pass the host header so Kourier knows which model to route to
+    external-dns.alpha.kubernetes.io/hostname: "*.predict.ai.hotosm.org"
+    external-dns.alpha.kubernetes.io/ttl: "300"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    # Kourier routes models by host.
     nginx.ingress.kubernetes.io/upstream-vhost: $host
-    # CRITICAL: Give Karpenter time to spin up new EC2 nodes during a cold start
+    # Allow time for cold-start node provisioning.
     nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
 spec:
+  tls:
+    - secretName: fair-predict-wildcard-tls
+      hosts:
+        - "*.predict.ai.hotosm.org"
   rules:
-  # Catch all traffic for the ML models
   - host: "*.predict.ai.hotosm.org" 
     http:
       paths:
@@ -23,7 +27,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            # Route it directly to the internal Kourier service
             name: kourier
             port:
               number: 80

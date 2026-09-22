@@ -1,17 +1,31 @@
-# apps/fair/mlflow/helm/values.yaml
-replicaCount: 2 # Recommended: Increase for Production availability
+# Keep aligned with staging except for production endpoints and infrastructure.
+# Basic-auth users use per-pod SQLite, so replicas cannot share them.
+
+replicaCount: 1
 
 image:
   repository: ghcr.io/burakince/mlflow
   tag: "3.7.0"
 
-# Target the NEW CloudNativePG cluster created for mlflow-prod
+initImages:
+  mlflowDbMigration:
+    repository: ghcr.io/burakince/mlflow
+    tag: "3.7.0"
+
+log:
+  enabled: true
+  level: info
+
+telemetry:
+  enabled: false
+
 backendStore:
-  databaseMigration: false # Disabled post-initial deployment
+  # Enable only while applying database migrations.
+  databaseMigration: false
   databaseConnectionCheck: true
   postgres:
     enabled: true
-    host: "mlflow-prod-db-rw.postgres.svc.cluster.local" # Points to the prod DB
+    host: "mlflow-prod-db-rw.postgres.svc.cluster.local"
     port: 5432
     database: "mlflow"
     driver: "psycopg2"
@@ -20,15 +34,14 @@ backendStore:
     usernameKey: "username"
     passwordKey: "password"
 
-# Use your Production S3 bucket
 artifactRoot:
-  proxiedArtifactStorage: false
+  proxiedArtifactStorage: true
   defaultArtifactRoot: "./mlruns"
   defaultArtifactsDestination: "./mlartifacts"
   s3:
     enabled: true
-    bucket: "hotosm-fair-mlflow-prod" # Isolated prod bucket
-    path: "" 
+    bucket: "hotosm-fair-mlflow-prod"
+    path: ""
     existingSecret:
       name: "mlflow-s3-creds"
       keyOfAccessKeyId: "AWS_ACCESS_KEY_ID"
@@ -40,16 +53,8 @@ auth:
     name: "mlflow-prod-admin-password"
     usernameKey: "adminUsername"
     passwordKey: "adminPassword"
-
-# You may want to define production resource constraints for Karpenter to read
-resources:
-  limits:
-    cpu: 1000m
-    memory: 2Gi
-  requests:
-    cpu: 500m
-    memory: 1Gi
-
+ldapAuth:
+  enabled: false
 ingress:
   enabled: true
   className: "nginx"
@@ -57,7 +62,6 @@ ingress:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     external-dns.alpha.kubernetes.io/hostname: mlflow.ai.hotosm.org
     external-dns.alpha.kubernetes.io/ttl: "300"
-    nginx.ingress.kubernetes.io/upstream-vhost: "localhost"
   hosts:
     - host: mlflow.ai.hotosm.org
       paths:
@@ -67,3 +71,31 @@ ingress:
     - hosts:
         - mlflow.ai.hotosm.org
       secretName: mlflow-production-tls
+autoscaling:
+  enabled: false
+
+extraFlags: []
+
+extraEnvVars:
+  MLFLOW_SERVER_ALLOWED_HOSTS: "*"
+
+extraSecretNamesForEnvFrom: []
+
+resources: 
+  limits:
+    cpu: 500m
+    memory: 1024Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+serviceMonitor:
+  enabled: false
+  useServicePort: false
+  namespace: monitoring
+  interval: 30s
+  telemetryPath: /metrics
+  labels:
+    release: prometheus
+  timeout: 10s
+  targetLabels: []

@@ -58,6 +58,18 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: fair-prod
+  ignoreDifferences:
+    # Charts randomise these on every render; keep the first applied value.
+    - kind: Secret
+      name: zenml
+      jsonPointers: [/data/ZENML_SERVER_JWT_SECRET_KEY]
+    - group: apps
+      kind: Deployment
+      name: zenml
+      jsonPointers: [/spec/template/metadata/annotations/checksum~1secret]
+    - kind: Secret
+      name: mlflow-flask-server-secret-key
+      jsonPointers: [/data/MLFLOW_FLASK_SERVER_SECRET_KEY]
   syncPolicy:
     automated:
       selfHeal: true
@@ -65,3 +77,4 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
