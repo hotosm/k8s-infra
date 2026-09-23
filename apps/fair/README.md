@@ -194,9 +194,9 @@ curl -o /dev/null -sS -w '%{http_code}\n' -X POST \
   https://stac.ai.hotosm.org/stac/collections # 405
 ```
 
-Finally, register the base models in the fAIr admin UI and run one training and
-prediction job. Registering a model creates its STAC records and Knative
-service. Staging shares these services under the `staging` traffic tag, so
+Finally, register a base model and run one training and prediction job by
+following [TESTING.md](TESTING.md). Registering a model creates its STAC records
+and Knative service. Staging shares these services under the `staging` traffic tag, so
 production traffic only moves when a model is registered here. The
 `knative-reconcile` CronJob re-applies services from STAC every 15 minutes.
 
