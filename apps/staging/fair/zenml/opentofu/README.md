@@ -70,7 +70,7 @@ Either set them in a `*.auto.tfvars` file (git-ignored) or pass
 them at apply time:
 
 ```bash
-export TF_VAR_mlflow_tracking_uri="http://mlflow.mlflow.svc.cluster.local:5000"
+export TF_VAR_mlflow_tracking_uri="http://mlflow.fair-staging.svc.cluster.local:5000"
 export TF_VAR_mlflow_tracking_username="admin"
 export TF_VAR_mlflow_tracking_password="xxx"
 ```
