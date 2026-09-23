@@ -24,3 +24,6 @@ quota/limits, sealed secrets, and ZenML pipeline RBAC persist
 - **STAC catalog data:** in `fair-stac` CNPG cluster.
 - **fair backend DB:** ephemeral, bundled in the chart (`postgres.enabled: true`).
   Fresh Postgres per PR - this is intentional for clean backend testing.
+
+Knative services in `fair-knative` are shared with production. Staging serves
+its revisions under the `staging` tag (`staging-<model>.predict.ai.hotosm.org`).

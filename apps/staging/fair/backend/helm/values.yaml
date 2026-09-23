@@ -27,6 +27,11 @@ backend:
   djangoQ:
     enabled: true
 
+  knativeReconcile:
+    enabled: true
+    # Offset from production, which shares the Knative services.
+    schedule: "7-59/15 * * * *"
+
   env:
     DEBUG: "true"
     AUTH_PROVIDER: "hanko"
@@ -52,6 +57,10 @@ backend:
     FAIR_LABEL_DOMAIN: "fair-k8s"
     FAIR_UPLOAD_ARTIFACTS: "true"
     FAIR_KNATIVE_NAMESPACE: "fair-knative"
+    # Wait for ksvc Ready before the registration health probe.
+    FAIR_KNATIVE_VERIFY_TIMEOUT: "600"
+    # Serve at staging-<model>.predict.ai.hotosm.org; production traffic is untouched.
+    FAIR_KNATIVE_TAG: "staging"
     # Combined with the Knative domain as <model>.predict.<value>.
     FAIR_PREDICT_DOMAIN: "ai.hotosm.org"
     FAIR_STAC_API_URL: "https://stac.stage.ai.hotosm.org/stac"

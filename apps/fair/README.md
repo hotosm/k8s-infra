@@ -196,8 +196,9 @@ curl -o /dev/null -sS -w '%{http_code}\n' -X POST \
 
 Finally, register the base models in the fAIr admin UI and run one training and
 prediction job. Registering a model creates its STAC records and Knative
-service. Production and staging share the Knative namespace, so registering the
-same model in either environment replaces the live service.
+service. Staging shares these services under the `staging` traffic tag, so
+production traffic only moves when a model is registered here. The
+`knative-reconcile` CronJob re-applies services from STAC every 15 minutes.
 
 ```bash
 kubectl -n fair-knative get ksvc
