@@ -55,6 +55,7 @@ spec:
   limits:
     cpu: "200"
 
+  # WhenEmpty: never evict a running training step to repack; keep the node between steps.
   disruption:
-    consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: 0s
+    consolidationPolicy: WhenEmpty
+    consolidateAfter: 5m
