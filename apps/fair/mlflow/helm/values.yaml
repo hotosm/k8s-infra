@@ -55,6 +55,10 @@ auth:
     passwordKey: "adminPassword"
 ldapAuth:
   enabled: false
+# Match the ZenML stack's tracking URI (mlflow...svc.cluster.local:5000); chart default is 80.
+service:
+  port: 5000
+
 ingress:
   enabled: true
   className: "nginx"
