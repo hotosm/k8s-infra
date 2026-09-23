@@ -85,13 +85,12 @@ data "aws_iam_policy_document" "assume_role_with_oidc" {
       values   = ["sts.amazonaws.com"]
     }
 
-    # NOTE: For strict isolation, uncomment the block below and replace <SERVICE_ACCOUNT_NAME> 
-    # to restrict access only to the specific ZenML service account in your cluster.
-    # condition {
-    #   test     = "StringEquals"
-    #   variable = "${replace(var.oidc_arn, "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/", "")}:sub"
-    #   values   = ["system:serviceaccount:${var.zenml_pipeline_namespace}:<SERVICE_ACCOUNT_NAME>"]
-    # }
+    # Only ZenML pipeline pods (IRSA on zenml-pod-account).
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(var.oidc_arn, "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/", "")}:sub"
+      values   = ["system:serviceaccount:${var.zenml_pipeline_namespace}:zenml-pod-account"]
+    }
   }
 }
 

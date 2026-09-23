@@ -25,5 +25,7 @@ quota/limits, sealed secrets, and ZenML pipeline RBAC persist
 - **fair backend DB:** ephemeral, bundled in the chart (`postgres.enabled: true`).
   Fresh Postgres per PR - this is intentional for clean backend testing.
 
+See the production [AWS dependency list](../../fair/README.md#aws-dependencies).
+
 Knative services in `fair-knative` are shared with production. Staging serves
 its revisions under the `staging` tag (`staging-<model>.predict.ai.hotosm.org`).

@@ -14,6 +14,8 @@ metadata:
   namespace: zenml-pipelines-stage
   annotations:
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
+    # IRSA (AWS-only, see apps/fair/README.md): S3 for pipeline steps.
+    eks.amazonaws.com/role-arn: arn:aws:iam::670261699094:role/hotosm-fair-models-bucket-access-staging
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role

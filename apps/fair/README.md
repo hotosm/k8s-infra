@@ -205,3 +205,17 @@ kubectl -n fair-knative get ksvc
 kubectl -n zenml-pipelines-prod get jobs,pods
 curl -fsS https://stac.ai.hotosm.org/stac/collections | jq '.collections[].id'
 ```
+
+## AWS dependencies
+
+| Component | Purpose | Configuration |
+| --- | --- | --- |
+| Pipeline IRSA | Pipeline access to model and dataset S3 objects | `zenml-orchestrator-role.yaml`, `zenml/opentofu/s3.tf` |
+| Frontend deploy IRSA | Production S3 upload and CloudFront invalidation | `backend/helm/values.yaml`, `terraform/frontend_s3_cloudfront.tf` |
+| ZenML AWS connector | ZenML artifact-store access | `zenml/opentofu/main.tf` |
+| Backend IAM user | S3 access and presigned URLs | `zenml/opentofu/s3.tf`, `fair-api-credentials.yaml` |
+| S3 buckets | Models, datasets and ZenML artifacts | `zenml/opentofu/s3.tf` |
+| Karpenter node pools | GPU training and CPU inference capacity | `apps/karpenter/` |
+
+For non-AWS S3-compatible storage, set `AWS_ENDPOINT_URL`; leave it unset on
+AWS because it also overrides the STS endpoint.

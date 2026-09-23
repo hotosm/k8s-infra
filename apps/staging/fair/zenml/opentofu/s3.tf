@@ -39,6 +39,19 @@ data "aws_iam_policy_document" "assume_role_with_oidc" {
     }
 
     actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(var.oidc_arn, "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/", "")}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    # Only ZenML pipeline pods (IRSA on zenml-pod-account).
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(var.oidc_arn, "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/", "")}:sub"
+      values   = ["system:serviceaccount:${var.zenml_pipeline_namespace}:zenml-pod-account"]
+    }
   }
 }
 
