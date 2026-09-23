@@ -61,7 +61,6 @@ backend:
     BUCKET_NAME: "hotosm-fair-models-production"
     PARENT_BUCKET_FOLDER: "backend"
     AWS_REGION: "us-east-1"
-    AWS_ENDPOINT_URL: "https://s3.us-east-1.amazonaws.com"
     FAIR_DOMAIN: "ai.hotosm.org"
     LOG_PATH: "/tmp/fair-logs"
     RAW_DATA_API_URL: "https://api-prod.raw-data.hotosm.org/v1"
