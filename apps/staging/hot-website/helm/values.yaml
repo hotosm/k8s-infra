@@ -8,6 +8,9 @@ env:
   # We disabled dragonfly / redis below
   CACHE_BACKEND: "django.core.cache.backends.filebased.FileBasedCache"
   CACHE_LOCATION: "/tmp/django_cache"
+  DEFAULT_FROM_EMAIL: "noreply@hotosmmail.org"
+  CONTACT_FORM_RECIPIENT: "info@hotosm.org"
+  EMAIL_HOST: "email-smtp.us-east-1.amazonaws.com"
 
 web:
   replicaCount: 1
