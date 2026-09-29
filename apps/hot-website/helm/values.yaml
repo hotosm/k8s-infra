@@ -1,2 +1,5 @@
 env:
   CACHE_LOCATION: "redis://hot-website-dragonfly.website.svc.cluster.local"
+  DEFAULT_FROM_EMAIL: "noreply@hotosmmail.org"
+  CONTACT_FORM_RECIPIENT: "info@hotosm.org"
+  EMAIL_HOST: "email-smtp.us-east-1.amazonaws.com"
