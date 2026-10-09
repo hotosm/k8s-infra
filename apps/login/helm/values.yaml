@@ -23,6 +23,11 @@ env:
   EXPORT_TOOL_BACKEND_URL: "https://export.hotosm.org"
   CHATMAP_BACKEND_URL: "https://chatmap.hotosm.org"
 
+  # LearnWorlds (learn.hotosm.org) Custom SSO. The client id is public (it
+  # ships in the school's HTML); LEARNWORLDS_CLIENT_SECRET is in the sealed secret.
+  LEARNWORLDS_SCHOOL_URL: "https://learn.hotosm.org"
+  LEARNWORLDS_CLIENT_ID: "69f345cc5d838da1f709e035"
+
   # Email (Amazon SES). Same account Hanko already uses for its passcodes;
   # SMTP_USER/SMTP_PASSWORD live in the sealed secret, not here.
   # Needed by team/organization invites, org approvals and data deletion requests.
