@@ -81,15 +81,20 @@ autoscaling:
 
 # Each gunicorn worker migrates the per-pod basic-auth SQLite DB on boot; with
 # >1 worker they race ("table alembic_version_auth already exists"). Use one
-# worker and get concurrency from threads instead.
+# worker and get concurrency from threads (GUNICORN_CMD_ARGS below).
 extraArgs:
   workers: "1"
-  gunicornOpts: "--threads=4"
 
 extraFlags: []
 
 extraEnvVars:
   MLFLOW_SERVER_ALLOWED_HOSTS: "*"
+  # The chart quotes --gunicorn-opts as a single token, so extra opts there are
+  # swallowed by --log-level; gunicorn reads this env var directly instead.
+  GUNICORN_CMD_ARGS: "--threads=4"
+  # Default flipped to true after 3.7: spawns a job runner + one consumer process per
+  # GenAI job type (evaluation, scorers, ...), which OOMs the pod. Unused by fAIr.
+  MLFLOW_SERVER_ENABLE_JOB_EXECUTION: "false"
 
 extraSecretNamesForEnvFrom: []
 
