@@ -20,8 +20,9 @@ telemetry:
   enabled: false
 
 backendStore:
-  # Enable only while applying database migrations.
-  databaseMigration: false
+  # Safe to leave migrations on.
+  # replicaCount: 1 means only one pod ever migrates.
+  databaseMigration: true
   databaseConnectionCheck: true
   postgres:
     enabled: true
@@ -77,6 +78,13 @@ ingress:
       secretName: mlflow-production-tls
 autoscaling:
   enabled: false
+
+# Each gunicorn worker migrates the per-pod basic-auth SQLite DB on boot; with
+# >1 worker they race ("table alembic_version_auth already exists"). Use one
+# worker and get concurrency from threads instead.
+extraArgs:
+  workers: "1"
+  gunicornOpts: "--threads=4"
 
 extraFlags: []
 

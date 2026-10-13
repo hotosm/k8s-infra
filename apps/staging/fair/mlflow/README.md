@@ -60,4 +60,5 @@ kubeseal -f secret.yaml -w ../mlflow-admin-password.yaml
 
 ## Migrations
 
-Set `backendStore.databaseMigration: true`, sync, wait for the job, flip back.
+`backendStore.databaseMigration: true` runs `mlflow db upgrade` in an init
+container on every pod start (no-op at head), so bumping the image tag is enough.

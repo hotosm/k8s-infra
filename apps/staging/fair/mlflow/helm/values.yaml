@@ -1,19 +1,17 @@
 # https://github.com/community-charts/helm-charts/blob/main/charts/mlflow/values.yaml
 # - Add db secret
 # - Add S3 secret
-# - Enable migrations = databaseMigration: true, and deploy
-# - Disable migrations = databaseMigration: false, and re-deploy.
 
 replicaCount: 1
 
 image:
   repository: ghcr.io/burakince/mlflow
-  tag: "3.7.0"
+  tag: "3.16.0"
 
 initImages:
   mlflowDbMigration:
     repository: ghcr.io/burakince/mlflow
-    tag: "3.7.0"
+    tag: "3.16.0"
 
 log:
   enabled: true
@@ -25,8 +23,9 @@ telemetry:
 
 # -- Mlflow database connection settings
 backendStore:
-  # Enable this to run the migrations - ideally disable after done
-  databaseMigration: false
+  # Safe to leave migrations on.
+  # replicaCount: 1 means only one pod ever migrates.
+  databaseMigration: true
   # Check for db running before starting main container
   databaseConnectionCheck: true
   postgres:
@@ -73,6 +72,13 @@ ingress:
   enabled: false
 autoscaling:
   enabled: false
+
+# Each gunicorn worker migrates the per-pod basic-auth SQLite DB on boot; with
+# >1 worker they race ("table alembic_version_auth already exists"). Use one
+# worker and get concurrency from threads instead.
+extraArgs:
+  workers: "1"
+  gunicornOpts: "--threads=4"
 
 # -- A list of flags to pass to `mlflow server` command. Items must be camelcase. Helm will turn them to kebabcase style.
 extraFlags: []
