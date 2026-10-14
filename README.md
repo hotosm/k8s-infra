@@ -45,16 +45,16 @@ See the [inital proposal](about/proposal.md) for more background.
 | Status | Tool Migrated | Date Estimate |
 |:------:|:-------:|:--------|
 |✅| OpenAerialMap | Sep '25 |
-|⚙️| FieldTM | Jan '26 |
-|⚙️| Shared Login | Jan '26 |
-|⚙️| DroneTM + ScaleODM | Feb '26 |
-| | ODK, QFieldCloud | Mar '26 |
-| | ChatMap | May '26 |
-| | fAIr | June '26 |
-| | Portal | July '26 |
-| | uMap | July '26 |
-| | HDX Country Exports | Sep '26 |
-| | Export Tool | Dec '26 |
+|✅| FieldTM | Jan '26 |
+|✅| Shared Login | Jan '26 |
+|✅| DroneTM + ScaleODM | Feb '26 |
+|✅| fAIr | June '26 |
+|⚙️| ODK, QFieldCloud | Nov '26 |
+| | ChatMap | Dec '26 |
+| | Portal | Dec '26 |
+| | uMap | Jan '27 |
+| | HDX Country Exports | Feb '27 |
+| | Export Tool | Feb '27 |
 |❌| Tasking Manager | Not currently planned |
 |❌| Raw Data API | Not currently planned |
 <!-- prettier-ignore-end -->
