@@ -36,6 +36,11 @@ env:
   SMTP_FROM_ADDRESS: "noreply@hotosmmail.org"
   SMTP_STARTTLS: "true"
 
+  # Organization and team logos/banners. S3_ACCESS_KEY/S3_SECRET_KEY live in
+  # the sealed secret.
+  S3_ENDPOINT_URL: "https://s3.us-east-1.amazonaws.com"
+  S3_BUCKET_NAME: "hotosm-login-data"
+
 ingress:
   enabled: true
   className: "nginx"
