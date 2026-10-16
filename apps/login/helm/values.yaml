@@ -28,6 +28,10 @@ env:
   LEARNWORLDS_SCHOOL_URL: "https://learn.hotosm.org"
   LEARNWORLDS_CLIENT_ID: "69f345cc5d838da1f709e035"
 
+  # LinkedIn app for the LearnWorlds linking page (only reads the email to find
+  # existing courses). LINKEDIN_CLIENT_SECRET is in the sealed secret.
+  LINKEDIN_CLIENT_ID: "77akcteduh6ac2"
+
   # Email (Amazon SES). Same account Hanko already uses for its passcodes;
   # SMTP_USER/SMTP_PASSWORD live in the sealed secret, not here.
   # Needed by team/organization invites, org approvals and data deletion requests.

@@ -9,7 +9,7 @@ spec:
     # Helm chart + values
     - repoURL: oci://ghcr.io/hotosm/charts/login
       chart: login
-      targetRevision: 0.5.1
+      targetRevision: 0.6.0
       helm:
         releaseName: login-prod
         valueFiles:
