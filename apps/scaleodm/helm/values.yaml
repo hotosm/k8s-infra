@@ -75,7 +75,7 @@ config:
     # Default Karpenter node pool for workflow pods.
     # "spot" is cheapest; use "on-demand" for stable capacity.
     # Individual submissions can override this via the capacityType API field.
-    capacityType: "spot"
+    capacityType: "on-demand"
     # Jobs >= 5000 images run for hours; pin them to on-demand so a spot
     # eviction can't waste the run.
     onDemandImageThreshold: 5000
