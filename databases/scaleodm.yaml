@@ -78,6 +78,21 @@ spec:
     storageClass: gp3
     size: 2Gi
 
+  # Tailnet access: db-scaleodm:5432
+  managed:
+    services:
+      additional:
+        - selectorType: rw
+          serviceTemplate:
+            metadata:
+              name: scaleodm-db-tailscale
+              annotations:
+                tailscale.com/hostname: "db-scaleodm"
+                tailscale.com/tags: "tag:k8s-db,tag:db-scaleodm"
+            spec:
+              type: LoadBalancer
+              loadBalancerClass: tailscale
+
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true

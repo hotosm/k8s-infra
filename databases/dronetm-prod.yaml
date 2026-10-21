@@ -84,6 +84,21 @@ spec:
     storageClass: gp3
     size: 20Gi
 
+  # Tailnet access: db-dronetm:5432
+  managed:
+    services:
+      additional:
+        - selectorType: rw
+          serviceTemplate:
+            metadata:
+              name: dronetm-db-prod-tailscale
+              annotations:
+                tailscale.com/hostname: "db-dronetm"
+                tailscale.com/tags: "tag:k8s-db,tag:db-dronetm"
+            spec:
+              type: LoadBalancer
+              loadBalancerClass: tailscale
+
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true

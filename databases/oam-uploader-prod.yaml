@@ -77,6 +77,21 @@ spec:
     storageClass: gp3
     size: 2Gi
 
+  # Tailnet access: db-oam-uploader:5432
+  managed:
+    services:
+      additional:
+        - selectorType: rw
+          serviceTemplate:
+            metadata:
+              name: oam-uploader-db-tailscale
+              annotations:
+                tailscale.com/hostname: "db-oam-uploader"
+                tailscale.com/tags: "tag:k8s-db,tag:db-oam-uploader"
+            spec:
+              type: LoadBalancer
+              loadBalancerClass: tailscale
+
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true

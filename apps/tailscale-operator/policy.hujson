@@ -1,0 +1,113 @@
+// Source of truth: k8s-infra apps/tailscale-operator/policy.hujson
+// Edit there via PR, then paste here.
+{
+    "tagOwners": {
+        "tag:k8s-operator": [],
+        "tag:k8s":          ["tag:k8s-operator"],
+
+        // Postgres: tag:k8s-db = all DBs, tag:db-<app> = one DB
+        "tag:k8s-db":          ["tag:k8s-operator"],
+        "tag:db-dronetm":      ["tag:k8s-operator"],
+        "tag:db-fieldtm":      ["tag:k8s-operator"],
+        "tag:db-hot-website":  ["tag:k8s-operator"],
+        "tag:db-oam-uploader": ["tag:k8s-operator"],
+        "tag:db-scaleodm":     ["tag:k8s-operator"],
+
+        // AWS EC2 instance
+        "tag:ec2": ["group:k8s-admin"],
+    },
+
+    "grants": [
+        // k8s-operator control plane access
+        {
+            "src": ["group:k8s-admin"],
+            "dst": ["tag:k8s-operator"],
+            "ip":  ["tcp:443"],
+            "app": {
+                "tailscale.com/cap/kubernetes": [{"impersonate": {"groups": ["system:masters"]}}],
+            },
+        },
+        {
+            "src": ["group:k8s-admin"],
+            "dst": ["tag:k8s-operator"],
+            "ip":  ["tcp:443"],
+            "app": {
+                "tailscale.com/cap/kubernetes": [{"impersonate": {"groups": ["tailnet-readers"]}}],
+            },
+        },
+        // Read-only cluster access - linked to RBAC
+        {
+            "src": ["group:k8s-readonly"],
+            "dst": ["tag:k8s-operator"],
+            "ip":  ["tcp:443"],
+            "app": {
+                "tailscale.com/cap/kubernetes": [{"impersonate": {"groups": ["viewers"]}}],
+            },
+        },
+        // Contractors - read-only cluster-wide + edit in specific namespaces
+        // Linked to RBAC in apps/cluster-core
+        {
+            "src": ["group:k8s-contractor"],
+            "dst": ["tag:k8s-operator"],
+            "ip":  ["tcp:443"],
+            "app": {
+                "tailscale.com/cap/kubernetes": [{"impersonate": {"groups": ["contractor", "viewers"]}}],
+            },
+        },
+        // EC2 access
+        {
+            "src": ["group:k8s-admin", "group:k8s-contractor"],
+            "dst": ["tag:ec2"],
+            "ip":  ["tcp:22"],
+        },
+        // Tailscale-exposed UI services on tag:k8s (e.g. argocd)
+        {
+            "src": ["group:k8s-admin", "group:k8s-contractor", "group:k8s-readonly"],
+            "dst": ["tag:k8s"],
+            "ip":  ["tcp:80", "tcp:443"],
+        },
+        // Postgres - admins only, never group:k8s-readonly
+        {
+            "src": ["group:k8s-admin"],
+            "dst": ["tag:k8s-db"],
+            "ip":  ["tcp:5432"],
+        },
+        // Temporary contractor access to one DB (or "tag:k8s-db" for all)
+        // {
+        //     "src": ["their-user@github"],
+        //     "dst": ["tag:db-dronetm"],
+        //     "ip":  ["tcp:5432"],
+        // },
+    ],
+
+    "ssh": [
+        // group:k8s-admin can SSH into tagged SSH-enabled machines as `root`, `ubuntu`, or `admin`
+        {
+            "action": "check",
+            "src":    ["group:k8s-admin"],
+            "dst":    ["tag:ec2"],
+            "users":  ["root", "ubuntu", "admin"],
+        },
+        // group:k8s-contractor can SSH only as Linux user `contractor`
+        {
+            "action": "check",
+            "src":    ["group:k8s-contractor"],
+            "dst":    ["tag:ec2"],
+            "users":  ["contractor"],
+        },
+    ],
+
+    "groups": {
+        "group:k8s-admin": [
+            "spwoodcock@github",
+            "dakotabenjamin@github",
+            "skshitizraj@gmail.com",
+            "emi420@github",
+            "zestyping@github",
+            "anilrajrimal1@github",
+        ],
+
+        "group:k8s-readonly":   [],
+        "group:k8s-contractor": ["hotosm-contractors@github"],
+    },
+}

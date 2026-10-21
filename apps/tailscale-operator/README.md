@@ -37,3 +37,8 @@ rm secret.yaml
 - https://tailscale.com/docs/features/kubernetes-operator
 - https://tailscale.com/docs/features/kubernetes-operator/how-to/cluster-ingress
 - https://tailscale.com/docs/features/kubernetes-operator/how-to/customize
+
+## Tailnet policy
+
+`policy.hujson` is not auto-synced. Change it via PR, then paste it into the
+admin console.

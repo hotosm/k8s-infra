@@ -78,6 +78,21 @@ spec:
     storageClass: gp3
     size: 2Gi
 
+  # Tailnet access: db-hot-website:5432
+  managed:
+    services:
+      additional:
+        - selectorType: rw
+          serviceTemplate:
+            metadata:
+              name: hot-website-db-tailscale
+              annotations:
+                tailscale.com/hostname: "db-hot-website"
+                tailscale.com/tags: "tag:k8s-db,tag:db-hot-website"
+            spec:
+              type: LoadBalancer
+              loadBalancerClass: tailscale
+
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true

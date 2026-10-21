@@ -211,3 +211,16 @@ WAL volume size is unrelated to database size — `pg_wal` recycles within
 `max_wal_size`, so steady state is 1–3Gi. A WAL volume needing tens of
 gigabytes is a retention failure (broken archiver, or an inactive replication
 slot pinning segments), not a busy database.
+
+## Access over Tailscale
+
+Some clusters are reachable on the tailnet as `db-<app>` (see the `managed`
+block in `databases/*.yaml`):
+
+```bash
+psql "host=db-fieldtm user=field_tm_prod_rw dbname=field_tm_prod sslmode=require"
+```
+
+To expose another cluster, copy a `managed` block and add its `tag:db-<app>`
+to `apps/tailscale-operator/policy.hujson` **before** syncing (tags can't
+change later). Delete the block to remove access.

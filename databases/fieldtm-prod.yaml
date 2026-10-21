@@ -84,6 +84,21 @@ spec:
     storageClass: gp3
     size: 10Gi
 
+  # Tailnet access: db-fieldtm:5432
+  managed:
+    services:
+      additional:
+        - selectorType: rw
+          serviceTemplate:
+            metadata:
+              name: fieldtm-db-prod-tailscale
+              annotations:
+                tailscale.com/hostname: "db-fieldtm"
+                tailscale.com/tags: "tag:k8s-db,tag:db-fieldtm"
+            spec:
+              type: LoadBalancer
+              loadBalancerClass: tailscale
+
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
