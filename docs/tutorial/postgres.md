@@ -214,13 +214,35 @@ slot pinning segments), not a busy database.
 
 ## Access over Tailscale
 
-Some clusters are reachable on the tailnet as `db-<app>` (see the `managed`
-block in `databases/*.yaml`):
+The standard way to reach a database from your machine (psql, DBeaver, etc.).
+No `kubectl port-forward` needed.
+
+Requires being on the tailnet as `group:k8s-admin`.
+
+| Host | Cluster |
+|---|---|
+| `db-dronetm` | `dronetm-db-prod` |
+| `db-fieldtm` | `fieldtm-db-prod` |
+| `db-hot-website` | `hot-website-db` |
+| `db-oam-uploader` | `oam-uploader-db` |
+| `db-scaleodm` | `scaleodm-db` |
+
+Connect on port `5432` to the primary (rw), using the app user's credentials:
 
 ```bash
 psql "host=db-fieldtm user=field_tm_prod_rw dbname=field_tm_prod sslmode=require"
 ```
 
-To expose another cluster, copy a `managed` block and add its `tag:db-<app>`
-to `apps/tailscale-operator/policy.hujson` **before** syncing (tags can't
-change later). Delete the block to remove access.
+If MagicDNS doesn't resolve, use the full name, e.g.
+`db-fieldtm.banded-armadillo.ts.net`.
+
+### Exposing another database
+
+1. Add `tag:db-<app>` to `tagOwners` in `apps/tailscale-operator/policy.hujson`
+   and apply it in the admin console. Do this **before** syncing, because
+   tags can't change later.
+2. Copy the `managed` block from e.g. `databases/fieldtm-prod.yaml` into the
+   cluster's manifest, then change the service name and hostname.
+3. Add a row to the table above.
+
+Delete the block to remove access.

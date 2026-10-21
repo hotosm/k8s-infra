@@ -80,47 +80,5 @@ end
 
 ## Accessing CNPG Databases
 
-`forward-db dronetm`
-
-- For some reason a simple `kubectl port-forward` never works for me,
-  when accessing databases via tools like DBeaver.
-- This alias will forward the service using a socat container,
-  making the db accessible on `localhost:5432`.
-
-For bash
-```bash
-forward-db() {
-  local ns="postgres" proxy="db-proxy-$1"
-  local svc=$(kubectl get svc -n "$ns" -o name | grep "$1" | grep -- '-rw$' | sed 's|service/||')
-  [ -z "$svc" ] && echo "No -rw service found matching '$1'" && return 1
-  trap "kubectl delete pod -n $ns $proxy --ignore-not-found --wait=false" EXIT INT TERM
-  kubectl run -n "$ns" "$proxy" --image=alpine/socat --restart=Never -- \
-    tcp-listen:5432,fork,reuseaddr "tcp-connect:${svc}:5432"
-  kubectl wait -n "$ns" --for=condition=Ready "pod/$proxy" --timeout=30s
-  echo "Forwarding localhost:5432 -> $svc"
-  kubectl port-forward -n "$ns" "$proxy" 5432:5432
-  trap - EXIT INT TERM
-  kubectl delete pod -n "$ns" "$proxy" --ignore-not-found --wait=false
-}
-```
-
-For fish:
-```fish
-function forward-db
-    set -l ns postgres
-    set -l proxy "db-proxy-$argv[1]"
-    set -l svc (kubectl get svc -n $ns -o name | grep $argv[1] | grep -- '-rw$' | sed 's|service/||')
-    test -z "$svc" && echo "No -rw service found matching '$argv[1]'" && return 1
-    function __forward_db_cleanup --on-signal INT --on-signal TERM
-        kubectl delete pod -n postgres $proxy --ignore-not-found --wait=false
-        functions -e __forward_db_cleanup
-    end
-    kubectl run -n $ns $proxy --image=alpine/socat --restart=Never -- \
-        tcp-listen:5432,fork,reuseaddr "tcp-connect:$svc:5432"
-    kubectl wait -n $ns --for=condition=Ready pod/$proxy --timeout=30s
-    echo "Forwarding localhost:5432 -> $svc"
-    kubectl port-forward -n $ns $proxy 5432:5432
-    kubectl delete pod -n $ns $proxy --ignore-not-found --wait=false
-    functions -e __forward_db_cleanup
-end
-```
+No port-forward needed: connect over Tailscale instead.
+See [Access over Tailscale](../tutorial/postgres.md#access-over-tailscale).
