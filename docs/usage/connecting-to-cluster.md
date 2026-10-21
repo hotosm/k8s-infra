@@ -1,8 +1,25 @@
 # Connecting To The Cluster
 
+## Via Tailscale (Recommended)
+
+- Requires Tailscale and `kubectl`, and membership of a `k8s-*` group
+  in the tailnet policy (`apps/tailscale-operator/policy.hujson`).
+- Full guide: [Tailscale cluster access](https://docs.hotosm.org/devops/tailscale-cluster-access/).
+
+```bash
+tailscale status  # confirm you are on the HOT tailnet
+tailscale configure kubeconfig hotosm-k8s-operator
+kubectl get namespaces
+```
+
+The operator's API server proxy authenticates you by tailnet identity and
+impersonates the RBAC groups granted in the policy (see `apps/cluster-core`).
+
+## Via AWS SSO
+
 - You will need both `aws-cli` and `kubectl` installed.
 
-## Optional: Run Inside A Container
+### Optional: Run Inside A Container
 
 - To avoid installing heavy dependencies, accessing the cluster can be 
   done via container.
@@ -12,7 +29,7 @@
   `alias aws-shell='docker run --rm -it --network=host -v $HOME:/root --workdir /root ghcr.io/spwoodcock/awscli-kubectl:latest'`
 - Simply run `aws-shell` before continuing below.
 
-## Configure AWS CLI
+### Configure AWS CLI
 
 ```bash
 # Configure SSO
@@ -31,7 +48,7 @@ aws sso login --profile admin --use-device-code
 aws eks update-kubeconfig --profile admin --name hotosm-production-cluster --region us-east-1
 ```
 
-## Use Kubectl
+### Use Kubectl
 
 ```bash
 # If you are still logged in, ignore this step, otherwise
