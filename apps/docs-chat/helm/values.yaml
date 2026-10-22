@@ -1,0 +1,26 @@
+# Experimental docs assistant: https://github.com/hotosm/docs/tree/main/chat
+# Chart defaults: Gemma 4 E4B, ~1.9 vCPU / ~8.4Gi requested, fits a core t3.xlarge.
+
+api:
+  allowedOrigins: "https://docs.hotosm.org"
+  # githubTokenSecret: docs-chat-github  # Optional SealedSecret with GITHUB_TOKEN
+
+# Higher quality option (Karpenter would add a 32GB node, ~$60-190/month):
+# llm:
+#   hfRepo: google/gemma-4-26B-A4B-it-qat-q4_0-gguf
+#   hfFile: gemma-4-26B_q4_0-it.gguf
+#   parallel: 3
+#   ctxSize: 24576
+#   threads: 8
+#   resources:
+#     requests: { cpu: "8", memory: 20Gi }
+#     limits: { memory: 24Gi }
+#   persistence: { size: 25Gi }
+
+ingress:
+  enabled: true
+  hostname: docs-chat.k8s-prod.hotosm.org
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: docs-chat.k8s-prod.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+    cert-manager.io/cluster-issuer: letsencrypt-prod

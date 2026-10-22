@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: docs-chat
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    # Helm chart + values (chart lives in hotosm/docs/chart)
+    - repoURL: oci://ghcr.io/hotosm/charts/docs-chat
+      chart: docs-chat
+      targetRevision: 0.1.0
+      helm:
+        releaseName: docs-chat
+        valueFiles:
+          - $k8s-infra/apps/docs-chat/helm/values.yaml
+
+    # Git repo containing values.yaml
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: docs-chat
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
