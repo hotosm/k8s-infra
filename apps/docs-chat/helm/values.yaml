@@ -1,9 +1,15 @@
 # Experimental docs assistant: https://github.com/hotosm/docs/tree/main/chat
-# Chart defaults: Gemma 4 E4B, ~1.9 vCPU / ~8.4Gi requested, fits a core t3.xlarge.
+# Chart defaults: Gemma 4 E4B, ~1.9 vCPU / ~8.9Gi requested, fits a core t3.xlarge.
 
 api:
   allowedOrigins: "https://docs.hotosm.org"
   # githubTokenSecret: docs-chat-github  # Optional SealedSecret with GITHUB_TOKEN
+
+# 2Gi OOMKilled while indexing (model + KV + 2048-token ubatch buffers)
+embed:
+  resources:
+    requests: { cpu: 250m, memory: 1536Mi }
+    limits: { memory: 3Gi }
 
 # Higher quality option (Karpenter would add a 32GB node, ~$60-190/month):
 # llm:
