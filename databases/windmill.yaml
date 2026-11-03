@@ -51,6 +51,8 @@ spec:
   bootstrap:
     recovery:
       source: windmill-db
+      database: windmill
+      owner: windmill
   externalClusters:
     - name: windmill-db
       plugin:

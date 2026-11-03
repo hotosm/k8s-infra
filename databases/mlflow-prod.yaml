@@ -42,6 +42,8 @@ spec:
   bootstrap:
     recovery:
       source: mlflow-prod-db
+      database: mlflow
+      owner: mlflow
   externalClusters:
     - name: mlflow-prod-db
       plugin:

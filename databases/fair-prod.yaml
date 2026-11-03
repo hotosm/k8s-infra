@@ -46,6 +46,8 @@ spec:
   bootstrap:
     recovery:
       source: fair-prod-db
+      database: fair_prod
+      owner: fair_prod_rw
   externalClusters:
     - name: fair-prod-db
       plugin:

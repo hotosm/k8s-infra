@@ -51,6 +51,8 @@ spec:
   bootstrap:
     recovery:
       source: fieldtm-db-prod
+      database: field_tm_prod
+      owner: field_tm_prod_rw
   externalClusters:
     - name: fieldtm-db-prod
       plugin:

@@ -53,6 +53,8 @@ spec:
   bootstrap:
     recovery:
       source: zenml-db-production
+      database: zenml
+      owner: zenml
   externalClusters:
     - name: zenml-db-production
       plugin:

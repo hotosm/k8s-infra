@@ -50,6 +50,8 @@ spec:
   bootstrap:
     recovery:
       source: zenml-db-staging
+      database: zenml
+      owner: zenml
   externalClusters:
     - name: zenml-db-staging
       plugin:

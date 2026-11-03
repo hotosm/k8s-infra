@@ -44,6 +44,8 @@ spec:
   bootstrap:
     recovery:
       source: fair-stac-db-prod
+      database: fair-stac-prod
+      owner: fair_stac_prod
   externalClusters:
     - name: fair-stac-db-prod
       plugin:

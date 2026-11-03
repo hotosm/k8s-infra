@@ -51,6 +51,8 @@ spec:
   bootstrap:
     recovery:
       source: oam-uploader-db
+      database: oam_uploader
+      owner: oam_uploader
   externalClusters:
     - name: oam-uploader-db
       plugin:

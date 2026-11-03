@@ -51,6 +51,8 @@ spec:
   bootstrap:
     recovery:
       source: hanko-db
+      database: hanko
+      owner: hanko
   externalClusters:
     - name: hanko-db
       plugin:

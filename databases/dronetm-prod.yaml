@@ -52,6 +52,8 @@ spec:
   bootstrap:
     recovery:
       source: dronetm-db-prod
+      database: drone_tm_prod
+      owner: drone_tm_prod_rw
   externalClusters:
     - name: dronetm-db-prod
       plugin:

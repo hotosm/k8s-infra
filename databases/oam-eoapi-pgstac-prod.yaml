@@ -44,6 +44,8 @@ spec:
   bootstrap:
     recovery:
       source: oam-eoapi-pgstac-prod-db
+      database: oam-eoapi-pgstac-prod
+      owner: oam_stac
   externalClusters:
     - name: oam-eoapi-pgstac-prod-db
       plugin:

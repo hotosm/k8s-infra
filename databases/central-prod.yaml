@@ -51,6 +51,8 @@ spec:
   bootstrap:
     recovery:
       source: central-db
+      database: central
+      owner: central
   externalClusters:
     - name: central-db
       plugin:
