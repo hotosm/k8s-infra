@@ -39,3 +39,23 @@ chart's db migration job.
 ## Configuration
 
 See [`opentofu/README.md`](./opentofu/README.md).
+
+## How to reset ZenML staging password
+
+Users persist in the `zenml-db-staging` DB across PR deploys. Passwords are
+bcrypt hashes, so they can't be recovered, only replaced.
+
+```bash
+# 1. Generate a hash (prompts for the new password)
+kubectl -n fair-staging exec -it deploy/<zenml-deployment> -- python -c \
+  'import bcrypt, getpass; print(bcrypt.hashpw(getpass.getpass().encode(), bcrypt.gensalt()).decode())'
+
+# 2. Open psql interactively (passing the hash via -c lets the shell mangle the $ chars)
+kubectl -n postgres exec -it zenml-db-staging-1 -- psql -U postgres zenml
+```
+
+```sql
+begin;
+update "user" set password = '<hash>' where name = '<username>';  -- expect UPDATE 1
+commit;
+```
