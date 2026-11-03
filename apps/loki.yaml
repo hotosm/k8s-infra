@@ -1,0 +1,30 @@
+# Cluster-wide log store. Alloy (apps/alloy.yaml) ships every pod's stdout here;
+# browse it in Grafana (Drilldown -> Logs).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: loki
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    # The OSS chart moved here from grafana/helm-charts in March 2026.
+    - repoURL: https://grafana-community.github.io/helm-charts
+      chart: loki
+      targetRevision: 20.0.2
+      helm:
+        releaseName: loki
+        valueFiles:
+          - $k8s-infra/apps/loki/helm/values.yaml
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: loki
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true

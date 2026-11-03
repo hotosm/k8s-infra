@@ -1,0 +1,26 @@
+# DaemonSet that tails every pod's stdout on each node and pushes it to Loki.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alloy
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://grafana.github.io/helm-charts
+      chart: alloy
+      targetRevision: 1.14.3
+      helm:
+        releaseName: alloy
+        valueFiles:
+          - $k8s-infra/apps/alloy/helm/values.yaml
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: loki
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true

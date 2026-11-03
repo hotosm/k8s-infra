@@ -1,0 +1,74 @@
+# Loki monolithic: one pod, chunks and index in S3, 30 days retention.
+deploymentMode: Monolithic
+
+loki:
+  # Single tenant, cluster-internal only (Alloy and Grafana talk to it directly).
+  auth_enabled: false
+  commonConfig:
+    replication_factor: 1
+  schemaConfig:
+    configs:
+      - from: "2026-10-01"
+        store: tsdb
+        object_store: s3
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+  # Buckets come from terraform/vars/production.tfvars; credentials from IRSA
+  # (serviceAccount annotation below), so no keys here.
+  storage:
+    type: s3
+    bucketNames:
+      chunks: hotosm-k8s-loki-chunks
+      ruler: hotosm-k8s-loki-ruler
+    s3:
+      region: us-east-1
+  compactor:
+    retention_enabled: true
+    delete_request_store: s3
+  limits_config:
+    retention_period: 720h
+
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::670261699094:role/hotosm-production-bucket-access
+
+singleBinary:
+  replicas: 1
+  resources:
+    requests: { cpu: 500m, memory: 1Gi }
+    limits: { memory: 2Gi }
+  # WAL and index cache only; the data lives in S3.
+  persistence:
+    storageClass: gp3
+    size: 10Gi
+
+# Chart defaults these to 3 even in Monolithic mode, which fails validation.
+read:
+  replicas: 0
+write:
+  replicas: 0
+backend:
+  replicas: 0
+
+# Memcached caches default to 8Gi+ of RAM; not worth it at this scale.
+chunksCache:
+  enabled: false
+resultsCache:
+  enabled: false
+# Nginx auth proxy, unneeded with auth_enabled: false.
+gateway:
+  enabled: false
+# Rules sidecar watches ConfigMaps/Secrets cluster-wide; we have no Loki rules.
+sidecar:
+  rules:
+    enabled: false
+# Loki's own metrics into Prometheus (ingestion rate, request errors).
+monitoring:
+  serviceMonitor:
+    enabled: true
+lokiCanary:
+  enabled: false
+test:
+  enabled: false

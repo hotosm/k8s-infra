@@ -1,0 +1,59 @@
+# Alert when pod logs stop reaching Loki (apps/loki.yaml, apps/alloy.yaml).
+# Critical so they reach Slack: the chart's own rules for these are warnings.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: logging-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: logging
+      rules:
+        # Single replica, so down means no ingestion and no queries.
+        - alert: LokiDown
+          expr: absent(up{namespace="loki", pod="loki-0"} == 1)
+          for: 15m
+          labels:
+            severity: critical
+            namespace: loki
+          annotations:
+            summary: "Loki is down, pod logs are not being stored"
+            description: kubectl -n loki describe pod loki-0
+
+        # Sustained drops only: Loki rejecting entries (rate limit, too old).
+        # A one-off blip, e.g. stale lines after a restart, deliberately never
+        # pages; Loki being down is LokiDown.
+        - alert: AlloyDroppingLogs
+          expr: sum by (pod) (increase(loki_write_dropped_entries_total{namespace="loki"}[15m])) > 0
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Alloy {{ $labels.pod }} is dropping log entries"
+            description: kubectl -n loki logs {{ $labels.pod }} | grep -i loki.write
+
+        # A dead collector can't report its own drops. 15m covers new nodes
+        # (fAIr/GPU pools) where the pod is still starting.
+        - alert: AlloyUnavailable
+          expr: kube_daemonset_status_number_unavailable{namespace="loki", daemonset="alloy"} > 0
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ $value }} Alloy pod(s) unavailable, those nodes' logs are not collected"
+            description: kubectl -n loki get pods -l app.kubernetes.io/name=alloy -o wide
+
+        # The disk only holds what is not yet flushed to S3, so it filling up
+        # almost always means S3 writes are failing (IAM, bucket missing).
+        - alert: LokiDiskFilling
+          expr: |
+            kubelet_volume_stats_used_bytes{namespace="loki"}
+              / kubelet_volume_stats_capacity_bytes{namespace="loki"} > 0.8
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Loki PVC {{ $labels.persistentvolumeclaim }} is over 80% full"
+            description: Check loki-0 logs for S3 errors; the WAL cannot flush.
