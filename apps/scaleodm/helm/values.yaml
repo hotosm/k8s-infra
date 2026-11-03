@@ -75,6 +75,12 @@ config:
     schedulingMode: "karpenter"
     nodeSelector: "pool=scaleodm"
     tolerations: "dedicated=scaleodm:NoSchedule"
+    # Jobs requesting >= 128Gi may also use the big-node pool
+    # (apps/karpenter/scaleodm-large-nodepool.yaml). Smaller jobs can't, so they
+    # never keep a big node alive. 128Gi leaves headroom below the 256Gi of the
+    # largest scaleodm-pool node.
+    largeJobMinMemoryGiB: 128
+    largeJobTolerations: "scaleodm-size=large:NoSchedule"
 
   processSizing:
     memoryLimitMarginPercent: 20
@@ -100,8 +106,10 @@ config:
 
 argo:
   controller:
-    # Only allow 5 jobs to run at a time for now
-    parallelism: 5
+    # Max workflows running at once. Cost is capped by the Karpenter pool
+    # limits (scaleodm 96 vCPU, scaleodm-large 192 vCPU), not by this. Big jobs
+    # hold a slot for up to 48h, so keep enough slots for ~1h task jobs.
+    parallelism: 15
 
     # Scraped by the cluster-wide kube-prometheus-stack (apps/monitoring).
     metricsConfig:

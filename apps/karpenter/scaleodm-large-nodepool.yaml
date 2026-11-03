@@ -1,0 +1,67 @@
+# Big ScaleODM nodes (48-96 vCPU) for jobs that don't fit the scaleodm pool.
+# The extra taint is tolerated only by jobs ScaleODM classes as large
+# (config.workflow.largeJobMinMemoryGiB / largeJobTolerations in
+# apps/scaleodm/helm/values.yaml), so a big node empties when its job ends and
+# WhenEmpty removes it. Same pool=scaleodm label, so the base nodeSelector
+# matches both pools.
+
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: scaleodm-large
+spec:
+  template:
+    metadata:
+      labels:
+        pool: scaleodm
+    spec:
+      nodeClassRef:
+        name: scaleodm-swap
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+
+      taints:
+        - key: dedicated
+          value: scaleodm
+          effect: NoSchedule
+        - key: scaleodm-size
+          value: large
+          effect: NoSchedule
+
+      requirements:
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64"]
+
+        - key: karpenter.k8s.aws/instance-category
+          operator: In
+          values: ["c", "m", "r"]
+
+        - key: karpenter.k8s.aws/instance-local-nvme
+          operator: Gt
+          values: ["100"]
+
+        # 96 vCPU (r6id/r7id.24xlarge, 768Gi) is the largest we allow. ScaleODM
+        # rejects jobs whose estimate is above processSizing.memoryMaxGiB.
+        - key: karpenter.k8s.aws/instance-cpu
+          operator: In
+          values: ["48", "64", "96"]
+
+        - key: karpenter.k8s.aws/instance-generation
+          operator: Gt
+          values: ["5"]
+
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot", "on-demand"]
+
+  limits:
+    # Two 24xlarge nodes, i.e. at most two big jobs at once (~$14/hr on-demand).
+    # Further big jobs pend, holding an Argo parallelism slot.
+    cpu: "192"
+    memory: 1536Gi
+
+  disruption:
+    # WhenEmpty only, so a multi-hour job is never consolidated mid-run.
+    consolidationPolicy: WhenEmpty
+    consolidateAfter: 1m

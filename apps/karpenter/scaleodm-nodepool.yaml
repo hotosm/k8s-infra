@@ -2,6 +2,9 @@
 # EC2NodeClass). Tainted so only ScaleODM workflow pods land here; all other
 # node-type=cpu workloads (e.g. Windmill) stay on the cheaper cpu-autoscale
 # pool. Scales to zero when idle.
+#
+# Nodes up to 32 vCPU only. Bigger nodes are in scaleodm-large-nodepool.yaml,
+# so small jobs can never keep a big node alive.
 
 apiVersion: karpenter.sh/v1
 kind: NodePool
@@ -42,11 +45,11 @@ spec:
           operator: Gt
           values: ["100"]
 
-        # 96 vCPU (r6id/r7id.24xlarge, 768Gi) is the largest we allow; a 12k-image
-        # job needs ~600Gi. Above that, use ODM --split.
+        # 32 vCPU r-family is 256Gi. ScaleODM sends jobs requesting >= 128Gi
+        # to scaleodm-large too (config.workflow.largeJobMinMemoryGiB).
         - key: karpenter.k8s.aws/instance-cpu
           operator: In
-          values: ["4", "8", "16", "32", "48", "64", "96"]
+          values: ["4", "8", "16", "32"]
 
         - key: karpenter.k8s.aws/instance-generation
           operator: Gt
@@ -57,23 +60,14 @@ spec:
           values: ["spot", "on-demand"]
 
   limits:
-    # Aggregate cap for the whole pool (all ODM jobs share it, Argo parallelism
-    # 5). The cap counts each node's *full* capacity, not the pod's request: a
-    # 12k-image --dsm --dtm job requests ~600Gi and lands on an r6id.24xlarge,
-    # which alone consumes 96 CPU / 768Gi. So this is really "how many big jobs
-    # run concurrently" -- 3x a 24xlarge fits two big jobs plus a node's worth
-    # of smaller ones.
-    #
-    # Overflow beyond the cap pends, and that pending time counts against the
-    # workflow activeDeadlineSeconds (48h, see apps/scaleodm/helm/values.yaml).
-    # Diagnosing this is unintuitive: Karpenter filters candidate instance types
-    # against the *remaining* limit headroom, so a pool at its cap reports
-    # "no instance type has enough resources" (with the full requirements dump)
-    # rather than naming the limit. If a pending ODM pod shows that, check
-    # `kubectl get nodepool scaleodm -o jsonpath='{.status.resources}'` against
-    # these values before touching the instance-type requirements above.
-    cpu: "288"
-    memory: 2304Gi
+    # Cost cap for small jobs: ~3 x 32 vCPU nodes. With scaleodm-large's 192
+    # vCPU the total ODM cap is 288 vCPU (~$21/hr on-demand). The cap counts
+    # each node's full capacity, not pod requests. Overflow pends, and pending
+    # time counts against the 48h workflow deadline. A pool at its cap reports
+    # "no instance type has enough resources" rather than naming the limit:
+    # check `kubectl get nodepool scaleodm -o jsonpath='{.status.resources}'`.
+    cpu: "96"
+    memory: 768Gi
 
   disruption:
     # WhenEmpty only, so a node running a multi-hour ODM job is never
