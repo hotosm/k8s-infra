@@ -134,6 +134,12 @@ grafana:
       enabled: true
       label: grafana_dashboard
       searchNamespaces: ALL
+  # Pod logs, see apps/loki.yaml
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      uid: loki
+      url: http://loki.loki.svc:3100
 
 # Cluster collectors enabled explicitly
 nodeExporter:

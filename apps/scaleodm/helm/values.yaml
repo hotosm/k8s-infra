@@ -23,16 +23,6 @@ workspaceStorageClass:
   create: true
 
 config:
-  observability:
-    enabled: false
-    serviceName: "scaleodm"
-    serviceVersion: ""
-    otlpEndpoint: ""
-    otlpInsecure: false
-    metricsEnabled: true
-    tracesEnabled: true
-    traceSampleRatio: 0.1
-
   # Defaults, except gp3 storageclass
   workflow:
     # 48hrs processing deadline

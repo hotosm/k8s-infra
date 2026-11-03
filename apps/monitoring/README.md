@@ -116,6 +116,23 @@ It's a ConfigMap labelled `grafana_dashboard`, so the sidecar imports it automat
 
 For anything ad-hoc, use **Explore** and paste the queries below.
 
+## Logs (Loki)
+
+Alloy (`apps/alloy.yaml`) tails every pod's stdout into Loki (`apps/loki.yaml`),
+kept 30 days in S3 ("hotosm-k8s-loki-chunks", "hotosm-k8s-loki-ruler").
+
+In Grafana, **Drilldown -> Logs** browses by app with no
+query language
+
+**Explore** with the Loki source takes LogQL:
+
+```logql
+{namespace="odm"} |= "POST /task/new: rejected"
+```
+
+Labels are `namespace`, `pod`, `container`, `app` (plus Loki's derived
+`service_name`).
+
 ## Argo Workflows / batch jobs
 
 The Argo controller (ns `argo`, from the ScaleODM chart) ships its own ServiceMonitor
