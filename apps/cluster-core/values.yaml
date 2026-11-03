@@ -2,9 +2,9 @@
 # to grant / revoke access to contractors.
 contractorNamespaces:
   - login
-  - fair-prod
-  - fair-staging
-  - fair-knative
-  - zenml-pipelines-prod
-  - zenml-pipelines-stage
-  - knative-serving
+  - oam
+  - opencost
+  - loki
+  - monitoring
+  - argocd
+  - ingress-nginx
