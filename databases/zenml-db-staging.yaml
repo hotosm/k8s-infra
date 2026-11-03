@@ -52,6 +52,9 @@ spec:
       source: zenml-db-staging
       database: zenml
       owner: zenml
+      # The owner's password is reset from this secret, so it must hold the live one.
+      secret:
+        name: zenml-db-staging-creds
   externalClusters:
     - name: zenml-db-staging
       plugin:

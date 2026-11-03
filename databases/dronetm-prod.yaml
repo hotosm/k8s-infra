@@ -54,6 +54,9 @@ spec:
       source: dronetm-db-prod
       database: drone_tm_prod
       owner: drone_tm_prod_rw
+      # The owner's password is reset from this secret, so it must hold the live one.
+      secret:
+        name: dronetm-db-prod-creds
   externalClusters:
     - name: dronetm-db-prod
       plugin:

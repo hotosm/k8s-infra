@@ -53,6 +53,9 @@ spec:
       source: windmill-db
       database: windmill
       owner: windmill
+      # The owner's password is reset from this secret, so it must hold the live one.
+      secret:
+        name: windmill-db-creds
   externalClusters:
     - name: windmill-db
       plugin:

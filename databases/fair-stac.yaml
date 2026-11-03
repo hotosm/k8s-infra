@@ -53,6 +53,9 @@ spec:
       source: fair-stac-db
       database: fair-stac
       owner: fair-stac
+      # The owner's password is reset from this secret, so it must hold the live one.
+      secret:
+        name: fair-stac-db-creds
   externalClusters:
     - name: fair-stac-db
       plugin:

@@ -48,6 +48,9 @@ spec:
       source: fair-prod-db
       database: fair_prod
       owner: fair_prod_rw
+      # The owner's password is reset from this secret, so it must hold the live one.
+      secret:
+        name: fair-prod-db-creds
   externalClusters:
     - name: fair-prod-db
       plugin:

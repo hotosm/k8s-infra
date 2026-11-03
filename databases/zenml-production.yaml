@@ -55,6 +55,9 @@ spec:
       source: zenml-db-production
       database: zenml
       owner: zenml
+      # The owner's password is reset from this secret, so it must hold the live one.
+      secret:
+        name: zenml-db-production-creds
   externalClusters:
     - name: zenml-db-production
       plugin:

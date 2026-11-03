@@ -54,6 +54,9 @@ spec:
       source: scaleodm-db
       database: scaleodm
       owner: scaleodm
+      # The owner's password is reset from this secret, so it must hold the live one.
+      secret:
+        name: scaleodm-db-creds
   externalClusters:
     - name: scaleodm-db
       plugin:

@@ -54,6 +54,9 @@ spec:
       source: hot-website-db
       database: hotosm
       owner: hotosm
+      # The owner's password is reset from this secret, so it must hold the live one.
+      secret:
+        name: hot-website-db-creds
   externalClusters:
     - name: hot-website-db
       plugin:

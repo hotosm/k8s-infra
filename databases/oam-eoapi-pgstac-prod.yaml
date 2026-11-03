@@ -46,6 +46,9 @@ spec:
       source: oam-eoapi-pgstac-prod-db
       database: oam-eoapi-pgstac-prod
       owner: oam_stac
+      # The owner's password is reset from this secret, so it must hold the live one.
+      secret:
+        name: oam-eoapi-pgstac-prod-db-creds
   externalClusters:
     - name: oam-eoapi-pgstac-prod-db
       plugin:

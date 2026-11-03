@@ -53,6 +53,9 @@ spec:
       source: mlflow-db
       database: mlflow
       owner: mlflow
+      # The owner's password is reset from this secret, so it must hold the live one.
+      secret:
+        name: mlflow-db-creds
   externalClusters:
     - name: mlflow-db
       plugin:
