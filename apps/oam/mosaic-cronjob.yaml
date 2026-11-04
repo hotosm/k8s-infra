@@ -8,8 +8,8 @@ metadata:
   labels:
     app: oam-global-mosaic
 spec:
-  # Every hour
-  schedule: "0 * * * *"
+  # Every 15 minutes. A run takes ~2 min, so overlaps are unlikely
+  schedule: "*/15 * * * *"
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 1
   # Prevent running multiple jobs concurrently
@@ -28,7 +28,7 @@ spec:
               imagePullPolicy: Always
               resources:
                 requests:
-                  # It's a more CPU-intensive job - tippecanoe uses concurrency
+                  # CPU-bound: tylertoo tiles in parallel
                   cpu: "1000m"
                   memory: "1Gi"
                 limits:
