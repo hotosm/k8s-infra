@@ -71,18 +71,22 @@ vector:
 raster:
   autoscaling:
     enabled: true
-    minReplicas: 1
-    maxReplicas: 6
+    minReplicas: 2
+    # Worst case DB connections: maxReplicas x WEB_CONCURRENCY x DB_MAX_CONN_SIZE (3).
+    # Budget against max_connections, shared with stac and the sync jobs.
+    maxReplicas: 12
     # requestRate would need prometheus-adapter
     type: "cpu"
     behavior:
       scaleDown:
-        stabilizationWindowSeconds: 60
+        stabilizationWindowSeconds: 300
       scaleUp:
         stabilizationWindowSeconds: 0
     targets:
-      cpu: 85
+      cpu: 60
   settings:
+    envVars:
+      WEB_CONCURRENCY: "2"
     resources:
       requests: { cpu: "1024m", memory: "2Gi" }
       limits: { cpu: "2048m", memory: "4Gi" }

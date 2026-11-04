@@ -93,7 +93,7 @@ stac:
       limits: { cpu: 500m, memory: 768Mi }
 
 raster:
-  # No autoscaling on staging (prod scales to 6).
+  # No autoscaling on staging
   autoscaling:
     enabled: false
   settings:
