@@ -30,7 +30,11 @@ spec:
       targetRevision: "*"
       helm:
         releaseName: global-tms
-        # Chart defaults are fine
+        valuesObject:
+          # Same list as FOOTPRINT_COLLECTIONS in oam/mosaic-cronjob.yaml.
+          collections:
+            - openaerialmap
+            - vantor-opendata
 
     - repoURL: oci://ghcr.io/hotosm/charts/openaerialmap/uploader-api
       chart: uploader-api
