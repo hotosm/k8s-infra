@@ -43,3 +43,35 @@ kubectl logs -n tm-sandbox -l app=sandbox-osm-export --container osm-export -f
 kubectl logs -n tm-sandbox -l app=sandbox-osm-export --container s3-uploader -f
 kubectl delete job manual-test -n tm-sandbox
 ```
+
+# tm-sandbox osm-db Backup
+
+Daily CronJob that dumps `osm-db` with `pg_dump --format=custom` and uploads it to S3.
+Runs at **04:00 UTC** every day, an hour after the export. `osm-db` is not a CNPG cluster, so this is its only backup.
+
+Output: `s3://tm-sandbox-extracts-670261699094-us-east-1-an/backups/osm-db/YYYY-MM-DDTHHMMSSZ.dump`
+
+Uses the same `sandbox-osm-exporter-secrets` secret as the export. The `pg_dump` image (`postgres:14.11`) must match the `osm-db` server's major version.
+
+Command to check it:
+```bash
+kubectl -n tm-sandbox exec osm-db-0 -- psql -U postgres -tAc 'show server_version'
+```
+
+## Triggering manually
+
+```bash
+kubectl create job --from=cronjob/sandbox-osm-db-backup manual-backup -n tm-sandbox
+kubectl logs -n tm-sandbox -l app=sandbox-osm-db-backup --container pg-dump -f
+kubectl logs -n tm-sandbox -l app=sandbox-osm-db-backup --container s3-uploader -f
+kubectl delete job manual-backup -n tm-sandbox
+```
+
+## Restoring
+
+```bash
+aws s3 cp s3://tm-sandbox-extracts-670261699094-us-east-1-an/backups/osm-db/<file>.dump .
+pg_restore --clean --if-exists --no-owner -d sandbox_db <file>.dump
+```
+
+Restore into the `developmentseed/osmseed-db` image (same as `osm-db`); plain `postgres` images fail.

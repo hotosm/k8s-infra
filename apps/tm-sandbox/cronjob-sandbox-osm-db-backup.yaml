@@ -1,0 +1,128 @@
+# Daily pg_dump of the sandbox osm-db to S3
+# osm-db is not a CNPG cluster, so this is its only backup
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sandbox-osm-db-backup
+  namespace: tm-sandbox
+  labels:
+    app: sandbox-osm-db-backup
+spec:
+  schedule: "0 4 * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 600
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 10
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: sandbox-osm-db-backup
+        spec:
+          restartPolicy: Never
+          # dump first, the uploader only starts if the dump succeeded
+          initContainers:
+            - name: pg-dump
+              image: postgres:14.11
+              imagePullPolicy: IfNotPresent
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "256Mi"
+                limits:
+                  cpu: "500m"
+                  memory: "1Gi"
+              command:
+                - "/bin/sh"
+                - "-c"
+              args:
+                - |
+                  set -e
+                  echo "Dumping ${PGDATABASE} from ${PGHOST}..."
+                  pg_dump --format=custom --file=/shared/osm-db.dump
+                  # Reading the archive's table of contents catches a truncated dump
+                  pg_restore --list /shared/osm-db.dump > /dev/null
+                  ls -lh /shared/osm-db.dump
+              env:
+                - name: PGHOST
+                  valueFrom:
+                    secretKeyRef:
+                      key: SRC_PGHOST
+                      name: sandbox-osm-exporter-secrets
+                - name: PGPORT
+                  valueFrom:
+                    secretKeyRef:
+                      key: SRC_PGPORT
+                      name: sandbox-osm-exporter-secrets
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      key: SRC_PGUSER
+                      name: sandbox-osm-exporter-secrets
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: SRC_PGPASSWORD
+                      name: sandbox-osm-exporter-secrets
+                - name: PGDATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      key: SRC_PGDATABASE
+                      name: sandbox-osm-exporter-secrets
+              volumeMounts:
+                - name: shared-data
+                  mountPath: /shared
+          containers:
+            - name: s3-uploader
+              image: amazon/aws-cli:2.15.17
+              imagePullPolicy: IfNotPresent
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "128Mi"
+                limits:
+                  cpu: "300m"
+                  memory: "256Mi"
+              command:
+                - "/bin/sh"
+                - "-c"
+              args:
+                - |
+                  set -e
+
+                  TIMESTAMP=$(date -u +%Y-%m-%dT%H%M%SZ)
+                  S3_KEY="backups/osm-db/${TIMESTAMP}.dump"
+
+                  echo "Uploading to s3://${S3_BUCKET}/${S3_KEY}"
+                  aws s3 cp /shared/osm-db.dump "s3://${S3_BUCKET}/${S3_KEY}" --region "${S3_REGION}"
+                  echo "Uploaded on s3://${S3_BUCKET}/${S3_KEY}"
+              env:
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      key: S3_ACCESS_KEY
+                      name: sandbox-osm-exporter-secrets
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      key: S3_SECRET_KEY
+                      name: sandbox-osm-exporter-secrets
+                - name: S3_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      key: S3_BUCKET
+                      name: sandbox-osm-exporter-secrets
+                - name: S3_REGION
+                  valueFrom:
+                    secretKeyRef:
+                      key: S3_REGION
+                      name: sandbox-osm-exporter-secrets
+              volumeMounts:
+                - name: shared-data
+                  mountPath: /shared
+          volumes:
+            - name: shared-data
+              emptyDir: {}
+      backoffLimit: 0
+      activeDeadlineSeconds: 3600
