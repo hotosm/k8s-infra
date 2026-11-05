@@ -1,3 +1,7 @@
 pgstac:
   secretName: oam-eoapi-pgstac-prod-db-creds
   uriKey: uri
+
+config:
+  s3Bucket: oin-hotosm-prod
+  s3PublicBaseURL: https://oin-hotosm-prod.s3.us-east-1.amazonaws.com
