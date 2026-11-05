@@ -55,9 +55,9 @@ spec:
               value: https://packager.stage.imagery.hotosm.org
             # From prod: global-mosaic does not run in staging.
             - name: VITE_PMTILES_URL
-              value: https://s3.amazonaws.com/oin-hotosm-temp/global-data.pmtiles
+              value: https://s3.amazonaws.com/oin-hotosm-prod/global-data.pmtiles
             - name: VITE_DENSITY_PMTILES_URL
-              value: https://s3.amazonaws.com/oin-hotosm-temp/global-coverage.pmtiles
+              value: https://s3.amazonaws.com/oin-hotosm-prod/global-coverage.pmtiles
           readinessProbe:
             httpGet: { path: /index.html, port: http }
             initialDelaySeconds: 3

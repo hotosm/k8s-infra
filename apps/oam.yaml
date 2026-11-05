@@ -31,6 +31,8 @@ spec:
       helm:
         releaseName: global-tms
         valuesObject:
+          pmtiles:
+            url: https://s3.amazonaws.com/oin-hotosm-prod/global-coverage.pmtiles
           # Same list as FOOTPRINT_COLLECTIONS in oam/mosaic-cronjob.yaml.
           collections:
             - openaerialmap

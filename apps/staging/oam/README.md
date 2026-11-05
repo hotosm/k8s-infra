@@ -30,7 +30,7 @@ Read-only from prod, so there is nothing to stage:
 
 | Thing | Why |
 | --- | --- |
-| coverage PMTiles | `global-mosaic` output in `oin-hotosm-temp`, public GET |
+| coverage PMTiles | `global-mosaic` output in `oin-hotosm-prod`, public GET |
 | global TMS | third-party image, chart only; the landing page links prod's |
 | STAC Browser | static SPA; prod's copy browses this catalogue via `/browser/external/api.stage.imagery.hotosm.org/stac` |
 | STAC Map | static SPA; prod's copy browses this catalogue via `/map/?href=https://api.stage.imagery.hotosm.org/stac` |
