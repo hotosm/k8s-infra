@@ -18,9 +18,9 @@ env:
   # Empty endpoint = real AWS S3
   S3_ENDPOINT: ""
   S3_EXTERNAL_ENDPOINT: ""
-  S3_BUCKET: oin-hotosm-temp
+  S3_BUCKET: oin-hotosm-prod
   S3_REGION: us-east-1
-  PUBLIC_ASSET_BASE_URL: https://oin-hotosm-temp.s3.us-east-1.amazonaws.com
+  PUBLIC_ASSET_BASE_URL: https://oin-hotosm-prod.s3.us-east-1.amazonaws.com
 
   # Prod relies on per-object ACLs for public access.
   S3_OBJECT_ACL: public-read

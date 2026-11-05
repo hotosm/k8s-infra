@@ -52,19 +52,21 @@ s3Secret:
   secretAccessKeyKey: S3_SECRET_KEY
 ```
 
-That IAM user needs read, write and `s3:PutObjectAcl` on `oin-hotosm-temp`.
-Prod has no public-read bucket policy, so `S3_OBJECT_ACL: public-read` is
-required. The mosaic cronjob that shares the secret only needs read.
+That IAM user needs read, write, delete and `s3:PutObjectAcl` on
+`oin-hotosm-prod`, granted in both IAM and the bucket policy because the bucket
+is in another account. The bucket's public-read policy does not cover objects
+owned by the writer's account, so `S3_OBJECT_ACL: public-read` is required. The
+mosaic cronjob and tilepack-api share this secret.
 
 ### Bucket CORS
 
-`oin-hotosm-temp` predates these repos and has no IaC, so its CORS rules are
-kept here as `bucket-cors.json` and applied by hand:
+`oin-hotosm-prod` has no IaC, so its CORS rules are kept here as
+`bucket-cors.json` and applied by hand from the bucket's account:
 
 ```bash
-aws s3api put-bucket-cors --bucket oin-hotosm-temp \
+aws s3api put-bucket-cors --bucket oin-hotosm-prod \
   --cors-configuration file://bucket-cors.json
-aws s3api get-bucket-cors --bucket oin-hotosm-temp   # confirm
+aws s3api get-bucket-cors --bucket oin-hotosm-prod   # confirm
 ```
 
 Staging's bundled RustFS bucket gets the equivalent rules from the chart's

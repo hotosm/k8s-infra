@@ -1,5 +1,5 @@
 # This manifest generates the global coverage vector PMTiles layer for OpenAerialMap, available at
-# http://s3.amazonaws.com/oin-hotosm-temp/global-coverage.pmtiles
+# http://s3.amazonaws.com/oin-hotosm-prod/global-coverage.pmtiles
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -39,6 +39,8 @@ spec:
                 # See openaerialmap MADR 0008.
                 - name: FOOTPRINT_COLLECTIONS
                   value: "openaerialmap,vantor-opendata"
+                - name: S3_BUCKET
+                  value: oin-hotosm-prod
                 - name: PGUSER
                   valueFrom:
                     secretKeyRef:
