@@ -57,9 +57,21 @@ pgstacBootstrap:
         argocd.argoproj.io/hook: Sync
         argocd.argoproj.io/sync-wave: "-5"
         argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    # After the uploader-api seed Job (wave 0) creates the collection.
+    pgstacLoadQueryables:
+      annotations:
+        argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/sync-wave: "1"
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
   settings:
     loadSamples: false
-    queryables: []
+    queryables:
+      - name: oam-queryables.json
+        configMapRef:
+          name: oam-queryables
+          key: queryables.json
+        collections: ["openaerialmap"]
+        indexFields: ["oam:owner_id", "oam:uploader_id"]
 
 # All the uploader flow needs: register items, preview the COG.
 apiServices:
