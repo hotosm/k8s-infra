@@ -76,5 +76,5 @@ spec:
                     secretKeyRef:
                       key: S3_SECRET_KEY
                       name: oam-s3-creds
-      # do not attempt retry
-      backoffLimit: 0
+      # Safe to retry: a rerun regenerates and re-uploads everything
+      backoffLimit: 1
