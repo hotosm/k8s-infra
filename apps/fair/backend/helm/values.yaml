@@ -49,6 +49,8 @@ backend:
     ZENML_STORE_URL: "https://zenml.ai.hotosm.org"
     ZENML_CONFIG_PATH: "/tmp/zenml"
     ZENML_ACTIVE_STACK_ID: "5a2f0dd7-4207-4863-959a-3374531171e9"
+    # The default project. Needed once a server has more than one project.
+    ZENML_ACTIVE_PROJECT_ID: "9730dfb1-d09c-4c6d-9f2f-dcbc0ceb43ed"
     HOME: "/tmp"
     FAIR_LABEL_DOMAIN: "fair-k8s"
     FAIR_UPLOAD_ARTIFACTS: "true"
