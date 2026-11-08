@@ -43,6 +43,9 @@ Shared by both:
 - Model files are private in S3. The backend serves them through
   `/api/v1/artifacts/`, which only allows `<models bucket>/backend/zenml/`.
 - STAC is read-only over HTTP. The backend writes to pgstac directly (`FAIR_STAC_DSN`).
+- The eoapi chart sets the pgstac version. On a chart bump, match pypgstac in
+  `fAIr/backend/uv.lock` and the `pgstac-pypgstac` tag in `fAIr/docker-compose.yml`.
+  Migrations are one-way, so go staging first.
 
 ## Backend secrets
 

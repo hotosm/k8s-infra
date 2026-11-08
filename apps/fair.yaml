@@ -19,7 +19,7 @@ spec:
     # 2. STAC / eoAPI
     - repoURL: https://devseed.com/eoapi-k8s
       chart: eoapi
-      targetRevision: 0.12.2
+      targetRevision: 0.16.4
       helm:
         releaseName: fair-eoapi
         skipCrds: false

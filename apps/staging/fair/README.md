@@ -10,7 +10,7 @@ Everything shared with production (names, secrets, the ZenML stack, testing) is 
 | Service | Chart | Values |
 | --- | --- | --- |
 | fAIr backend | `hotosm/fAIr` chart at the PR `head_sha` | `backend/helm/values.yaml` |
-| eoAPI (STAC) | `devseed/eoapi-k8s` 0.12.2 | `eoapi/helm/values.yaml` |
+| eoAPI (STAC) | `devseed/eoapi-k8s` 0.16.4 | `eoapi/helm/values.yaml` |
 | MLflow | `community-charts/mlflow` 1.8.1 | `mlflow/helm/values.yaml` |
 | ZenML | `oci://.../zenml/zenml` 0.94.2 | `zenml/helm/values.yaml` |
 
