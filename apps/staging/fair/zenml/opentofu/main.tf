@@ -1,6 +1,5 @@
 provider "zenml" {
   server_url = var.zenml_server
-  # api_key = <taken from the ZENML_API_KEY environment variable if not set here>
 }
 
 provider "aws" {
@@ -10,7 +9,6 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
-# Create S3 bucket for ZenML artifacts
 locals {
   models_bucket = aws_s3_bucket.data_stores[var.bucket_names[0]].bucket
 }
@@ -19,7 +17,6 @@ resource "aws_s3_bucket" "artifacts" {
   bucket = "${data.aws_caller_identity.current.account_id}-zenml-artifacts-${var.environment}"
 }
 
-### TODO: Redo with a service role
 resource "aws_iam_user" "iam_user" {
   name = "zenml-${var.environment}"
 }
@@ -87,9 +84,6 @@ resource "aws_iam_role_policy" "s3_policy" {
   })
 }
 
-# --- Service Connectors ---
-
-# AWS connector for S3 artifact store access
 resource "zenml_service_connector" "aws" {
   name        = "aws-${var.environment}"
   type        = "aws"
@@ -108,9 +102,6 @@ resource "zenml_service_connector" "aws" {
   }
 }
 
-# --- Stack Components ---
-
-# Artifact Store: S3
 resource "zenml_stack_component" "artifact_store" {
   name   = "s3-${var.environment}"
   type   = "artifact_store"
@@ -121,8 +112,7 @@ resource "zenml_stack_component" "artifact_store" {
     path = "s3://${local.models_bucket}/backend/zenml"
   }
 
-  # connector_id = zenml_service_connector.aws.id
-  connector_id = "ce2e1b32-1a76-4ee6-be06-6fc42e0ef5f6"
+  connector_id          = zenml_service_connector.aws.id
   connector_resource_id = local.models_bucket
 
   labels = {
@@ -130,7 +120,6 @@ resource "zenml_stack_component" "artifact_store" {
   }
 }
 
-# Container Registry: GitHub (GHCR)
 resource "zenml_stack_component" "container_registry" {
   name   = "ghcr-${var.environment}"
   type   = "container_registry"
@@ -145,7 +134,6 @@ resource "zenml_stack_component" "container_registry" {
   }
 }
 
-# Orchestrator: Kubernetes
 resource "zenml_stack_component" "orchestrator" {
   name   = "kubernetes-orchestrator-${var.environment}"
   type   = "orchestrator"
@@ -163,7 +151,6 @@ resource "zenml_stack_component" "orchestrator" {
   }
 }
 
-# Step Operator: Kubernetes (for specific GPU steps)
 resource "zenml_stack_component" "step_operator" {
   name   = "kubernetes-step-operator-${var.environment}"
   type   = "step_operator"
@@ -179,22 +166,6 @@ resource "zenml_stack_component" "step_operator" {
   }
 }
 
-# # Image Builder: Kaniko (builds container images in-cluster)
-# resource "zenml_stack_component" "image_builder" {
-#   name   = "kaniko-${var.environment}"
-#   type   = "image_builder"
-#   flavor = "kaniko"
-
-#   configuration = {
-#     kubernetes_namespace = var.zenml_pipeline_namespace
-#   }
-
-#   labels = {
-#     environment = var.environment
-#   }
-# }
-
-# Experiment Tracker: MLFlow
 resource "zenml_stack_component" "experiment_tracker" {
   name   = "mlflow-experiment-tracker-${var.environment}"
   type   = "experiment_tracker"
@@ -234,7 +205,6 @@ resource "zenml_stack" "aws_stack" {
     container_registry = zenml_stack_component.container_registry.id
     orchestrator       = zenml_stack_component.orchestrator.id
     step_operator      = zenml_stack_component.step_operator.id
-    # image_builder      = zenml_stack_component.image_builder.id
     experiment_tracker = zenml_stack_component.experiment_tracker.id
     model_registry     = zenml_stack_component.model_registry.id
   }
