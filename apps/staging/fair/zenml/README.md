@@ -38,7 +38,7 @@ chart's db migration job.
 
 ## Configuration
 
-See [`opentofu/README.md`](./opentofu/README.md).
+See the shared runbook in [`apps/fair/zenml/opentofu/README.md`](../../../fair/zenml/opentofu/README.md).
 
 ## How to reset ZenML staging password
 

@@ -1,31 +1,26 @@
-# fair staging (backend + eoAPI + MLflow + ZenML)
+# fAIr staging
 
-A PR opened on [hotosm/fAIr](https://github.com/hotosm/fAIr) with head
-`staging` targeting `main` triggers the `fair-staging` ApplicationSet
-(see `../fair.yaml`). All four services land in the `fair-staging`
-namespace:
+Opening a PR on [hotosm/fAIr](https://github.com/hotosm/fAIr) from `staging` to `main`
+deploys staging, via the `fair-staging` ApplicationSet (`../fair.yaml`). Closing or
+merging the PR tears it down again.
 
-| Service      | Chart source                          | Values                        |
-|--------------|---------------------------------------|-------------------------------|
-| fair backend | `hotosm/fAIr` chart at PR `head_sha`  | `backend/helm/values.yaml`    |
-| eoAPI (STAC) | `devseed/eoapi-k8s` 0.12.2            | `eoapi/helm/values.yaml`      |
-| MLflow       | `community-charts/mlflow` 1.8.1       | `mlflow/helm/values.yaml`     |
-| ZenML        | `oci://.../zenml/zenml` 0.94.2        | `zenml/helm/values.yaml`      |
+Everything shared with production (names, secrets, the ZenML stack, testing) is in
+[apps/fair/README.md](../../fair/README.md).
 
-Closing/merging the PR tears the four Helm workloads down; namespace,
-quota/limits, sealed secrets, and ZenML pipeline RBAC persist
-(`Prune=false,Delete=false`) so the next PR lands cleanly.
+| Service | Chart | Values |
+| --- | --- | --- |
+| fAIr backend | `hotosm/fAIr` chart at the PR `head_sha` | `backend/helm/values.yaml` |
+| eoAPI (STAC) | `devseed/eoapi-k8s` 0.12.2 | `eoapi/helm/values.yaml` |
+| MLflow | `community-charts/mlflow` 1.8.1 | `mlflow/helm/values.yaml` |
+| ZenML | `oci://.../zenml/zenml` 0.94.2 | `zenml/helm/values.yaml` |
 
-## Persistent state (survives PR churn)
+## What survives between PRs
 
-- **Databases:** CNPG clusters `mlflow-db`, `zenml-db`, `fair-stac` in
-  the `postgres` namespace. Not managed by this ApplicationSet.
-- **MLflow artifacts:** S3 bucket `hotosm-fair-mlflow`.
-- **STAC catalog data:** in `fair-stac` CNPG cluster.
-- **fair backend DB:** ephemeral, bundled in the chart (`postgres.enabled: true`).
-  Fresh Postgres per PR - this is intentional for clean backend testing.
+- The namespace, quotas, sealed secrets and ZenML pipeline RBAC
+  (`Prune=false,Delete=false`).
+- The MLflow, ZenML and STAC databases (CNPG clusters in `postgres`).
+- MLflow artifacts, in the `hotosm-fair-mlflow` bucket.
 
-See the production [AWS dependency list](../../fair/README.md#aws-dependencies).
-
-Knative services in `fair-knative` are shared with production. Staging serves
-its revisions under the `staging` tag (`staging-<model>.predict.ai.hotosm.org`).
+The backend database is bundled and fresh for each PR, on purpose, so every test
+starts clean. That also means you need to make yourself admin again on each PR
+(`just test e2e` does this for you).
