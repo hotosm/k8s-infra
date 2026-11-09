@@ -166,6 +166,15 @@ resource "zenml_stack_component" "step_operator" {
   }
 }
 
+# Keeps the password out of the component config.
+resource "zenml_secret" "mlflow" {
+  name = "mlflow-${var.environment}"
+
+  values = {
+    password = var.mlflow_tracking_password
+  }
+}
+
 resource "zenml_stack_component" "experiment_tracker" {
   name   = "mlflow-experiment-tracker-${var.environment}"
   type   = "experiment_tracker"
@@ -174,7 +183,7 @@ resource "zenml_stack_component" "experiment_tracker" {
   configuration = {
     tracking_uri      = var.mlflow_tracking_uri
     tracking_username = var.mlflow_tracking_username
-    tracking_password = var.mlflow_tracking_password
+    tracking_password = format("{{%s.password}}", zenml_secret.mlflow.name)
   }
 
   labels = {
