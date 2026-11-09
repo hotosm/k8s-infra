@@ -64,10 +64,11 @@ spec:
           directory:
             include: workflow-template.yaml
 
-        # Same chart version as prod (apps/oam.yaml); keep them in lockstep.
+        # Ahead of prod (apps/oam.yaml, 0.15.0) to trial the upgrade; bring prod
+        # to the same version once staging is verified.
         - repoURL: https://devseed.com/eoapi-k8s
           chart: eoapi
-          targetRevision: 0.15.0
+          targetRevision: 0.17.6
           helm:
             releaseName: eoapi
             skipCrds: false
