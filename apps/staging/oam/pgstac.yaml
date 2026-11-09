@@ -2,11 +2,6 @@
 # (databases/oam-eoapi-pgstac-prod.yaml). Why this image and not the eoAPI
 # chart's Crunchy cluster: README.md.
 #
-# This image's pgstac must be <= the eoAPI chart's pypgstac, whose migrate job is
-# forward-only: v0.9.6 here against v0.10.0 in eoapi 0.15.0. Re-check on a bump:
-#   helm template eoapi eoapi/eoapi --version 0.15.0 \
-#     -f eoapi/helm/values.yaml | grep -B20 'pypgstac migrate' | grep 'image:'
-#
 # Throwaway credentials, hence a plain Secret in git; eoAPI's external-secret
 # type errors unless all five keys are present.
 apiVersion: v1

@@ -16,7 +16,7 @@ outside the cluster:
 | bucket setup | the same chart, `bucket-init` hook, on every sync |
 | catalogue seed | the same chart, `seed.enabled=true`, on every sync |
 | pgstac | `pgstac.yaml`, single-pod `ghcr.io/stac-utils/pgstac`, ephemeral |
-| eoAPI raster | upstream chart 0.15.0 |
+| eoAPI raster | upstream chart 0.17.6 |
 | eoAPI stac | upstream chart, our `stac-api` image at `sha-<head_sha>` |
 | eoAPI root landing page | upstream chart's `docServer`, so the bare host is not a 404 |
 | tilepack-api + worker | its chart, from the PR commit, images `sha-<head_sha>` |
