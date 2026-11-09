@@ -3,8 +3,8 @@
 # chart's Crunchy cluster: README.md.
 #
 # This image's pgstac must be <= the eoAPI chart's pypgstac, whose migrate job is
-# forward-only: v0.9.6 here against v0.10.0 in eoapi 0.15.0. Re-check on a bump:
-#   helm template eoapi eoapi/eoapi --version 0.15.0 \
+# forward-only: v0.9.6 here against v0.9.12 in eoapi 0.17.6. Re-check on a bump:
+#   helm template eoapi eoapi/eoapi --version 0.17.6 \
 #     -f eoapi/helm/values.yaml | grep -B20 'pypgstac migrate' | grep 'image:'
 #
 # Throwaway credentials, hence a plain Secret in git; eoAPI's external-secret
