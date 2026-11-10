@@ -1,3 +1,4 @@
+# TODO cost: add an S3 gateway endpoint so same-region S3 reads (e.g. TiTiler COGs) skip NAT processing charges
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"

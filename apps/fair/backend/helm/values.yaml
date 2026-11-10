@@ -81,7 +81,7 @@ frontend:
     VITE_FAIR_PROD_URL: "https://ai.hotosm.org"
     VITE_NODE_ENV: "production"
 
-  # Infrastructure is managed in //terraform/frontend_s3_cloudfront.tf.
+  # Infrastructure is managed in //terraform/fair_s3_frontend.tf.
   cloudfront:
     roleArn: "arn:aws:iam::670261699094:role/hotosm-production-fair-frontend-deploy"
     region: "us-east-1"

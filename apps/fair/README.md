@@ -144,7 +144,7 @@ only created on the first base model registration. Then run [TESTING.md](TESTING
 | Backend IAM user | S3 access and presigned URLs | `zenml/opentofu/s3.tf`, `fair-api-credentials.yaml` |
 | Pipeline IRSA | Pipeline pods' S3 access | `zenml/opentofu/s3.tf`, `zenml-orchestrator-role.yaml` |
 | ZenML AWS connector | Artifact store access | `zenml/opentofu/main.tf` |
-| Frontend deploy IRSA | S3 upload, CloudFront invalidation (production) | `backend/helm/values.yaml`, `terraform/frontend_s3_cloudfront.tf` |
+| Frontend deploy IRSA | S3 upload, CloudFront invalidation (production) | `backend/helm/values.yaml`, `terraform/fair_s3_frontend.tf` |
 | Karpenter node pools | GPU training, CPU inference | `apps/karpenter/` |
 
 > [!NOTE]
