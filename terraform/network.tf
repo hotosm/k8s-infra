@@ -1,10 +1,10 @@
+# TODO cost: add an S3 gateway endpoint so same-region S3 reads (e.g. TiTiler COGs) skip NAT processing charges
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"
 
   name               = "k8s-infra-${var.environment}"
   cidr               = local.vpc_cidr
-  # TODO cost: add an S3 gateway endpoint so same-region S3 reads (e.g. TiTiler COGs) skip NAT processing charges
   enable_nat_gateway = true
   single_nat_gateway = true
 
