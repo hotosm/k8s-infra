@@ -99,6 +99,32 @@ resource "aws_cloudfront_cache_policy" "oam_mosaic_tiles" {
   }
 }
 
+# Only /raster is served on the tiles host. Anything else redirects to the API
+# host, so the tiles host doesn't become an uncached mirror of the whole API.
+resource "aws_cloudfront_function" "oam_tiles_redirect" {
+  name    = "oam-tiles-redirect-${var.environment}"
+  runtime = "cloudfront-js-2.0"
+  comment = "Redirect non-raster paths to ${local.oam_origin_host}"
+  publish = true
+  code    = <<-EOT
+    function handler(event) {
+      var request = event.request;
+      var params = [];
+      for (var key in request.querystring) {
+        var param = request.querystring[key];
+        var values = param.multiValue || [param];
+        values.forEach((v) => params.push(v.value === "" ? key : key + "=" + v.value));
+      }
+      var query = params.length ? "?" + params.join("&") : "";
+      return {
+        statusCode: 308,
+        statusDescription: "Permanent Redirect",
+        headers: { location: { value: "https://${local.oam_origin_host}" + request.uri + query } },
+      };
+    }
+  EOT
+}
+
 resource "aws_cloudfront_distribution" "oam_tiles" {
   enabled         = true
   is_ipv6_enabled = true
@@ -119,18 +145,21 @@ resource "aws_cloudfront_distribution" "oam_tiles" {
     }
   }
 
-  # Everything that isn't a tile (tilejson, api.html, POST /searches/register).
+  # Non-raster paths never reach the origin, see aws_cloudfront_function.oam_tiles_redirect.
   default_cache_behavior {
-    target_origin_id         = "eoapi"
-    allowed_methods          = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-    cached_methods           = ["GET", "HEAD"]
-    cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled.id
-    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_except_host.id
-    viewer_protocol_policy   = "redirect-to-https"
-    compress                 = true
+    target_origin_id       = "eoapi"
+    allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods         = ["GET", "HEAD"]
+    cache_policy_id        = data.aws_cloudfront_cache_policy.caching_disabled.id
+    viewer_protocol_policy = "redirect-to-https"
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.oam_tiles_redirect.arn
+    }
   }
 
-  # Order matters: `*` matches across `/`, so the item pattern must come first.
+  # Order matters: `*` matches across `/`, so more specific patterns come first.
   ordered_cache_behavior {
     path_pattern           = "/raster/collections/*/items/*/tiles/*"
     target_origin_id       = "eoapi"
@@ -153,6 +182,18 @@ resource "aws_cloudfront_distribution" "oam_tiles" {
       viewer_protocol_policy = "redirect-to-https"
       compress               = true
     }
+  }
+
+  # Raster paths that aren't tiles (tilejson, api.html, POST /searches/register).
+  ordered_cache_behavior {
+    path_pattern             = "/raster/*"
+    target_origin_id         = "eoapi"
+    allowed_methods          = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods           = ["GET", "HEAD"]
+    cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled.id
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_except_host.id
+    viewer_protocol_policy   = "redirect-to-https"
+    compress                 = true
   }
 
   restrictions {
