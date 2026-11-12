@@ -51,7 +51,7 @@ set -gx RUN (date +%Y%m%d%H%M)
 set -gx MODEL sklearn-rgb-segmentation
 set -gx MODEL_DIR sklearn_rgb_segmentation
 set -gx ITEM_URL https://raw.githubusercontent.com/hotosm/fAIr-models/refs/heads/develop/models/$MODEL_DIR/stac-item.json
-set -gx IMAGERY 'https://api.imagery.hotosm.org/raster/collections/openaerialmap/items/62d86c65d8499800053796c4/tiles/WebMercatorQuad/{z}/{x}/{y}?assets=visual'
+set -gx IMAGERY 'https://tiles.imagery.hotosm.org/raster/collections/openaerialmap/items/62d86c65d8499800053796c4/tiles/WebMercatorQuad/{z}/{x}/{y}?assets=visual'
 set -gx BBOX '[85.51678, 27.63133, 85.52323, 27.63743]'
 
 curl -fsS $API/health/ | jq
