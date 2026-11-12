@@ -101,6 +101,12 @@ spec:
             images:
               - "ghcr.io/hotosm/openaerialmap/stac-ingester:sha-{{ .head_sha }}"
 
+        # Catalogue stats under /stats. Released versions, not the PR commit:
+        # it lives in hotosm/oam-eoapi-stats, so the image tag is in stats.yaml.
+        - repoURL: https://github.com/hotosm/k8s-infra.git
+          targetRevision: HEAD
+          path: apps/staging/oam/stats
+
         # Quota/limits, pgstac, sealed secrets. Non-recursive: no values files.
         - repoURL: https://github.com/hotosm/k8s-infra.git
           targetRevision: HEAD

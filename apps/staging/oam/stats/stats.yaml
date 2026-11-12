@@ -1,0 +1,119 @@
+# oam-eoapi-stats: catalogue statistics served under /stats on the eoAPI host.
+# https://github.com/hotosm/oam-eoapi-stats
+#
+# Reads the in-namespace pgstac from ../pgstac.yaml, never the prod catalogue.
+# Results live in memory, so requests never touch the database; /stats/readyz
+# stays 503 until the first refresh completes.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oam-eoapi-stats
+  namespace: oam-staging
+  labels:
+    app.kubernetes.io/name: oam-eoapi-stats
+spec:
+  # In-memory cache and an in-process scheduler: one replica, one refresh.
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: oam-eoapi-stats
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: oam-eoapi-stats
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: oam-eoapi-stats
+          image: ghcr.io/hotosm/oam-eoapi-stats:0.1.1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          env:
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef: { name: oam-stac-db-creds, key: host }
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef: { name: oam-stac-db-creds, key: port }
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef: { name: oam-stac-db-creds, key: username }
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: oam-stac-db-creds, key: password }
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef: { name: oam-stac-db-creds, key: database }
+            # The catalogue is small and changes as testers upload, so refresh
+            # far more often than prod's nightly default.
+            - name: CRON_SCHEDULE
+              value: "*/15 * * * *"
+            - name: CORS_ORIGINS
+              value: https://stage.imagery.hotosm.org
+          readinessProbe:
+            httpGet: { path: /stats/readyz, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /stats/healthz, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits: { cpu: 250m, memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oam-eoapi-stats
+  namespace: oam-staging
+  labels:
+    app.kubernetes.io/name: oam-eoapi-stats
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: oam-eoapi-stats
+---
+# Shares the eoAPI host. ingress-nginx merges rules per host and the longest
+# prefix wins, so /stats lands here rather than on eoAPI's root landing page.
+# No cert-manager or external-dns annotations: the eoAPI ingress already owns
+# the DNS record and the eoapi-staging-tls certificate, which this one reuses.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: oam-eoapi-stats
+  namespace: oam-staging
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - api.stage.imagery.hotosm.org
+      secretName: eoapi-staging-tls
+  rules:
+    - host: api.stage.imagery.hotosm.org
+      http:
+        paths:
+          - path: /stats
+            pathType: Prefix
+            backend:
+              service:
+                name: oam-eoapi-stats
+                port:
+                  name: http
