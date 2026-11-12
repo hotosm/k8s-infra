@@ -20,6 +20,7 @@ outside the cluster:
 | eoAPI stac | upstream chart, our `stac-api` image at `sha-<head_sha>` |
 | eoAPI root landing page | upstream chart's `docServer`, so the bare host is not a 404 |
 | tilepack-api + worker | its chart, from the PR commit, images `sha-<head_sha>` |
+| global-mosaic CronJob | `global-mosaic/`, image `sha-<head_sha>`, every 15 min, into the bundled store |
 | frontend | `frontend/`, image `sha-<head_sha>`, config injected at runtime |
 | GeoTIFF WorkflowTemplate | `backend/uploader-api/pipeline`, from the PR commit |
 | GLO-30 elevation | `jobs/`, image `sha-<head_sha>`, PostSync hook on every sync |
@@ -30,12 +31,11 @@ Read-only from prod, so there is nothing to stage:
 
 | Thing | Why |
 | --- | --- |
-| coverage PMTiles | `global-mosaic` output in `oin-hotosm-prod`, public GET |
 | global TMS | third-party image, chart only; the landing page links prod's |
 | STAC Browser | static SPA; prod's copy browses this catalogue via `/browser/external/api.stage.imagery.hotosm.org/stac` |
 | STAC Map | static SPA; prod's copy browses this catalogue via `/map/?href=https://api.stage.imagery.hotosm.org/stac` |
 
-Not deployed: `global-mosaic` and the `stac-ingester` CronJobs. The unsynced
+Not deployed: the `stac-ingester` CronJobs. The unsynced
 `jobs/ingest-glo30.yaml` is a manual, Nepal-scoped test. See
 `../../oam/README.md`.
 
@@ -53,7 +53,7 @@ Hostnames, all under `imagery.hotosm.org` so external-dns already covers them:
 | `api.stage.imagery.hotosm.org` | eoAPI `/stac`, `/raster` and the root landing page |
 | `upload.stage.imagery.hotosm.org` | uploader-api |
 | `packager.stage.imagery.hotosm.org` | tilepack-api |
-| `s3.stage.imagery.hotosm.org` | the object store's S3 API |
+| `s3.stage.imagery.hotosm.org` | the object store's S3 API, and global-mosaic's `stats.json`, `stats/` and PMTiles |
 
 ## Why not the eoAPI bundled database
 
@@ -83,7 +83,7 @@ Command-line args outrank `postgresql.auto.conf`, so they are pinned there.
 ### 1. Branch and image builds
 
 Create a `staging` branch on hotosm/openaerialmap. Every commit on it must build
-all six images that the ApplicationSet pins at `sha-<head_sha>`, or the pods sit
+all seven images that the ApplicationSet pins at `sha-<head_sha>`, or the pods sit
 in `ImagePullBackOff` - `.github/workflows/staging-images.yml` does that, with no
 path filters, so a commit that touched only one component still tags the rest.
 
@@ -170,6 +170,10 @@ kubectl -n oam-staging logs job/eoapi-pgstac-migrate
 # ApplicationSet stays Progressing until the seed finishes.
 kubectl -n oam-staging logs job/uploader-api-bucket-init
 kubectl -n oam-staging logs -f job/uploader-api-seed
+
+# 404 until the first global-mosaic run (at most 15 min), then the figures.
+kubectl -n oam-staging create job --from=cronjob/oam-global-mosaic global-mosaic-now
+curl -s https://s3.stage.imagery.hotosm.org/oam-staging/stats/index.json
 
 kubectl -n oam-staging run curl-test --rm -it --restart=Never \
   --image=curlimages/curl \

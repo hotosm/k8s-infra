@@ -11,8 +11,8 @@ spec:
   # long-running pods, all of them sized for this deploy's handful of users
   # rather than copied from prod. The burst on top is a GeoTIFF workflow (steps
   # are sequential, so one 4Gi/4-CPU step at a time), one tilepack worker Job,
-  # the bucket-init and seed hooks, and a rolling replacement pod per
-  # Deployment mid-sync.
+  # the bucket-init and seed hooks, a global-mosaic run (1 CPU / 1Gi), and a
+  # rolling replacement pod per Deployment mid-sync.
   #
   # The 4Gi step is the ceiling and it is deliberately not trimmed: GDAL's
   # footprint follows the raster, not the user count, and that template is
