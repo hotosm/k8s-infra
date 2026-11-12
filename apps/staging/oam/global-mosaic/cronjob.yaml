@@ -1,0 +1,72 @@
+# global-mosaic for staging: catalogue stats (stats.json, stats/*.json), the
+# density grid and the footprint PMTiles, built from the in-namespace pgstac and
+# written to the bundled object store, never to oin-hotosm-prod.
+#
+#   https://s3.stage.imagery.hotosm.org/oam-staging/stats.json
+#   https://s3.stage.imagery.hotosm.org/oam-staging/stats/index.json
+#
+# Same job as prod's ../../../oam/mosaic-cronjob.yaml. The image tag below is a
+# placeholder: the appset pins it to sha-<head_sha> through kustomize. See
+# ../../oam.yaml.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: oam-global-mosaic
+  namespace: oam-staging
+  labels:
+    app: oam-global-mosaic
+spec:
+  # Same cadence as prod. With the seeded ~100 items a run takes well under a
+  # minute, so the first figures land within 15 min of a deploy.
+  schedule: "*/15 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      # Safe to retry: a rerun regenerates and re-uploads everything
+      backoffLimit: 1
+      activeDeadlineSeconds: 900
+      template:
+        metadata:
+          labels:
+            app: oam-global-mosaic
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          containers:
+            - name: oam-global-mosaic
+              image: ghcr.io/hotosm/openaerialmap/global-mosaic:main
+              imagePullPolicy: IfNotPresent
+              # Sized for the seeded catalogue, not prod's 2 CPU / 2Gi.
+              resources:
+                requests: { cpu: 250m, memory: 512Mi }
+                limits: { cpu: "1", memory: 1Gi }
+              env:
+                # Default COLLECTION (openaerialmap) only: the seed copies no
+                # federated collections.
+                - name: S3_ENDPOINT
+                  value: s3.stage.imagery.hotosm.org
+                - name: S3_BUCKET
+                  value: oam-staging
+                - name: S3_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef: { name: oam-s3-creds, key: S3_ACCESS_KEY }
+                - name: S3_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef: { name: oam-s3-creds, key: S3_SECRET_KEY }
+                - name: PGHOST
+                  valueFrom:
+                    secretKeyRef: { name: oam-stac-db-creds, key: host }
+                - name: PGPORT
+                  valueFrom:
+                    secretKeyRef: { name: oam-stac-db-creds, key: port }
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef: { name: oam-stac-db-creds, key: username }
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef: { name: oam-stac-db-creds, key: password }
+                - name: PGDATABASE
+                  valueFrom:
+                    secretKeyRef: { name: oam-stac-db-creds, key: database }

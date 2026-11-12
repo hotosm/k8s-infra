@@ -101,6 +101,15 @@ spec:
             images:
               - "ghcr.io/hotosm/openaerialmap/stac-ingester:sha-{{ .head_sha }}"
 
+        # global-mosaic CronJob: catalogue stats, density and footprint PMTiles
+        # into the bundled object store. Kustomize, to pin the image tag.
+        - repoURL: https://github.com/hotosm/k8s-infra.git
+          targetRevision: HEAD
+          path: apps/staging/oam/global-mosaic
+          kustomize:
+            images:
+              - "ghcr.io/hotosm/openaerialmap/global-mosaic:sha-{{ .head_sha }}"
+
         # Quota/limits, pgstac, sealed secrets. Non-recursive: no values files.
         - repoURL: https://github.com/hotosm/k8s-infra.git
           targetRevision: HEAD
