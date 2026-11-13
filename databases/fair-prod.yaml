@@ -79,6 +79,11 @@ spec:
     requests:
       cpu: 100m
 
+  # Databases stay on the fixed core nodes, never on Karpenter autoscale nodes.
+  affinity:
+    nodeSelector:
+      eks.amazonaws.com/nodegroup: core
+
   storage:
     storageClass: gp3
     size: 50Gi
