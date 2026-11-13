@@ -127,6 +127,7 @@ metadata:
 spec:
   instances: 1
   imageName: "ghcr.io/cloudnative-pg/postgresql:18-system-trixie"
+  resources:  { requests: { cpu: 100m } }
   storage:    { storageClass: gp3, size: 20Gi }
   walStorage: { storageClass: gp3, size: 40Gi }
   bootstrap:
