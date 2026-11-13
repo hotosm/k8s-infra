@@ -20,6 +20,7 @@ outside the cluster:
 | eoAPI stac | upstream chart, our `stac-api` image at `sha-<head_sha>` |
 | eoAPI root landing page | upstream chart's `docServer`, so the bare host is not a 404 |
 | tilepack-api + worker | its chart, from the PR commit, images `sha-<head_sha>` |
+| oam-eoapi-stats | `stats/`, released image pinned there, reads the in-namespace pgstac |
 | frontend | `frontend/`, image `sha-<head_sha>`, config injected at runtime |
 | GeoTIFF WorkflowTemplate | `backend/uploader-api/pipeline`, from the PR commit |
 | GLO-30 elevation | `jobs/`, image `sha-<head_sha>`, PostSync hook on every sync |
@@ -50,7 +51,7 @@ Hostnames, all under `imagery.hotosm.org` so external-dns already covers them:
 | Host | Serves |
 | --- | --- |
 | `stage.imagery.hotosm.org` | frontend |
-| `api.stage.imagery.hotosm.org` | eoAPI `/stac`, `/raster` and the root landing page |
+| `api.stage.imagery.hotosm.org` | eoAPI `/stac`, `/raster` and the root landing page; oam-eoapi-stats `/stats` |
 | `upload.stage.imagery.hotosm.org` | uploader-api |
 | `packager.stage.imagery.hotosm.org` | tilepack-api |
 | `s3.stage.imagery.hotosm.org` | the object store's S3 API |
@@ -170,6 +171,9 @@ kubectl -n oam-staging logs job/eoapi-pgstac-migrate
 # ApplicationSet stays Progressing until the seed finishes.
 kubectl -n oam-staging logs job/uploader-api-bucket-init
 kubectl -n oam-staging logs -f job/uploader-api-seed
+
+# 503 until the first refresh finishes, then the headline totals.
+curl -s https://api.stage.imagery.hotosm.org/stats
 
 kubectl -n oam-staging run curl-test --rm -it --restart=Never \
   --image=curlimages/curl \
