@@ -82,6 +82,11 @@ spec:
   #       - CREATE EXTENSION IF NOT EXISTS postgis_topology CASCADE;
   #       - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
 
+  # CPU floor so the instance manager still answers probes on a saturated node.
+  resources:
+    requests:
+      cpu: 100m
+
   storage:
     storageClass: gp3
     size: 20Gi

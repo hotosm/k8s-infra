@@ -94,6 +94,11 @@ spec:
   #       - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON SEQUENCES TO windmill_user;
   #       - ALTER DEFAULT PRIVILEGES FOR ROLE windmill IN SCHEMA public GRANT ALL ON FUNCTIONS TO windmill_user;
 
+  # CPU floor so the instance manager still answers probes on a saturated node.
+  resources:
+    requests:
+      cpu: 100m
+
   storage:
     storageClass: gp3
     size: 5Gi

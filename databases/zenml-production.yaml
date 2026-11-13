@@ -75,6 +75,11 @@ spec:
   #       # Pointing to the NEW production credentials you sealed earlier
   #       name: zenml-db-production-creds
 
+  # CPU floor so the instance manager still answers probes on a saturated node.
+  resources:
+    requests:
+      cpu: 100m
+
   storage:
     storageClass: gp3
     size: 20Gi

@@ -74,6 +74,11 @@ spec:
   #       - CREATE EXTENSION IF NOT EXISTS btree_gist;
   #       - CREATE EXTENSION IF NOT EXISTS unaccent;
 
+  # CPU floor so the instance manager still answers probes on a saturated node.
+  resources:
+    requests:
+      cpu: 100m
+
   storage:
     storageClass: gp3
     size: 50Gi

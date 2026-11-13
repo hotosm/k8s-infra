@@ -82,6 +82,11 @@ spec:
   #       - GRANT pgstac_ingest TO "oam_stac" WITH ADMIN OPTION;
   #       - GRANT pgstac_admin TO "oam_stac" WITH ADMIN OPTION;
 
+  # CPU floor so the instance manager still answers probes on a saturated node.
+  resources:
+    requests:
+      cpu: 100m
+
   storage:
     storageClass: gp3
     size: 50Gi
