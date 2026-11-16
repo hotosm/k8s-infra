@@ -121,7 +121,7 @@ stac:
 apiServices:
   - stac
 browser:
-  enabled: false
+  enabled: true
 docServer:
   enabled: false
 raster:
