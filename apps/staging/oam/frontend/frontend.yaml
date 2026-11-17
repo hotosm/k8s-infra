@@ -49,6 +49,8 @@ spec:
               value: https://api.imagery.hotosm.org/browser
             - name: VITE_STAC_MAP_URL
               value: https://api.imagery.hotosm.org/map
+            - name: VITE_HANKO_URL
+              value: https://dev.login.hotosm.org
             - name: VITE_UPLOADER_URL
               value: https://upload.stage.imagery.hotosm.org
             - name: VITE_PACKAGER_URL

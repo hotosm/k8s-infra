@@ -9,11 +9,11 @@ existingSecret:
 env:
   # Verbose on staging; prod runs INFO.
   LOG_LEVEL: DEBUG
-  # Auth and cookies identical to prod, so that is what gets tested.
+  # Cookies as in prod, so that is what gets tested. Login uses dev Hanko.
   ENVIRONMENT: production
   AUTH_PROVIDER: hotosm
-  HANKO_API_URL: https://login.hotosm.org
-  LOGIN_URL: https://login.hotosm.org/app
+  HANKO_API_URL: https://dev.login.hotosm.org
+  LOGIN_URL: https://dev.login.hotosm.org/app
 
   # S3_ENDPOINT, S3_EXTERNAL_ENDPOINT and PUBLIC_ASSET_BASE_URL are derived
   # from s3.rustfs below.
