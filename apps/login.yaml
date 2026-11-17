@@ -9,7 +9,7 @@ spec:
     # Helm chart + values
     - repoURL: oci://ghcr.io/hotosm/charts/login
       chart: login
-      targetRevision: 0.7.1
+      targetRevision: 0.8.0
       helm:
         releaseName: login-prod
         valueFiles:
@@ -24,6 +24,12 @@ spec:
     - repoURL: https://github.com/hotosm/k8s-infra.git
       targetRevision: HEAD
       path: apps/login
+
+    # Hanko
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/login/hanko
+
   destination:
     server: https://kubernetes.default.svc
     namespace: login

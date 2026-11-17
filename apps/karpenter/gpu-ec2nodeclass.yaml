@@ -18,10 +18,10 @@ spec:
         karpenter.sh/discovery: hotosm-production-cluster
 
   blockDeviceMappings:
-    - deviceName: /dev/sda1
+    - deviceName: /dev/xvda
       rootVolume: true
       ebs:
-        volumeSize: 50Gi
+        volumeSize: 100Gi
         volumeType: gp3
         deleteOnTermination: true
 

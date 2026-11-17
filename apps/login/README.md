@@ -6,7 +6,7 @@ HOTOSM Login service providing OSM OAuth integration and custom login UI.
 
 - **Backend** (FastAPI): Handles `/api/*` and `/me` routes
 - **Frontend** (React SPA): Serves `/login` route
-- **Hanko**: Root path `/` (deployed separately, see [../hanko](../hanko))
+- **Hanko**: Root path `/` (deployed by this same Argo app, see [./hanko](./hanko))
 
 All services share the `login.hotosm.org` domain using path-based routing.
 
@@ -81,4 +81,4 @@ kubectl logs -n login -l app=login-frontend
 ## Related
 
 - Source: https://github.com/hotosm/login
-- Hanko config: [../hanko](../hanko)
+- Hanko config: [./hanko](./hanko)
