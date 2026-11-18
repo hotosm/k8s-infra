@@ -1,0 +1,76 @@
+# Staging values for dev.login.hotosm.org (main) and staging.login.hotosm.org
+
+existingSecret:
+  name: "login-backend-secrets"
+
+# Dev images from the login repo (develop branch).
+# To update, set both tags to the new develop commit SHA.
+backend:
+  image:
+    tag: "0e9421117fa987c71da481b66e66d61e14201e96"
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+frontend:
+  image:
+    tag: "0e9421117fa987c71da481b66e66d61e14201e96"
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+env:
+  AUTH_PROVIDER: "hanko"
+  HANKO_API_URL: "https://dev.login.hotosm.org"
+  JWT_ISSUER: "https://dev.login.hotosm.org"
+  BACKEND_URL: "https://dev.login.hotosm.org"
+  FRONTEND_URL: "https://dev.login.hotosm.org"
+  COOKIE_DOMAIN: ".hotosm.org"
+  OSM_REDIRECT_URI: "https://dev.login.hotosm.org/api/auth/osm/callback"
+  OSM_URL: "https://www.openstreetmap.org"
+  OSM_SCOPE: "read_prefs"
+  LOG_LEVEL: "INFO"
+  ADMIN_EMAILS: "hernangigena@gmail.com,justina@animus.com.ar,andreatchirillano@hotmail.com,emilio.mariscal@hotosm.org,dakota.benjamin@hotosm.org,sam.woodcock@hotosm.org,elenaficher.di@gmail.com"
+  DRONETM_BACKEND_URL: "https://dev.drone.hotosm.org"
+  FAIR_BACKEND_URL: "https://fair-dev.hotosm.org"
+  PORTAL_BACKEND_URL: "https://portal.hotosm.org"
+  OAM_BACKEND_URL: "https://openaerialmap.org"
+  UMAP_BACKEND_URL: "https://umap-dev.hotosm.org"
+  EXPORT_TOOL_BACKEND_URL: "https://export.testlogin.hotosm.org"
+  FIELDTM_BACKEND_URL: "https://fieldtm.testlogin.hotosm.org"
+  TASKING_MANAGER_BACKEND_URL: "https://tm.testlogin.hotosm.org"
+
+  # LearnWorlds test school. LEARNWORLDS_CLIENT_SECRET is in the sealed secret.
+  LEARNWORLDS_SCHOOL_URL: "https://learn-dev.hotosm.org"
+  LEARNWORLDS_CLIENT_ID: "6aba8ec4b50a07377c02f9a7"
+
+  # LINKEDIN_CLIENT_SECRET is in the sealed secret.
+  LINKEDIN_CLIENT_ID: "77akcteduh6ac2"
+
+  # SMTP_USER/SMTP_PASSWORD are in the sealed secret.
+  SMTP_HOST: "email-smtp.us-east-1.amazonaws.com"
+  SMTP_PORT: "587"
+  SMTP_FROM_ADDRESS: "noreply@hotosmmail.org"
+  SMTP_STARTTLS: "true"
+
+  # TODO: S3 bucket and IAM user for logos/banners, like prod
+
+ingress:
+  enabled: true
+  className: "nginx"
+  # staging.login is in ../ingress-staging-host.yaml
+  host: dev.login.hotosm.org
+
+podLabels:
+  project: login
+  tool: login

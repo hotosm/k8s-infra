@@ -1,0 +1,46 @@
+# Staging login, replaces the dev.login EC2
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: login-staging
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    # Helm chart + values
+    - repoURL: oci://ghcr.io/hotosm/charts/login
+      chart: login
+      targetRevision: 0.8.0
+      helm:
+        releaseName: login-staging
+        valueFiles:
+          - $k8s-infra/apps/staging/login/helm/values.yaml
+
+    # Git repo containing values.yaml
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      ref: k8s-infra
+
+    # Extra resources (sealed secrets, staging.login ingress)
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/staging/login
+
+    # Hanko
+    - repoURL: https://github.com/hotosm/k8s-infra.git
+      targetRevision: HEAD
+      path: apps/staging/login/hanko
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: login-staging
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+    managedNamespaceMetadata:
+      labels:
+        environment: staging
+        app: login
