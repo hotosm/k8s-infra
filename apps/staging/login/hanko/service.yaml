@@ -25,3 +25,17 @@ spec:
       targetPort: http-admin
       protocol: TCP
       name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: osm-userinfo
+  namespace: login-staging
+spec:
+  selector:
+    app: hanko
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http

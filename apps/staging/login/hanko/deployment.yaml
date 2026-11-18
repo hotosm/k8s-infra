@@ -1,4 +1,3 @@
-# Same as prod, but 1 replica and no osm-userinfo sidecar (not used on dev)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -68,6 +67,18 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
+          volumeMounts:
+            - name: config
+              mountPath: /etc/config/config.yaml
+              subPath: config.yaml
+        # Run the osm-userinfo svc as a sidecar for simplicity
+        - name: osm-userinfo
+          image: ghcr.io/hotosm/login-osm-userinfo:0e9421117fa987c71da481b66e66d61e14201e96
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
           volumeMounts:
             - name: config
               mountPath: /etc/config/config.yaml
