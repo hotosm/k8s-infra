@@ -29,6 +29,9 @@ loki:
     delete_request_store: s3
   limits_config:
     retention_period: 720h
+    # Truncate lines over max_line_size (256KB) instead of rejecting them,
+    # e.g. rustfs/argo steps that dump whole payloads on one line.
+    max_line_size_truncate: true
 
 serviceAccount:
   annotations:
