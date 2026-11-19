@@ -13,6 +13,7 @@ env:
   ENVIRONMENT: production
   AUTH_PROVIDER: hotosm
   HANKO_API_URL: https://dev.login.hotosm.org
+  LOGIN_API_URL: https://dev.login.hotosm.org
   LOGIN_URL: https://dev.login.hotosm.org/app
 
   # S3_ENDPOINT, S3_EXTERNAL_ENDPOINT and PUBLIC_ASSET_BASE_URL are derived
