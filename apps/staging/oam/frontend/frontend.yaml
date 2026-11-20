@@ -55,7 +55,8 @@ spec:
               value: https://upload.stage.imagery.hotosm.org
             - name: VITE_PACKAGER_URL
               value: https://packager.stage.imagery.hotosm.org
-            # From prod: global-mosaic does not run in staging.
+            # Prod's, for a full map: staging's global-mosaic only covers the
+            # seeded items. Its output is in the oam-staging bucket if wanted.
             - name: VITE_PMTILES_URL
               value: https://s3.amazonaws.com/oin-hotosm-prod/global-data.pmtiles
             - name: VITE_DENSITY_PMTILES_URL
