@@ -1,0 +1,108 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: login-staging-db-store
+  namespace: postgres
+spec:
+  retentionPolicy: "30d"
+  configuration:
+    destinationPath: s3://hotosm-k8s-db-backup/login-staging
+    endpointURL: https://s3.amazonaws.com
+    s3Credentials:
+      accessKeyId:
+        name: s3-creds
+        key: access-key-id
+      secretAccessKey:
+        name: s3-creds
+        key: secret-access-key
+    wal:
+      compression: gzip
+      encryption: AES256
+    data:
+      compression: gzip
+      encryption: AES256
+      jobs: 2
+
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: login-staging-db
+  labels:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/version: 18-system-trixie
+
+spec:
+  instances: 1
+  description: "Login (Hanko + login backend) Staging Database"
+  imageName: "ghcr.io/cloudnative-pg/postgresql:18-system-trixie"
+
+  primaryUpdateStrategy: unsupervised
+  # PDB (voluntary-eviction guard) disabled - single replica would otherwise block node drains on cluster upgrade
+  enablePDB: false
+
+  postgresql:
+    parameters:
+      idle_in_transaction_session_timeout: "60s"
+
+  # New cluster, data restored from the dev EC2.
+  # Switch to recovery after the first backup, like the other clusters.
+  bootstrap:
+    initdb:
+      database: hanko
+      owner: hanko
+      secret:
+        name: login-staging-db-creds
+
+  # CPU floor so the instance manager still answers probes on a saturated node.
+  resources:
+    requests:
+      cpu: 100m
+
+  # Databases stay on the fixed core nodes, never on Karpenter autoscale nodes.
+  affinity:
+    nodeSelector:
+      eks.amazonaws.com/nodegroup: core
+
+  storage:
+    storageClass: gp3
+    size: 2Gi
+  walStorage:
+    storageClass: gp3
+    size: 2Gi
+
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: login-staging-db-store
+
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: login-staging-db-backup
+  namespace: postgres
+spec:
+  schedule: "0 0 3 * * 6"  # At 03:00 UTC every Saturday
+  backupOwnerReference: self
+  cluster:
+    name: login-staging-db
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+---
+# Scrape metrics into Prometheus. Manual, as spec.monitoring.enablePodMonitor
+# is deprecated; same labels and port the operator used to generate.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: login-staging-db-podmonitor
+  namespace: postgres
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: login-staging-db
+      cnpg.io/podRole: instance
+  podMetricsEndpoints:
+    - port: metrics

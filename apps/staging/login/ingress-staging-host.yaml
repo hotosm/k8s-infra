@@ -1,0 +1,117 @@
+# staging.login host, the login chart only takes one host
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: login-staging-host-backend
+  namespace: login-staging
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: staging.login.hotosm.org
+    external-dns.alpha.kubernetes.io/ttl: "300"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - staging.login.hotosm.org
+      secretName: login-staging-host-tls
+  rules:
+    - host: staging.login.hotosm.org
+      http:
+        paths:
+          - path: /me
+            pathType: Exact
+            backend:
+              service:
+                name: login-staging-backend
+                port:
+                  number: 8000
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: login-staging-backend
+                port:
+                  number: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: login-staging-host-frontend-app
+  namespace: login-staging
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - staging.login.hotosm.org
+      secretName: login-staging-host-tls
+  rules:
+    - host: staging.login.hotosm.org
+      http:
+        paths:
+          - path: /app(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: login-staging-frontend
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: login-staging-host-frontend-assets
+  namespace: login-staging
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - staging.login.hotosm.org
+      secretName: login-staging-host-tls
+  rules:
+    - host: staging.login.hotosm.org
+      http:
+        paths:
+          - path: /assets
+            pathType: Prefix
+            backend:
+              service:
+                name: login-staging-frontend
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: login-staging-host-frontend-root
+  namespace: login-staging
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/app-root: /app
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - staging.login.hotosm.org
+      secretName: login-staging-host-tls
+  rules:
+    - host: staging.login.hotosm.org
+      http:
+        paths:
+          - path: /
+            pathType: Exact
+            backend:
+              service:
+                name: login-staging-frontend
+                port:
+                  number: 80

@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hanko
+  namespace: login-staging
+  labels:
+    app: hanko
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: hanko
+  template:
+    metadata:
+      labels:
+        app: hanko
+    spec:
+      containers:
+        - name: hanko
+          image: ghcr.io/teamhanko/hanko:v2.5.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - /hanko
+          args:
+            - serve
+            - all
+            - '--config'
+            - /etc/config/config.yaml
+          env:
+            - name: SESSION_COOKIE_DOMAIN
+              value: ".hotosm.org"
+            - name: SESSION_COOKIE_HTTP_ONLY
+              value: "true"
+            - name: SESSION_COOKIE_SAME_SITE
+              value: "lax"
+            - name: SESSION_COOKIE_SECURE
+              value: "true"
+            - name: THIRD_PARTY_COOKIE_DOMAIN
+              value: ".hotosm.org"
+          ports:
+            - name: http-public
+              containerPort: 8000
+              protocol: TCP
+            - name: http-admin
+              containerPort: 8001
+              protocol: TCP
+          # /health/ready keeps returning 200 when hanko's DB pool is dead,
+          # so probe an endpoint that actually reads from the database.
+          livenessProbe:
+            httpGet:
+              path: /.well-known/jwks.json
+              port: http-public
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /.well-known/jwks.json
+              port: http-public
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: config
+              mountPath: /etc/config/config.yaml
+              subPath: config.yaml
+        # Run the osm-userinfo svc as a sidecar for simplicity
+        - name: osm-userinfo
+          image: ghcr.io/hotosm/login-osm-userinfo:0e9421117fa987c71da481b66e66d61e14201e96
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /etc/config/config.yaml
+              subPath: config.yaml
+      initContainers:
+        - name: hanko-migrate
+          image: ghcr.io/teamhanko/hanko:v2.5.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - /hanko
+          args:
+            - migrate
+            - up
+            - "--config"
+            - /etc/config/config.yaml
+          volumeMounts:
+            - name: config
+              mountPath: /etc/config/config.yaml
+              subPath: config.yaml
+      volumes:
+        - name: config
+          secret:
+            secretName: hanko-config
+            defaultMode: 420
