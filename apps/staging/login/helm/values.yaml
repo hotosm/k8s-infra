@@ -63,7 +63,7 @@ env:
   SMTP_FROM_ADDRESS: "noreply@hotosmmail.org"
   SMTP_STARTTLS: "true"
 
-  # TODO: S3 bucket and IAM user for logos/banners, like prod
+  # No S3 for now: uploads stay in the pod and are lost on restart.
 
 ingress:
   enabled: true
