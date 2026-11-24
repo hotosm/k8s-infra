@@ -7,7 +7,7 @@ existingSecret:
 # To update, set both tags to the new develop commit SHA.
 backend:
   image:
-    tag: "8a067700a246553299b1614deeef0d5bd70a6623"
+    tag: "25500e18194cea19687b5bd5f591ddfd626e1355"
   replicaCount: 1
   resources:
     limits:
@@ -19,7 +19,7 @@ backend:
 
 frontend:
   image:
-    tag: "8a067700a246553299b1614deeef0d5bd70a6623"
+    tag: "25500e18194cea19687b5bd5f591ddfd626e1355"
   replicaCount: 1
   resources:
     limits:
