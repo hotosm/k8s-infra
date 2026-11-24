@@ -9,10 +9,10 @@ set -euo pipefail
 #   - Transitions ALL objects (existing + new) to Intelligent-Tiering after 0 days
 #   - Intelligent-Tiering then automatically manages tier transitions:
 #     * 30 days no access → Infrequent Access
-#     * 90 days no access → Archive Instant Access
-#     * 180 days no access → Deep Archive Access
-#   - Objects remain accessible at all times (no restore needed)
-#   - Automatically moves back to Frequent tier when accessed
+#     * 90 days no access → Archive Access (opt-in below)
+#     * 180 days no access → Deep Archive Access (opt-in below)
+#   - Archived objects can't be read until restored (3-12h).
+#     Restore with: bash unarchive-s3-path.sh <bucket> <prefix>
 #
 # 🔄 To undo/remove this configuration:
 #
@@ -127,21 +127,21 @@ echo
 echo "📊 What happens now:"
 echo "  1. ALL objects under projects/* will transition to Intelligent-Tiering"
 echo "  2. Objects not accessed for 30 days → Infrequent Access tier"
-echo "  3. Objects not accessed for 90 days → Archive Instant Access"
+echo "  3. Objects not accessed for 90 days → Archive Access"
 echo "  4. Objects not accessed for 180 days → Deep Archive Access"
-echo "  5. When accessed → automatically restored to Frequent tier (instant)"
+echo "  5. Archived objects need a restore (3-12h): unarchive-s3-path.sh"
 echo
 echo "💰 Cost savings for 5-15MB images:"
 echo "  - Standard S3: \$0.023/GB/month"
 echo "  - Intelligent-Tiering Frequent: \$0.023/GB/month"
 echo "  - Intelligent-Tiering Infrequent: \$0.0125/GB/month (46% savings)"
-echo "  - Intelligent-Tiering Archive Instant: \$0.004/GB/month (83% savings)"
+echo "  - Intelligent-Tiering Archive: \$0.0036/GB/month (84% savings)"
 echo "  - Intelligent-Tiering Deep Archive: \$0.00099/GB/month (96% savings)"
 echo "  - Monitoring fee: \$0.0025/1000 objects"
 echo
-echo "🔍 No restore delays:"
-echo "  - Archive Instant Access: millisecond retrieval (same as Standard S3)"
-echo "  - Deep Archive Access: automatic async restore to Frequent tier on first access"
+echo "⏳ Restore delays:"
+echo "  - Archive Access: 3-5 hours after a restore request"
+echo "  - Deep Archive Access: up to 12 hours after a restore request"
 echo
 echo " Verify configuration:"
 echo "  aws s3api get-bucket-intelligent-tiering-configuration \\"
