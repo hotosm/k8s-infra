@@ -1,69 +1,91 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # -------------------------------------------------------------
-# Restore S3 Intelligent-Tiering archived objects under a prefix
+# Restore S3 Intelligent-Tiering archived objects under one or more prefixes
 # Usage:
-#   bash unarchive-s3-path.sh <bucket-name> <prefix> [profile-name]
+#   AWS_PROFILE=admin bash unarchive-s3-path.sh <bucket-name> <prefix>...
 #
-# Example (one Drone TM task, or drop the task id for a whole project):
-#   bash unarchive-s3-path.sh dronetm-prod projects/<project-id>/<task-id>/
+# Optional: EXCLUDE=<grep -E regex> skips matching keys.
 #
-# Re-run the same command to check progress. It only requests restores for
-# objects still archived, so it is safe to run repeatedly. Done when every
-# object reports "readable".
+# Re-run the same command to check progress. It is safe to repeat.
+# Done when every object reports "readable".
 #
 # Restore time: ARCHIVE_ACCESS 3-5h, DEEP_ARCHIVE_ACCESS up to 12h.
 # Intelligent-Tiering has no retrieval fee. Restored objects return to the
 # Frequent tier and are archived again after 90 days without access.
+#
+# Drone TM recipe: restore a project's ODM outputs (orthophotos, DEMs and
+# asset zips users view and download), leaving raw imagery and the
+# undistorted photo copies (not served to users) archived:
+#
+#   export AWS_PROFILE=admin
+#   export EXCLUDE='/opensfm/undistorted/'
+#   P=<project-id>
+#   bash unarchive-s3-path.sh dronetm-prod "projects/$P/odm/" \
+#     $(aws s3 ls "s3://dronetm-prod/projects/$P/" | grep -oE '[0-9a-f-]{36}/' |
+#       sed "s|^|projects/$P/|; s|$|odm/|")
 # -------------------------------------------------------------
-if [[ $# -lt 2 || -z "$2" ]]; then
-  echo "Usage: $0 <bucket-name> <prefix> [profile-name]"
+if [[ $# -lt 2 ]]; then
+  echo "Usage: AWS_PROFILE=<profile> $0 <bucket-name> <prefix>..."
   exit 1
 fi
 
 BUCKET="$1"
-PREFIX="$2"
-PROFILE="${3:-admin}"
-PARALLEL_REQUESTS=16
+shift
+PARALLEL_REQUESTS=32
 # Intelligent-Tiering never archives objects smaller than 128 KiB.
 MIN_ARCHIVABLE_BYTES=131072
+# Text output prints "None" for an empty listing.
+SKIP_KEYS="^None\$${EXCLUDE:+|$EXCLUDE}"
+LOG_FILE=$(mktemp)
+trap 'rm -f "$LOG_FILE"' EXIT
+
+for prefix in "$@"; do
+  # An empty prefix would restore the whole bucket.
+  if [[ -z "$prefix" ]]; then
+    echo "Refusing empty prefix."
+    exit 1
+  fi
+done
 
 echo "========================================="
 echo "🪣 Bucket: $BUCKET"
-echo "📁 Prefix: $PREFIX"
-echo "👔 Profile: $PROFILE"
+echo "📁 Prefixes: $#"
+echo "👔 Profile: ${AWS_PROFILE:-default}"
+echo "🚫 Exclude: ${EXCLUDE:-none}"
 echo "========================================="
 
-# Prints one status per key: readable, restoring or requested.
+# One call per key: S3 rejects restores of non-archived objects with
+# InvalidObjectState, which saves a separate head-object per key.
 restore_key() {
-  local key="$1" archive_status restore_status
-  IFS=$'\t' read -r archive_status restore_status < <(
-    aws s3api head-object --bucket "$BUCKET" --key "$key" --profile "$PROFILE" \
-      --query '[ArchiveStatus, Restore]' --output text
-  )
-
-  if [[ "$archive_status" == "None" ]]; then
-    echo "readable"
-  elif [[ "$restore_status" == *'ongoing-request="true"'* ]]; then
-    echo "restoring"
+  local key="$1" err
+  if err=$(aws s3api restore-object --bucket "$BUCKET" --key "$key" \
+    --restore-request '{"GlacierJobParameters": {"Tier": "Standard"}}' 2>&1); then
+    echo "requested $key"
+  elif [[ "$err" == *InvalidObjectState* ]]; then
+    echo "readable $key"
+  elif [[ "$err" == *RestoreAlreadyInProgress* ]]; then
+    echo "restoring $key"
   else
-    # Intelligent-Tiering restores take no Days value, unlike Glacier.
-    aws s3api restore-object --bucket "$BUCKET" --key "$key" --profile "$PROFILE" \
-      --restore-request '{"GlacierJobParameters": {"Tier": "Standard"}}'
-    echo "requested"
+    echo "error $key: $err"
   fi
 }
 export -f restore_key
-export BUCKET PROFILE
+export BUCKET
 
-aws s3api list-objects-v2 --bucket "$BUCKET" --prefix "$PREFIX" --profile "$PROFILE" \
-  --query "Contents[?Size >= \`$MIN_ARCHIVABLE_BYTES\`].Key" --output text |
-  tr '\t' '\n' |
-  { grep -v '^None$' || true; } |
+for prefix in "$@"; do
+  aws s3api list-objects-v2 --bucket "$BUCKET" --prefix "$prefix" \
+    --query "Contents[?Size >= \`$MIN_ARCHIVABLE_BYTES\`].Key" --output text |
+    tr '\t' '\n' | { grep -vE "$SKIP_KEYS" || true; }
+done |
   xargs -d '\n' -r -P "$PARALLEL_REQUESTS" -I {} bash -c 'restore_key "$1"' _ {} |
-  sort | uniq -c
+  tee "$LOG_FILE"
 
+echo
+echo "Summary:"
+cut -d' ' -f1 "$LOG_FILE" | sort | uniq -c
 echo
 echo "readable  = available now"
 echo "restoring = restore in progress, re-run later to check"
 echo "requested = restore started by this run"
+echo "error     = unexpected failure, see the line above"
