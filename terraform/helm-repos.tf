@@ -95,6 +95,32 @@ resource "helm_release" "ingress" {
     type  = "string"
   }
 
+  # Patched controller built from the Chainguard fork
+  # Our image is on images/ingress-nginx
+  set {
+    name  = "controller.image.registry"
+    value = "ghcr.io"
+    type  = "string"
+  }
+
+  set {
+    name  = "controller.image.image"
+    value = "hotosm/k8s-infra/ingress-nginx/controller"
+    type  = "string"
+  }
+
+  set {
+    name  = "controller.image.tag"
+    value = "v1.15.16"
+    type  = "string"
+  }
+
+  set {
+    name  = "controller.image.digest"
+    value = "sha256:6e67c2497e83a13cf5ff171d736675ed2d659433580e129f9f1c029e5726164d"
+    type  = "string"
+  }
+
   wait = true
   depends_on = [
     aws_eks_cluster.cluster
