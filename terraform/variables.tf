@@ -155,7 +155,7 @@ variable "kube_proxy_version" {
 }
 
 variable "nginx_ingress_version" {
-  default     = "4.12.1"
+  default     = "4.15.1"
   description = <<-EOT
   Version of the nginx ingress controller chart to install
   EOT
