@@ -41,6 +41,60 @@ resource "helm_release" "ingress" {
     type  = "string"
   }
 
+  # 2 replicas spread across zones, so a rollout always has one pod serving
+  set {
+    name  = "controller.replicaCount"
+    value = 2
+  }
+
+  set {
+    name  = "controller.resources.requests.memory"
+    value = "256Mi"
+    type  = "string"
+  }
+
+  # Keep accepting connections for 15s after a pod is told to stop
+  set {
+    name  = "controller.extraArgs.shutdown-grace-period"
+    value = "15"
+    type  = "string"
+  }
+
+  set {
+    name  = "controller.topologySpreadConstraints[0].maxSkew"
+    value = 1
+  }
+
+  set {
+    name  = "controller.topologySpreadConstraints[0].topologyKey"
+    value = "topology.kubernetes.io/zone"
+    type  = "string"
+  }
+
+  set {
+    name  = "controller.topologySpreadConstraints[0].whenUnsatisfiable"
+    value = "ScheduleAnyway"
+    type  = "string"
+  }
+
+  set {
+    name  = "controller.topologySpreadConstraints[0].labelSelector.matchLabels.app\\.kubernetes\\.io/name"
+    value = "ingress-nginx"
+    type  = "string"
+  }
+
+  set {
+    name  = "controller.topologySpreadConstraints[0].labelSelector.matchLabels.app\\.kubernetes\\.io/instance"
+    value = "ingress"
+    type  = "string"
+  }
+
+  set {
+    name  = "controller.topologySpreadConstraints[0].labelSelector.matchLabels.app\\.kubernetes\\.io/component"
+    value = "controller"
+    type  = "string"
+  }
+
   wait = true
   depends_on = [
     aws_eks_cluster.cluster
